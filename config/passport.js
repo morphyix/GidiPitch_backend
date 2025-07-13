@@ -2,6 +2,7 @@
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const { handleSocialLoginService } = require('../services/authService');
+const User = require('../models/user');
 
 
 function configurePassport() {
@@ -18,6 +19,21 @@ function configurePassport() {
             done(error, null);
         }
     }));
+
+    // Serialize user to session
+    passport.serializeUser((data, done) => {
+        done(null, data.user._id);
+    });
+
+    // Deserialize user from session
+    passport.deserializeUser(async (id, done) => {
+        try {
+            const user = await User.findById(id);
+            done(null, user);
+        } catch (error) {
+            done(error, null);
+        }
+    });
 }
 
 
