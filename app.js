@@ -27,6 +27,12 @@ app.use(passport.initialize()); // Initialize Passport.js for authentication
 
 
 // Import routes
+const resumeRoutes = require("./routes/resumeRoutes");
+
+
+
+// use the routes
+app.use("/api/resumes", resumeRoutes);
 
 
 // Error handling middleware
