@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const resumeSchems = new mongppse.Schema({
+const resumeSchema = new mongoose.Schema({
     userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
