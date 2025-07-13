@@ -24,9 +24,13 @@ const setupLocalRegistration = async (req, res, next) => {
             return next(new AppError('Invalid email format', 400));
         }
         // check if email already exists
-        const existingUser = await getUserByEmailService(email);
-        if (existingUser) {
-            return next(new AppError('User with this email already exists, please login instead', 400));
+        try {
+            const existingUser = await getUserByEmailService(email);
+            if (existingUser) {
+                return next(new AppError('User with this email already exists, please login instead', 400));
+            }
+        } catch (error) {
+            console.error('Error checking existing user:', error);
         }
         // Generate a JWT token for email verification and signup completion
         const token = createJwtToken({ email }, '24h'); // 24 hours expiry
@@ -34,14 +38,14 @@ const setupLocalRegistration = async (req, res, next) => {
             return next(new AppError('An error occurred while generating the token, please try again later', 500));
         }
         // create url for user to complete registration
-        const verifyUrl = `${process.env.FRONTEND_URL}/auth/register?token=${token}`;
+        const verifyUrl = `${process.env.FRONTEND_URL}/auth/local?token=${token}`;
         // send email with verification link
         const welcomeEmailData = {
             to: email,
             subject: "Welcome to GidiPitch, Complete Your Registration",
             text: "Please complete your registration by verifying your email address",
             html: generateWelcomeEmail('New User', verifyUrl),
-            from: "noreply@gidipitch.com"
+            from: "noreply@thebigphotocontest.com"
         };
         // add welcome email to queue
         await addEmailJob(welcomeEmailData);
@@ -67,6 +71,13 @@ const createLocalUser = async (req, res, next) => {
         if (!token) {
             return next(new AppError('Token is required', 400));
         }
+        // verify the JWT token
+        const hashedToken = hashString(token);
+        const tokeStatus = await getRedisCache(hashedToken);
+        if (tokeStatus === 'revoked') {
+            return next(new AppError('Cannot use this token! Token has been revoked.', 403));
+        }
+
         let decoded;
         try {
             decoded = verifyJwtToken(token);
@@ -99,14 +110,14 @@ const createLocalUser = async (req, res, next) => {
         }
 
         // hash user password
-        const hashPassword = await hashPassword(user.password);
+        const hashedPassword = await hashPassword(password);
 
         // create user object
         const user = {
             email: decoded.email.toLowerCase().trim(),
             firstname: firstname.trim(),
             lastname: lastname.trim(),
-            password: hashPassword,
+            password: hashedPassword,
             emailVerified: true, // set email verified to true since user is completing registration
         };
 
@@ -128,6 +139,10 @@ const createLocalUser = async (req, res, next) => {
 
         // delete user password from the response
         userObj.password = undefined;
+
+        // revoke the token used for registration
+        const tokenHash = hashString(token);
+        await setRedisCache(tokenHash, "revoked", 24 * 60 * 60); // revoke token for 24 hours
 
         return res.status(201).json({
             status: "success",
@@ -185,6 +200,7 @@ const loginLocalUser = async (req, res, next) => {
         }
         // verify user password
         const isPasswordValid = await verifyPassword(password, user.password);
+        console.log('Password verification result:', isPasswordValid);
         if (!isPasswordValid) {
             return next(new AppError('Invalid email or password', 401));
         }

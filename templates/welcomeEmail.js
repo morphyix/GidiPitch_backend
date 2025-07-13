@@ -5,7 +5,7 @@ function generateWelcomeEmail(firstName, verifyUrl) {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Welcome to Kartalist</title>
+  <title>Welcome to GidiPitch</title>
 </head>
 <body style="margin: 0; padding: 0; background-color: #f9fafb; font-family: 'Segoe UI', sans-serif;">
   <div style="max-width: 600px; margin: 40px auto; padding: 32px 24px; background-color: #ffffff; border-radius: 12px; border: 1px solid #e5e7eb; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
