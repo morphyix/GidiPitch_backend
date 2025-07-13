@@ -9,6 +9,7 @@ const { generateWelcomeEmail } = require('../templates/welcomeEmail');
 const { generateForgotPasswordEmail } = require('../templates/resetPasswordEmail');
 const { setRedisCache, getRedisCache } = require('../config/redis');
 const { hashString } = require('../utils/hashString');
+const Resume = require("../models/Resume");
 
 
 // Initiate local registration controller
@@ -385,6 +386,27 @@ const logoutUser = async (req, res, next) => {
     }
 };
 
+exports.deleteUser = async (req, res) => {
+    try {
+    const userId = req.user.id;
+
+    //To delete related resume or data
+    await User.findByIdAndDelete(userId);
+
+    res.clearCookie("token", {
+        httpOnly:true,
+        secure: process.env.Node_ENV === "production",
+        sameSite: "strict"
+    });
+    res.status(200).json({
+        message: "Account deleted and logged out."
+    });
+} catch (err) {
+    console.error("Delete user error:", err.message);
+    res.status(500).json({
+        message: "Server error"
+    });
+} };
 
 //export modules
 module.exports = {
@@ -395,4 +417,5 @@ module.exports = {
     userForgotPassword,
     resetPassword,
     logoutUser,
+    deleteUser,
 }
