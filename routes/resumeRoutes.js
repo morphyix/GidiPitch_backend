@@ -9,7 +9,7 @@ const {
     deleteResume
 } = require("../controllers/resumeController");
 
-const authMiddleWare = require("../middleware/authMiddleware");
+const { authMiddleware } = require("../middleware/authMiddleware");
 
 router.post("/", authMiddleware, createResume);
 router.get("/", authMiddleware, getMyResume);
