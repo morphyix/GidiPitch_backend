@@ -8,7 +8,9 @@ const session = require('express-session');
 const connectDB = require('./config/db');
 const { errorMiddleware } = require('./middleware/errorMiddleware');
 const { configurePassport } = require('./config/passport');
+const { querySanitizeMiddleware } = require('./middleware/querySanitizeMiddleware');
 const authRoutes = require('./routes/authRoute');
+const pitchDeckRoutes = require('./routes/pitchDeckRoutes');
 
 dotenv.config();
 connectDB();
@@ -29,6 +31,7 @@ app.use(cors({
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(helmet()); // Security middleware to set various HTTP headers
+app.use(querySanitizeMiddleware); // Middleware to sanitize query parameters
 app.use(session({
     secret: process.env.SESSION_SECRET || 'defaultsecret',
     resave: false,
@@ -45,6 +48,7 @@ const resumeRoutes = require("./routes/resumeRoutes");
 // use the routes
 app.use("/api/resumes", resumeRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/pitch-deck', pitchDeckRoutes);
 
 
 // Error handling middleware

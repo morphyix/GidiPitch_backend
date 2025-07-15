@@ -6,10 +6,10 @@ const resumeSchema = new mongoose.Schema({
     ref: "User",
     required: true
     },
-    bio:  {type: string },
+    bio:  {type: String },
     skills: [{ type: String}],
     startUpStory: {type: String},
-    template: {type: string, default: "basic"}
-    }, {timestamp: true});
+    template: {type: String, default: "basic"}
+    }, {timestamps: true});
 
-    Module.exports = mongoose.model ("Resume", resumeSchema);
+    module.exports = mongoose.model ("Resume", resumeSchema);

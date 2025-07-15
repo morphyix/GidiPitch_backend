@@ -12,6 +12,7 @@ const pitchDeckSchema = new mongoose.Schema({
     solutions: { type: [String], required: true },
     sector: { type: String, required: true },
     industry: { type: String, required: true },
+    country : { type: String, required: true },
     founders: [{
         name: { type: String, required: true },
         role: { type: String, required: true },
