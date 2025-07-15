@@ -35,7 +35,10 @@ const resumeSchema = new mongoose.Schema({
         website: String,
         pitchDeckUrl: String
     },
-    template: {type: string, default: "basic"}
+    template: {
+        type: string,
+        enum: ["template1", "template2," "template3"],
+        default: "template1"}
     }, {timestamp: true});
 
     Module.exports = mongoose.model ("Resume", resumeSchema);

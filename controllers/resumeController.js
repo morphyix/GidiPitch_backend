@@ -1,4 +1,5 @@
 const Resume = require("../models/Resume");
+const PDFDocument = require("pdfkit")
 // Create resume
 
 exports.createResume = async (req, res) => {
@@ -99,5 +100,81 @@ exports.updateResume = async (req, res) => {
             });
         } catch (error) {
             res.status(500).json({error: error.message});
+        }
+    };
+
+    exports.exportResumePDF = async (req, res) => {
+        try {
+            const resume = await Resume.findById(req.params.id);
+
+            if (!resume) {
+                return
+                res.status(404).json({message: "Resume not found"});
+            }
+
+            // Headers
+            res.setHeader("Content-Type", "application/pdf");
+            res.setHeader(
+                "Content-Disposition",
+                `attachment; filename="${resume.fullname.replace(/ /g, "_")}_Resume.pdf"`
+            );
+
+            // Create Pdf
+            const doc = new PDFDocument();
+            doc.pipe(res);
+
+            //Title
+
+            doc.fontSize(22).text(resume.fullName, {underline: true});
+            doc.fontSize(16).text(resume.title);
+            doc.moveDown;
+
+            //Bio
+            doc.fontSize(14).text(resume.bio);
+            doc.moveDown();
+
+            //Skills
+            doc.fontSize(16).text("Skills:", {underline: true});
+
+            doc.fontSize(14).text(resume.skills.join(", "))
+            doc.moveDown();
+
+            //Stratups
+            if (resume.startups.length > 0) {
+                doc.fontSize(16).text("Startups:", {underline: true});
+                resume.startupStory.forEach((startup) => {
+                    doc.fontSize(14).text(`${startup.name} - ${startup.role}`);
+                    
+                    doc.text(startup.description);
+                    doc.text(`Traction: ${startup.traction}`);
+                    doc.moveDown();
+                });
+            }
+
+            //Education
+            if (resume.education.length > 0) {
+                doc.fontsize(16).text("Education:", {underline: true});
+                resume.education.forEach((edu) => {
+                    doc.text(`${edu.degree} in ${edu.field} - ${edu.school} (${edu.year})`);
+                });
+                doc.moveDown();
+            }
+
+            //Links
+            const links = resume.links || {};
+            doc.fontSize(16).text("Links:", {underline: true});
+            if(links.linkedIn)
+                doc.text(`Linkedin: ${links.linkedIn}`);
+            if(links.github)
+                doc.text(`Github: ${links.github}`);
+            if(links.website)
+                doc.text(`Website: ${links.website}`);
+            if(links.pitchDeckUrl)
+                doc.text(`Pitch Deck : ${links.pitchDeckUrl}`);
+
+            doc.end();
+        } catch (error) {
+            console.error("PDF export failed:", error.message);
+            res.status(500).json({message: "Failed to generate PDF"});
         }
     };
