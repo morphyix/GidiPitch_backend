@@ -25,8 +25,7 @@ const pitchDeckSchema = new mongoose.Schema({
         description: { type: String, required: true }
     }],
     pitchData: {
-        type: Map,
-        of: mongoose.Schema.Types.Mixed,
+        type: Object,
     },
     pdfUrl: { type: String, required: false }
 }, { timestamps: true });

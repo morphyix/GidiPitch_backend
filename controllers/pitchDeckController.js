@@ -59,6 +59,7 @@ const createPitchDeckController = async (req, res, next) => {
         if (!sanitizedData.user) {
             throw new AppError('User ID is required', 400);
         }
+        console.log("sanitizedData: ", sanitizedData);
         // Create pitch deck in the database
         const pitchDeck = await createPitchDeckService(sanitizedData);
         if (!pitchDeck) {

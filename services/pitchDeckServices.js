@@ -16,20 +16,17 @@ const generatePitchDeckService = async (startupData) => {
                 Create a cover slide. Return only a valid JSON object with:
                 - title: The pitch title
                 - subtitle: A short tagline
-                - founders: An array of founder names
-                - template: HTML representation of the slide`,
+                - founders: An array of founder names`,
             problem: `
                 Create a problem slide for a pitch deck, return:
                 as a JSON array of objects with the following keys:
                 - title: The title of the problem
-                - description: brief description of the problem
-                - template: HTML template for the problem slide`,
+                - description: brief description of the problem`,
             solution: `
                 Create a solution slide for a pitch deck, return:
                 as a JSON array of objects with the following two keys:
                 - title: The title of the solution
-                - description: A detailed description of the solution
-                - template: HTML template for the solution slide`,
+                - description: A detailed description of the solution`,
             market: `
                 Create a market slide for a pitch deck backed with current data for ${startupData.country}, return:
                 as a JSON object with the following keys:
@@ -37,48 +34,41 @@ const generatePitchDeckService = async (startupData) => {
                 - description: A detailed description of the market
                 - size: The estimated market size
                 - growthRate: The expected growth rate of the market
-                - productFit: How product aligns and targets the market
-                - template: HTML template for the market slide`,
+                - productFit: How product aligns and targets the market`,
             features: `
                     Create a features slide for a pitch deck, return:
                     as a JSON array of objects with the following two keys:
                     - title: The title of the features
-                    - features: An object containing key features of the product with descriptions on how they solve the problem
-                    - template: HTML template for the features slide`,
+                    - features: An object containing key features of the product with descriptions on how they solve the problem`,
             competition: `
                 Create a competition slide for a pitch deck based on current data for ${startupData.industry} ${startupData.sector} in ${startupData.country}, return:
                 as a JSON array of objects with the following keys:
                 - title: The title of the competition
                 - competitors: An array of competitor names
                 - strengths: An array of strengths of the product compared to competitors
-                - weaknesses: An array of weaknesses of the product compared to competitors
-                - template: HTML template for the competition slide`,
+                - weaknesses: An array of weaknesses of the product compared to competitors`,
             businessModel: `
                 Create a business model slide for a pitch deck, return:
                 as a JSON object with the following keys:
                 - title: The title of the business model
                 - description: A detailed description of the business model
-                - revenueStreams: An array of revenue streams
-                - template: HTML template for the business model slide`,
+                - revenueStreams: An array of revenue streams`,
             goToMarket: `
                 Create a go-to-market slide for a pitch deck, return:
                 as a JSON array of objects with the following keys:
                 - title: The title of the go-to-market strategy
                 - description: A detailed description of the go-to-market strategy
-                - channels: An array of channels to reach customers
-                - template: HTML template for the go-to-market slide`,
+                - channels: An array of channels to reach customers`,
             team: `
                 Create a team slide for a pitch deck, return:
                 as a JSON array of objects with the following keys:
                 - title: The title of the team
-                - members: An array of team member objects with name, role, title and social links
-                - template: HTML template for the team slide`,
+                - members: An array of team member objects with name, role, title and social links`,
             roadMap: `
                 Create a roadmap slide for a pitch deck, return:
                 as a JSON array of objects with the following keys:
                 - title: The title of the roadmap
-                - milestones: An array of milestones with dates and descriptions
-                - template: HTML template for the roadmap slide`,
+                - milestones: An array of milestones with dates and descriptions`,
         };
 
         const ai = new GoogleGenAI({
@@ -91,18 +81,15 @@ const generatePitchDeckService = async (startupData) => {
                 You are a pitch deck expert. ${prompt}
                 Here is the startup data:
                 ${JSON.stringify(startupData)}
-                Generate only one HTML
-                Return only a valid JSON object with no extra text or explanation.`;
+                Return only a valid JSON object with no extra text or explanation or markdowns.`;
             const response = await ai.models.generateContent({
                 model: 'gemini-2.5-pro',
                 contents: [{ role: 'user', parts: [{ text: fullPrompt }] }],
             });
-            console.log("response.text: ", response.text)
+            console.log("response.text: ", response.text);
             let text = response.text;
-            text = text.replace(/```json|```/g, '')
-            .replace(/,\s*}/g, '}')
-            .replace(/,\s*]/g, ']')
-            .trim();
+            text = text.replace(/```json|```/g, '').trim();
+
             try {
                 pitchDeckData[key] = JSON.parse(text);
             } catch (err) {
