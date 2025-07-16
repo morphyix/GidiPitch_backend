@@ -3,7 +3,7 @@ const { AppError } = require('../utils/error');
 const { createUserService, updateUserService, getUserByEmailService, revokeTokenService } = require('../services/authService');
 const { validateEmail, validatePhone, validatePassword } = require('../utils/validators');
 const { hashPassword, verifyPassword } = require('../utils/hashPassword');
-const { createJwtToken, verifyJwtToken } = require('../utils/jwtAuth');
+ const { createJwtToken, verifyJwtToken } = require('../utils/jwtAuth');
 const { addEmailJob } = require('../jobs/email/queue');
 const { generateWelcomeEmail } = require('../templates/welcomeEmail');
 const { generateForgotPasswordEmail } = require('../templates/resetPasswordEmail');
@@ -386,7 +386,7 @@ const logoutUser = async (req, res, next) => {
     }
 };
 
-exports.deleteUser = async (req, res) => {
+const deleteUser = async (req, res) => {
     try {
     const userId = req.user.id;
 

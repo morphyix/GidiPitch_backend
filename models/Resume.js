@@ -10,7 +10,7 @@ const resumeSchema = new mongoose.Schema({
 
     fullName: {type: String, required: true},
     title:{type: String, default: "Founder / CEO"},
-    bio:  {type: string, required: String},
+    bio:  {type: String, required: String},
     startups: [{
         name: String,
         description: String,
@@ -35,10 +35,11 @@ const resumeSchema = new mongoose.Schema({
         website: String,
         pitchDeckUrl: String
     },
-    template: {
-        type: string,
-        enum: ["template1", "template2," "template3"],
-        default: "template1"}
-    }, {timestamp: true});
+     // template: {
+        // type: String,
+        // enum: ["template1", "template2", "template3"],
+       // default: "template1"}
+    }, 
+       {timestamp: true});
 
-    Module.exports = mongoose.model ("Resume", resumeSchema);
+    module.exports = mongoose.model ("Resume", resumeSchema);
