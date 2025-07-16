@@ -25,3 +25,8 @@ const startJobs = async () => {
 
 // start the jobs
 startJobs();
+
+// export start job
+module.exports = {
+    startJobs,
+};
