@@ -129,8 +129,64 @@ const createPitchDeckService = async (pitchDeckData) => {
 };
 
 
+// Get user pitch decks
+const getUserPitchDecksService = async (userId) => {
+    try {
+        if (!userId) {
+            throw new AppError('User ID is required', 400);
+        }
+        const pitchDecks = await pitchDeck.find({ user: userId }).sort({ createdAt: -1 });
+        return pitchDecks;
+    } catch (error) {
+        console.error('Error fetching user pitch decks:', error);
+        throw new AppError('Failed to fetch user pitch decks', 500);
+    }
+};
+
+
+// Get a specific pitch deck by ID
+const getPitchDeckByIdService = async (pitchDeckId) => {
+    try {
+        if (!pitchDeckId) {
+            throw new AppError('Pitch deck ID is required', 400);
+        }
+        const pitchDeckData = await pitchDeck.findById(pitchDeckId);
+        if (!pitchDeckData) {
+            throw new AppError('Pitch deck not found', 404);
+        }
+        return pitchDeckData;
+    } catch (error) {
+        console.error('Error fetching pitch deck by ID:', error);
+        if (error instanceof AppError) throw error; // Re-throw AppError for handling in the controller
+        throw new AppError('Failed to fetch pitch deck', 500);
+    }
+};
+
+
+// Delete a specific pitch deck by ID
+const deletePitchDeckService = async (pitchDeckId) => {
+    try {
+        if (!pitchDeckId) {
+            throw new AppError('Pitch deck ID is required', 400);
+        }
+        const deletedDeck = await pitchDeck.findByIdAndDelete(pitchDeckId);
+        if (!deletedDeck) {
+            throw new AppError('Pitch deck not found', 404);
+        }
+        return deletedDeck;
+    } catch (error) {
+        console.error('Error deleting pitch deck:', error);
+        if (error instanceof AppError) throw error; // Re-throw AppError for handling in the controller
+        throw new AppError('Failed to delete pitch deck', 500);
+    }
+};
+
+
 // Export the service
 module.exports = {
     generatePitchDeckService,
-    createPitchDeckService
+    createPitchDeckService,
+    getUserPitchDecksService,
+    getPitchDeckByIdService,
+    deletePitchDeckService,
 };
