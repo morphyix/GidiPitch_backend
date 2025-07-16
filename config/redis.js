@@ -1,7 +1,7 @@
 const Redis = require('ioredis');
 
 
-const redisClient = new Redis('redis://localhost:6379', {
+const redisClient = new Redis(process.env.REDIS_URL, {
     maxRetriesPerRequest: null,
     retryStrategy: (times) => {
         const delay = Math.min(times * 50, 2000); // Exponential backoff
