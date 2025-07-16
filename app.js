@@ -11,6 +11,7 @@ const { configurePassport } = require('./config/passport');
 const { querySanitizeMiddleware } = require('./middleware/querySanitizeMiddleware');
 const authRoutes = require('./routes/authRoute');
 const pitchDeckRoutes = require('./routes/pitchDeckRoutes');
+const jobsRoutes = require('./routes/jobRoute');
 
 dotenv.config();
 connectDB();
@@ -49,6 +50,7 @@ const resumeRoutes = require("./routes/resumeRoutes");
 app.use("/api/resumes", resumeRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/pitch-deck', pitchDeckRoutes);
+app.use('/api/jobs', jobsRoutes);
 
 
 // Error handling middleware
