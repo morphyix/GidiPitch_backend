@@ -120,7 +120,35 @@ const getUserPitchDecksController = async (req, res, next) => {
 };
 
 
+// Controller to get a specific pitch deck by ID
+const getPitchDeckByIdController = async (req, res, next) => {
+    try {
+        const pitchDeckId = req.params.id;
+        if (!pitchDeckId) {
+            throw new AppError('Pitch deck ID is required', 400);
+        }
+        // Fetch pitch deck by ID
+        const pitchDeck = await getPitchDeckByIdService(pitchDeckId);
+        if (!pitchDeck) {
+            throw new AppError('Pitch deck not found', 404);
+        }
+        // Respond with the pitch deck data
+        res.status(200).json({
+            status: 'success',
+            message: 'Pitch deck fetched successfully',
+            data: { pitchDeck }
+        });
+    } catch (error) {
+        console.error('Error fetching pitch deck by ID:', error);
+        if (error instanceof AppError) {
+            return next(error); // Pass AppError to the error handler
+        }
+        return next(new AppError('An error occurred while fetching the pitch deck', 500));
+    }
+};
+
+
 // Export the controller
 module.exports = {
-    createPitchDeckController, getUserPitchDecksController,
+    createPitchDeckController, getUserPitchDecksController, getPitchDeckByIdController,
 };
