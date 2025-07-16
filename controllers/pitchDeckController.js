@@ -1,6 +1,8 @@
 const { AppError } = require('../utils/error');
 const { sanitize } = require('../utils/helper');
-const { generatePitchDeckService, createPitchDeckService } = require('../services/pitchDeckServices');
+const { generatePitchDeckService, createPitchDeckService, getUserPitchDecksService, getPitchDeckByIdService,
+    deletePitchDeckService,
+ } = require('../services/pitchDeckServices');
 
 
 // Controller to create a pitch deck
@@ -84,7 +86,41 @@ const createPitchDeckController = async (req, res, next) => {
 };
 
 
+// Controller to get user pitch decks
+const getUserPitchDecksController = async (req, res, next) => {
+    try {
+        const userId = req.user._id;
+        if (!userId) {
+            throw new AppError('User ID is required', 400);
+        }
+
+        // Fetch user pitch decks
+        const pitchDecks = await getUserPitchDecksService(userId);
+        if (!pitchDecks || pitchDecks.length === 0) {
+            return res.status(404).json({
+                status: 'success',
+                message: 'No pitch decks found for this user',
+                data: { pitchDecks: [] }
+            });
+        }
+
+        // Respond with the user's pitch decks
+        res.status(200).json({
+            status: 'success',
+            message: 'User pitch decks fetched successfully',
+            data: { pitchDecks }
+        });
+    } catch (error) {
+        console.error('Error fetching user pitch decks:', error);
+        if (error instanceof AppError) {
+            return next(error); // Pass AppError to the error handler
+        }
+        return next(new AppError('An error occurred while fetching user pitch decks', 500));
+    }
+};
+
+
 // Export the controller
 module.exports = {
-    createPitchDeckController
+    createPitchDeckController, getUserPitchDecksController,
 };

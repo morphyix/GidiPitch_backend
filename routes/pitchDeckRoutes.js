@@ -1,5 +1,5 @@
 const express = require('express');
-const { createPitchDeckController } = require('../controllers/pitchDeckController');
+const { createPitchDeckController, getUserPitchDecksController } = require('../controllers/pitchDeckController');
 const { authMiddleware } = require('../middleware/authMiddleware');
 
 const router = express.Router();
@@ -7,6 +7,7 @@ const router = express.Router();
 
 // routes
 router.post('/create', authMiddleware, createPitchDeckController);
+router.get('/', authMiddleware, getUserPitchDecksController);
 
 
 // Export the router
