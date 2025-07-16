@@ -148,7 +148,35 @@ const getPitchDeckByIdController = async (req, res, next) => {
 };
 
 
+// Controller to delete a specific pitch deck by ID
+const deletePitchDeckController = async (req, res, next) => {
+    try {
+        const pitchDeckId = req.params.id;
+        if (!pitchDeckId) {
+            throw new AppError('Pitch deck ID is required', 400);
+        }
+        // Delete pitch deck by ID
+        const deletedDeck = await deletePitchDeckService(pitchDeckId);
+        if (!deletedDeck) {
+            throw new AppError('Pitch deck not found', 404);
+        }
+        // Respond with success message
+        res.status(200).json({
+            status: 'success',
+            message: 'Pitch deck deleted successfully',
+            data: { deletedDeck }
+        });
+    } catch (error) {
+        console.error('Error deleting pitch deck:', error);
+        if (error instanceof AppError) {
+            return next(error); // Pass AppError to the error handler
+        }
+        return next(new AppError('An error occurred while deleting the pitch deck', 500));
+    }
+};
+
+
 // Export the controller
 module.exports = {
-    createPitchDeckController, getUserPitchDecksController, getPitchDeckByIdController,
+    createPitchDeckController, getUserPitchDecksController, getPitchDeckByIdController, deletePitchDeckController,
 };
