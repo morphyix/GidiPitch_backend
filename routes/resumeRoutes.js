@@ -1,14 +1,21 @@
 const express = require("express");
 const router = express.Router();
-
-const resumeController = require("../controllers/resumeController");
+const {
+  createResume,
+  getResume,
+  getMyResumes,
+  updateResume,
+  deleteResume,
+  exportResumePDF
+} = require("../controllers/resumeController");
 
 const { authMiddleware } = require("../middleware/authMiddleware");
 
-router.post("/", authMiddleware, resumeController.createResume);
-router.get("/", authMiddleware, resumeController.getMyResumes);
-router.get("/:id", authMiddleware, resumeController.getResume);
-router.put("/:id", authMiddleware, resumeController.updateResume);
-router.delete("/:id", authMiddleware, resumeController.deleteResume);
+router.post("/", authMiddleware, createResume);
+router.get("/", authMiddleware, getMyResumes); 
+router.get("/:id", authMiddleware, getResume);
+router.put("/:id", authMiddleware, updateResume);
+router.get("/:id/export", authMiddleware, exportResumePDF);
+router.delete("/:id", authMiddleware, deleteResume);
 
 module.exports = router;
