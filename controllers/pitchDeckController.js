@@ -1,17 +1,18 @@
 const { AppError } = require('../utils/error');
-const { sanitize } = require('../utils/helper');
+const { sanitize, generatePdfFromHtml } = require('../utils/helper');
 const { generatePitchDeckService, createPitchDeckService, getUserPitchDecksService, getPitchDeckByIdService,
-    deletePitchDeckService,
+    deletePitchDeckService, updatePitchDeckService,
  } = require('../services/pitchDeckServices');
+ const { uploadPdfService } = require('../services/uploadService');
 
 
 // Controller to create a pitch deck
 const createPitchDeckController = async (req, res, next) => {
     try {
-        const { startUpName, problems, solutions, sector, industry, country, founders, features } = req.body;
+        const { startUpName, problems, solutions, sector, industry, country, founders, features, slides } = req.body;
 
         // Validate required fields
-        if (!startUpName || !problems || !solutions || !sector || !industry || !country || !founders || !features) {
+        if (!startUpName || !problems || !solutions || !sector || !industry || !country || !founders || !features || !slides) {
             throw new AppError('All fields are required', 400);
         }
         if (!Array.isArray(founders) || founders.length === 0) {
@@ -25,6 +26,18 @@ const createPitchDeckController = async (req, res, next) => {
         }
         if (!Array.isArray(solutions) || solutions.length === 0) {
             throw new AppError('solutions must be a non-empty array', 400);
+        }
+        if (!Array.isArray(slides) || slides.length === 0) {
+            throw new AppError('Slides must be a non-empty array', 400);
+        }
+
+        // Confirm slides are among allowed types
+        const allowedSlides = ['cover', 'problem', 'solution', 'market', 'businessModel', 'goToMarket', 'competition',
+            'team', 'features', 'financials', 'ask', 'exit', 'roadMap', 'socialImpact', 'personas', 'performanceMetrics'];
+        for (const slide of slides) {
+            if (!allowedSlides.includes(slide)) {
+                throw new AppError(`Invalid slide type: ${slide}`, 400);
+            }
         }
 
         // Sanitize input
@@ -176,7 +189,71 @@ const deletePitchDeckController = async (req, res, next) => {
 };
 
 
+// create pitch deck pdf controller
+const createPitchDeckPdfController = async (req, res, next) => {
+    try {
+        const pitchDeckId = req.params.id;
+        if (!pitchDeckId) {
+            throw new AppError('Pitch deck ID is required', 400);
+        }
+
+        // Extract html template
+        const template = req.body;
+        if (!template) {
+            throw new AppError('Template is required', 400);
+        }
+
+        // fetch pitch deck by ID
+        const pitchDeck = await getPitchDeckByIdService(pitchDeckId);
+        if (!pitchDeck) {
+            throw new AppError('Pitch deck not found', 404);
+        }
+
+        // Convert html to pdf buffer
+        const pdfBuffer = await generatePdfFromHtml(template);
+        if (!pdfBuffer) {
+            throw new AppError('Failed to generate PDF from HTML', 500);
+        }
+        // Covert pdf buffer to file
+        const file = {
+            buffer: pdfBuffer,
+            originalname: `${pitchDeck.startUpName}-pitch-deck.pdf`,
+            mimetype: 'application/pdf',
+        };
+
+        // Upload the PDF to S3
+        const pdfUrl = await uploadPdfService(file);
+        if (!pdfUrl) {
+            throw new AppError('Failed to upload PDF', 500);
+        }
+
+        // Update the pitch deck with the PDF URL
+        const updatedPitchDeck = await updatePitchDeckService(pitchDeckId, { pdfUrl });
+        if (!updatedPitchDeck) {
+            throw new AppError('Failed to update pitch deck with PDF URL', 500);
+        }
+
+        // Respond with pdfUrl and updated pitch deck object
+        return res.status(200).json({
+            status: 'success',
+            message: 'Pitch deck PDF created successfully',
+            data: {
+                pdfUrl,
+                pitchDeck: updatedPitchDeck.toObject(),
+            },
+        });
+    } catch (error) {
+        console.error('Error creating pitch deck PDF:', error);
+        if (error instanceof AppError) {
+            return next(error); // Pass AppError to the error handler
+        }
+        return next(new AppError('An error occurred while creating the pitch deck PDF', 500));
+    }
+};
+
+
 // Export the controller
 module.exports = {
     createPitchDeckController, getUserPitchDecksController, getPitchDeckByIdController, deletePitchDeckController,
+    createPitchDeckPdfController,
 };

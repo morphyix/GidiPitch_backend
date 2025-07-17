@@ -1,4 +1,5 @@
 const sanitizeHtml = require('sanitize-html');
+const puppeteer = require('puppeteer');
 const { AppError } = require('./error');
 
 
@@ -30,7 +31,38 @@ const extractFileKey = (url) => {
 };
 
 
+// Function to generate a PDF from HTML content
+const generatePdfFromHtml = async (htmlContent) => {
+  try {
+    if (!htmlContent || typeof htmlContent !== 'string') {
+      throw new AppError('Invalid HTML content provided', 400);
+    }
+
+    const browser = await puppeteer.launch({
+      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      headless: true,
+    });
+    const page = await browser.newPage();
+    await page.setContent(htmlContent, { waitUntil: 'networkidle0', timeout: 10000 });
+    const pdfBuffer = await page.pdf({
+      format: 'A4',
+      printBackground: true,
+    });
+
+    await browser.close();
+    return pdfBuffer;
+  } catch (error) {
+    console.error('Error generating PDF:', error);
+    if (error instanceof AppError) {
+      throw error; // Re-throw custom errors
+    }
+    throw new AppError('Failed to generate PDF', 500);
+  }
+};
+
+
 module.exports = {
     sanitize,
-    extractFileKey
+    extractFileKey,
+    generatePdfFromHtml,
 }

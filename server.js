@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const app = require('./app');
 const PORT = process.env.PORT || 3000;
 const { redisClient } = require('./config/redis');
+const { testBucket } = require('./config/s3Config');
 
 
 const server = http.createServer(app);
@@ -43,5 +44,11 @@ process.on('SIGINT', async () => {
 })
 
 server.listen(PORT, async () => {
+  try {
+    await testBucket();
+  } catch (error) {
+    console.error('S3 bucket test failed:', error);
+    process.exit(1); // Exit if the S3 bucket test fails
+  }
   console.log(`Server is running on port ${PORT}`);
 });
