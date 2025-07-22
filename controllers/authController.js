@@ -39,7 +39,7 @@ const setupLocalRegistration = async (req, res, next) => {
             return next(new AppError('An error occurred while generating the token, please try again later', 500));
         }
         // create url for user to complete registration
-        const verifyUrl = `${process.env.FRONTEND_URL}/auth/local?token=${token}`;
+        const verifyUrl = `${process.env.FRONTEND_URL}/complete-profile?token=${token}`;
         // send email with verification link
         const welcomeEmailData = {
             to: email,
