@@ -12,8 +12,8 @@ router.post('/local', rateLimiter, createLocalUser);
 router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 router.get('/google/callback', passport.authenticate('google', { failureRedirect: '/login' }), handleSocialLoginUser);
 router.post('/login', rateLimiter, loginLocalUser);
-router.post('/forgot-password', userForgotPassword);
-router.post('/reset-password', resetPassword);
+router.post('/password/forgot', userForgotPassword);
+router.post('/password/reset', resetPassword);
 router.delete("/", authMiddleware, deleteUser);
 router.get("/user", authMiddleware, getUserController);
 
