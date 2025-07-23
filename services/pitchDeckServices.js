@@ -21,7 +21,7 @@ const generatePitchDeckService = async (startupData) => {
                 Create a problem slide for a pitch deck, return:
                 as a JSON array of objects with the following keys:
                 - title: The title of the problem
-                - description: brief description of the problem`,
+                - description: A detailed description of the problem`,
             solution: `
                 Create a solution slide for a pitch deck, return:
                 as a JSON array of objects with the following two keys:
@@ -32,7 +32,7 @@ const generatePitchDeckService = async (startupData) => {
                 as a JSON object with the following keys:
                 - title: The title of the market
                 - description: A detailed description of the market
-                - size: The estimated market size
+                - size: The estimated market size with figures and sources
                 - growthRate: The expected growth rate of the market
                 - productFit: How product aligns and targets the market`,
             features: `
@@ -182,6 +182,27 @@ const deletePitchDeckService = async (pitchDeckId) => {
 };
 
 
+// Update pitch deck service to include slides
+const updatePitchDeckService = async (pitchDeckId, updates) => {
+    try {
+        if (!pitchDeckId || !updates || typeof updates !== 'object') {
+            throw new AppError('Invalid pitch deck ID or updates provided', 400);
+        }
+
+        // Find and update the pitch deck
+        const updatedDeck = await pitchDeck.findByIdAndUpdate(pitchDeckId, updates, { new: true });
+        if (!updatedDeck) {
+            throw new AppError('Pitch deck not found', 404);
+        }
+        return updatedDeck;
+    } catch (error) {
+        console.error('Error updating pitch deck:', error);
+        if (error instanceof AppError) throw error; // Re-throw AppError for handling in the controller
+        throw new AppError('Failed to update pitch deck', 500);
+    }
+};
+
+
 // Export the service
 module.exports = {
     generatePitchDeckService,
@@ -189,4 +210,5 @@ module.exports = {
     getUserPitchDecksService,
     getPitchDeckByIdService,
     deletePitchDeckService,
+    updatePitchDeckService,
 };
