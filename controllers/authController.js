@@ -251,7 +251,7 @@ const userForgotPassword = async (req, res, next) => {
             // create a reset password token
             const resetToken = createJwtToken({ email: user.email, id: user._id }, '5m');
             // create reset password url
-            const resetUrl = `${process.env.FRONTEND_URL}/auth/reset-password?token=${resetToken}`;
+            const resetUrl = `${process.env.FRONTEND_URL}/auth/password/reset?token=${resetToken}`;
 
             const resetPasswordEmailData = {
                 to: user.email,
