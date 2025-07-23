@@ -1,6 +1,6 @@
 const express = require('express');
 const passport = require('passport');
-const { setupLocalRegistration, createLocalUser, handleSocialLoginUser, loginLocalUser, userForgotPassword, resetPassword, deleteUser } = require('../controllers/authController');
+const { setupLocalRegistration, createLocalUser, handleSocialLoginUser, loginLocalUser, userForgotPassword, resetPassword, deleteUser, getUserController } = require('../controllers/authController');
 const { authMiddleware } = require('../middleware/authMiddleware');
 const { rateLimiter } = require('../config/rateLimit');
 
@@ -14,7 +14,8 @@ router.get('/google/callback', passport.authenticate('google', { failureRedirect
 router.post('/login', rateLimiter, loginLocalUser);
 router.post('/forgot-password', userForgotPassword);
 router.post('/reset-password', resetPassword);
-router.delete("/me", authMiddleware, deleteUser)
+router.delete("/", authMiddleware, deleteUser);
+router.get("/user", authMiddleware, getUserController);
 
 
 // export the router

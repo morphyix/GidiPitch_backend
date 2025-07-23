@@ -386,7 +386,7 @@ const logoutUser = async (req, res, next) => {
     }
 };
 
-const deleteUser = async (req, res) => {
+const deleteUser = async (req, res, next) => {
     try {
     const userId = req.user.id;
 
@@ -401,12 +401,42 @@ const deleteUser = async (req, res) => {
     res.status(200).json({
         message: "Account deleted and logged out."
     });
-} catch (err) {
-    console.error("Delete user error:", err.message);
-    res.status(500).json({
-        message: "Server error"
-    });
-} };
+    } catch (err) {
+        console.error("Delete user error:", err.message);
+        return next(new AppError('An error occurred while deleting your account, try again later', 500));
+    }
+};
+
+
+// Get User Controller
+const getUserController = async (req, res, next) => {
+    try {
+        const user = req.user;
+        if (!user) {
+            return next(new AppError('User not found', 404));
+        }
+
+        return res.status(200).json({
+            status: "success",
+            message: "User retrieved successfully",
+            user: {
+                id: user._id,
+                email: user.email,
+                firstname: user.firstname,
+                lastname: user.lastname,
+                emailVerified: user.emailVerified,
+                createdAt: user.createdAt,
+                updatedAt: user.updatedAt
+            }
+        });
+    } catch (error) {
+        console.error('Error retrieving user:', error);
+        if (error instanceof AppError) {
+            return next(error);
+        }
+        return next(new AppError('An error occurred while retrieving user data, try again later', 500));
+    }
+}
 
 //export modules
 module.exports = {
@@ -418,4 +448,5 @@ module.exports = {
     resetPassword,
     logoutUser,
     deleteUser,
+    getUserController
 }
