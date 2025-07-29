@@ -1,6 +1,7 @@
 const ejs = require('ejs');
 const pdf = require('html-pdf');
 const path = require('path');
+const PPTXGenJS = require("pptxgenjs");
 const PitchDeck = require('../models/pitchDeck');
 const { title } = require('process');
 
@@ -54,4 +55,55 @@ exports.exportPitchDeckToPDF = async (req, res) => {
             console.error('Error exporting pitch deck to PDF:', err);
             res.status(500).json({ message: 'Internal server error' });
         }
+};
+
+
+
+
+const getSlideData = (body) => ({
+  cover: {
+    company_name: body.company_name,
+    tagline: body.tagline,
+    logo_url: body.logo_url,
+  },
+  vision: {
+    vision_statement: body.vision_statement,
+  },
+  problem: {
+    problem_statement: body.problem_statement,
+    why_it_matters: body.why_it_matters,
+  },
+  // all other slides follow similarly but I will complete them later
+
+
+})
+exports.exportToPPTX = async (req, res) => {
+  try {
+    const data =agetSlideData(req.body);
+    const pptx = new PPTXGenJS();
+
+    // Slide 1: Cover
+    const slide1 = pptx.addSlide();
+    slide1.addText(data.cover.company_name, { x: 1, y: 1, fontSize: 24, bold: true });
+    slide1.addText(data.cover.tagline || '', { x: 1, y: 1.5, fontSize: 18 });
+
+    if (data.cover.logo_url) {
+      slide1.addImage({ path: data.cover.logo_url, x: 0.5, y: 0.5, w: 2, h: 2 });
+    }
+
+    // Slide 2: Vision
+    const slide2 = pptx.addSlide();
+    slide2.addText('Vision', { x: 1, y: 0.5, fontSize: 20, bold: true, color: "003366", });
+    slide2.addText(data.vision.vision_statement || '', { x: 1, y: 1.2, w: "90%", h:"70%", fontSize: 16, color: "000000", lineSpacingMultiple: 1.5, });
+
+
+    // the output file
+    const fileName = `PitchDeck-${data.cover.company_name}-${Date.now()}.pptx`;
+    const filePath = path.join(__dirname, '../exports', fileName);
+    await pptx.writeFile({ fileName});
+    res.download(fileName);
+  } catch (error) {
+    console.error('Error exporting to PPTX:', error);
+    res.status(500).json({ message: 'Error exporting to PPTX' });
+  }
 };
