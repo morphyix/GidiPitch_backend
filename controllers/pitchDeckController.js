@@ -1,4 +1,4 @@
-const { AppError } = require('../utils/error');
+/* const { AppError } = require('../utils/error');
 const { sanitize, generatePdfFromHtml } = require('../utils/helper');
 const { generatePitchDeckService, createPitchDeckService, getUserPitchDecksService, getPitchDeckByIdService,
     deletePitchDeckService, updatePitchDeckService,
@@ -256,4 +256,53 @@ const createPitchDeckPdfController = async (req, res, next) => {
 module.exports = {
     createPitchDeckController, getUserPitchDecksController, getPitchDeckByIdController, deletePitchDeckController,
     createPitchDeckPdfController,
+}; */
+
+const PitchDeck = require('../models/pitchDeck');
+
+exports.createPitchDeck = async (req, res) => {
+    try {
+        const {deck_title, user, slides} = req.body;
+        if (!deck_title || !Array.isArray(slides) || !slides) {
+            return 
+     res.status(400).json({ message: 'invalid Payload' });
+    }
+
+    const newDeck = new PitchDeck({
+        deck_title,
+        slides,
+        user: req.user._id
+    });
+
+    const saved = await newDeck.save();
+
+    res.status(201).json({message: "Pitch deck created", date: saved})
+} catch (error) {
+        console.error('Error creating pitch deck:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+};
+
+exports.getAllPitchDecks = async (req, res) => {
+    try {
+        const pitchDecks = await PitchDeck.find();
+        res.status(200).json({success: true, data: pitchDecks});
+    } catch (error) {
+        console.error('Error fetching pitch decks:', error.message);
+        res.status(500).json({ success:false, message: 'Internal Server Error' });
+    }
+};
+
+exports.getPitchDeckById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const pitchDeck = await PitchDeck.findById(id);
+        if (!pitchDeck) {
+            return res.status(404).json({ message: 'Deck not found' });
+        }
+        res.status(200).json({success: true, data: pitchDeck});
+    } catch (error) {
+        console.error('Error fetching pitch deck by ID:', error.message);
+        res.status(500).json({ success:false, message: 'Internal Server Error' });
+    }
 };

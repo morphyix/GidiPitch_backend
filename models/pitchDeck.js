@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+/* const mongoose = require('mongoose');
 
 
 const pitchDeckSchema = new mongoose.Schema({
@@ -39,4 +39,21 @@ pitchDeckSchema.index({ startUpName: 1 });
 const PitchDeck = mongoose.model('PitchDeck', pitchDeckSchema);
 
 // Export the PitchDeck model
-module.exports = PitchDeck;
+module.exports = PitchDeck; */
+
+const mongoose = require('mongoose');
+
+const slideSchema = new mongoose.Schema({
+    slide_number: Number,
+    slide_title: String,
+    data: mongoose.Schema.Types.Mixed,
+});
+
+const pitchDeckSchema = new mongoose.Schema({
+    deck_title: { type: String, required: true },
+    user: {
+        type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    slides: [slideSchema]
+ }, { timestamps: true }
+);
+ module.export = mongoose.model('PitchDeck', pitchDeckSchema);

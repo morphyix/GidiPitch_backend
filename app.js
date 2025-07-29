@@ -12,6 +12,7 @@ const { querySanitizeMiddleware } = require('./middleware/querySanitizeMiddlewar
 const authRoutes = require('./routes/authRoute');
 const pitchDeckRoutes = require('./routes/pitchDeckRoutes');
 const jobsRoutes = require('./routes/jobRoute');
+const exportRoutes = require('./routes/exportRoute');
 
 dotenv.config();
 connectDB();
@@ -52,7 +53,7 @@ app.use("/api/resumes", resumeRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/pitch-deck', pitchDeckRoutes);
 app.use('/api/jobs', jobsRoutes);
-
+app.use('/api/export', exportRoutes);
 
 // Error handling middleware
 app.use(errorMiddleware);

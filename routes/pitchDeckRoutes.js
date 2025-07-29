@@ -1,4 +1,4 @@
-const express = require('express');
+/*const express = require('express');
 const { createPitchDeckController, getUserPitchDecksController, getPitchDeckByIdController, deletePitchDeckController,
     createPitchDeckPdfController,
  } = require('../controllers/pitchDeckController');
@@ -16,4 +16,14 @@ router.delete('/:id', authMiddleware, deletePitchDeckController);
 
 
 // Export the router
+module.exports = router; */
+
+const express = require('express');
+const router = express.Router();
+const pitchDeckController = require('../controllers/pitchDeckController');
+
+router.post('/create', pitchDeckController, createPitchDeckController);
+router.get('/', pitchDeckController, getAllPitchDecks);
+router.get('/:id', pitchDeckController, getPitchDeckById);
+
 module.exports = router;
