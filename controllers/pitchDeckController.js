@@ -9,9 +9,103 @@ const { generatePitchDeckService, createPitchDeckService, getUserPitchDecksServi
 // Controller to create a pitch deck
 const createPitchDeckController = async (req, res, next) => {
     try {
-        
-    } catch (error) {
+        const { startupName, description, features, problems, solutions, businessModel, industry, sector,
+            country, competitors, askAmount, totalInvestment, team, milestones, slides,
+        } = req.body;
 
+        if (!startupName || !description || !features || !problems || !solutions || !businessModel ||
+            !industry || !country || !competitors || !askAmount || !totalInvestment || !team || !milestones) {
+            throw new AppError('All fields are required', 400);
+        }
+
+        if (slides && !Array.isArray(slides)) {
+            throw new AppError('Slides must be an array', 400);
+        }
+        if (!Array.isArray(features) || !Array.isArray(problems) || !Array.isArray(solution) ||
+            !Array.isArray(team) || !Array.isArray(milestones)) {
+            throw new AppError('Features, problems, solutions, team, and milestones must be arrays', 400);
+        }
+        // Check slides length
+        if (slides.length === 0) {
+            throw new AppError("please select at least ten pitch deckslide to be generated", 400);
+        }
+
+        // Verify pitch deck slides
+        const allowedSlides = ['cover', 'vision', 'problem', 'solution', 'market', 'businessModel', 'goToMarket',
+            'competition', 'team', 'financials', 'ask', 'milestones', 'productDemo', 'targetCustomers', 
+            'traction', 'testimonials', 'exitStrategy', 'callToAction', 'thankYou', 'caseStudies', 'contactInfo',
+        ];
+
+        const deckSlides = slides.filter(slide => allowedSlides.includes(slide));
+
+        // validate input data
+        const startupData = {
+            startupName: sanitize(startupName),
+            description: sanitize(description),
+            features: features.map(feature => ({
+                feature: sanitize(feature.feature),
+                description: sanitize(feature.description)
+            })),
+            problems: problems.map(problem => sanitize(problem)),
+            solutions: solutions.map(solution => sanitize(solution)),
+            businessModel: sanitize(businessModel),
+            industry: sanitize(industry),
+            competitors: competitors.map(competitor => sanitize(competitor)),
+            team: team.map(member => ({
+                name: sanitize(member.name),
+                role: sanitize(member.role),
+                title: sanitize(member.title),
+                linkedin: member.linkedin ? sanitize(member.linkedin) : '',
+                twitter: member.twitter ? sanitize(member.twitter) : '',
+            })),
+            country: sanitize(country),
+            askAmount: parseInt(askAmount, 10),
+            totalInvestment: parseInt(totalInvestment, 10),
+            milestones: milestones.map(milestone => ({
+                title: sanitize(milestone.title),
+                description: sanitize(milestone.description),
+                date: new Date(milestone.date),
+            })),
+        };
+
+        if (sector) {
+            startupData.sector = sanitize(sector);
+        }
+
+        // Generate Pitch Deck
+        const pitchDeckData = await generatePitchDeckService(startupData, deckSlides);
+        if (!pitchDeckData) {
+            throw new AppError('Failed to generate pitch deck', 500);
+        }
+
+        // Create Pitch Deck
+        const pitchDeck = await createPitchDeckService({
+            user: req.user._id,
+            startUpName: startupData.startupName,
+            problems: startupData.problems,
+            solutions: startupData.solutions,
+            sector: startupData.sector || '',
+            industry: startupData.industry,
+            country: startupData.country,
+            founders: startupData.team,
+            features: startupData.features,
+            pitchData: pitchDeckData,
+        });
+        if (!pitchDeck) {
+            throw new AppError('Failed to create pitch deck', 500);
+        }
+        // Respond with the created pitch deck
+        res.status(201).json({
+            status: 'success',
+            message: 'Pitch deck created successfully',
+            data: { pitchDeck: pitchDeck.toObject() },
+        });
+    } catch (error) {
+        console.error('Error creating pitch deck:', error);
+        if (error instanceof AppError) {
+            return next(error); // Pass AppError to the error handler
+        }
+        return next(new AppError('An error occurred while creating the pitch deck', 500));
     }
 };
 
