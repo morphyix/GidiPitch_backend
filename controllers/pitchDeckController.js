@@ -4,37 +4,57 @@ require('dotenv').config();
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 const modifyPitchDeck = async (req, res) => {
-    try {
-        const {slideTitle, slideText, instruction} = req.body;
+  try {
+    const { slides } = req.body;
 
-        //basic validation
-        if (!slideTitle || !slideText || !instruction) {
-            return res.status(400).json({ message: 'Slide title, text, and instruction are required.' });
-        }
-
-        // to create the model and prompt
-        const model = genAI.getGenerativeModel({model: 'gemini-pro'});
-
-
-        const prompt = `You are an expert in pitch deck editor
-
-        Your task: improve the content for a pitch deck slide titled "${slideTitle}" with the following text: "${slideText}".
-        Instruction: "${instruction}"
-        Please provide only the improved, professional and detailed version of the slides text without any commentary or extra words.`;
-
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        const updatedText = response.test();
-
-        // respond
-        res.status(200).json ({
-            message: 'Slide updated so sucessfully',
-            slideTitle,
-            orignalText : slideText,
-            updatedText,
-        });
-    } catch (error) {
-        console.error('Error modifying pitch deck:', error.message);
-        res.status(500).json({message: 'Something went wrong!', error:error.message});
+    if (!Array.isArray(slides) || slides.length === 0) {
+      return res.status(400).json({
+        message: 'Slides is required no slide choosen.',
+      });
     }
+
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
+
+    const chat = model.startChat();
+    const modifiedSlides = [];
+
+    for (const slide of slides) {
+      const { slideTitle, slideText, instruction } = slide;
+
+      if (!slideTitle || !slideText || !instruction) {
+        continue; // Skip invalid slides
+      }
+
+      const prompt = `
+        You are an expert in pitch deck editing.
+        Your task: improve the content for a pitch deck slide titled "${slideTitle}".
+        Original text: "${slideText}"
+        Instruction: "${instruction}"
+        Please return only the improved version of the slide text with no extra commentary.
+      `;
+
+      const result = await chat.sendMessage(prompt);
+      const response = await result.response;
+      const updatedText = await response.text();
+
+      modifiedSlides.push({
+        slideTitle,
+        originalText: slideText,
+        updatedText,
+      });
+    }
+
+    res.status(200).json({
+      message: 'Slides updated successfully',
+      modifiedSlides,
+    });
+  } catch (error) {
+    console.error('Error modifying pitch deck:', error.message);
+    res.status(500).json({
+      message: 'Something went wrong!',
+      error: error.message,
+    });
+  }
 };
+
+module.exports = { modifyPitchDeck };

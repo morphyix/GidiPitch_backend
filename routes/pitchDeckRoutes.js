@@ -20,10 +20,17 @@ module.exports = router; */
 
 const express = require('express');
 const router = express.Router();
-const pitchDeckController = require('../controllers/pitchDeckController');
+const { modifyPitchDeck } = require('../controllers/pitchDeckController');
+const { authMiddleware } = require('../middleware/authMiddleware');
 
-router.post('/create', pitchDeckController, createPitchDeckController);
-router.get('/', pitchDeckController, getAllPitchDecks);
-router.get('/:id', pitchDeckController, getPitchDeckById);
+// Authenticated routes
+// router.post('/create', authMiddleware, createPitchDeckController);
+// router.get('/', authMiddleware, getUserPitchDecksController);
+// router.post('/:id/pdf', authMiddleware, createPitchDeckPdfController);
+// router.get('/:id', authMiddleware, getPitchDeckByIdController);
+// router.delete('/:id', authMiddleware, deletePitchDeckController);
+
+// AI modification route
+router.post('/modify', modifyPitchDeck);
 
 module.exports = router;

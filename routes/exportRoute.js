@@ -4,6 +4,6 @@ const { exportPitchDeckToPDF, exportController } = require('../controllers/expor
 
 
 router.get('/export/:deckId', exportPitchDeckToPDF);
-router.post('/export/pptx', exportController.exportToPPTX);
+// router.post('/export/pptx', exportController.exportToPPTX);
 
 module.exports = router;
