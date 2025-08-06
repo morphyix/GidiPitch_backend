@@ -41,19 +41,19 @@ const PitchDeck = mongoose.model('PitchDeck', pitchDeckSchema);
 // Export the PitchDeck model
 module.exports = PitchDeck; */
 
+// models/PitchDeck.js
 const mongoose = require('mongoose');
 
 const slideSchema = new mongoose.Schema({
-    slide_number: Number,
-    slide_title: String,
-    data: mongoose.Schema.Types.Mixed,
+  slide_number: Number,
+  slide_title: String,
+  data: mongoose.Schema.Types.Mixed, // use object to store original + updated text etc.
 });
 
 const pitchDeckSchema = new mongoose.Schema({
-    deck_title: { type: String, required: true },
-    user: {
-        type: mongoose.Schema.Types.ObjectId, ref: "User" },
-    slides: [slideSchema]
- }, { timestamps: true }
-);
- module.export = mongoose.model('PitchDeck', pitchDeckSchema);
+  deck_title: { type: String, required: true },
+  user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  slides: [slideSchema]
+}, { timestamps: true });
+
+module.exports = mongoose.model('PitchDeck', pitchDeckSchema);
