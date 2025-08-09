@@ -9,74 +9,88 @@ const { generatePitchDeckService, createPitchDeckService, getUserPitchDecksServi
 // Controller to create a pitch deck
 const createPitchDeckController = async (req, res, next) => {
     try {
-        const { startUpName, problems, solutions, sector, industry, country, founders, features, slides } = req.body;
+        const { startupName, description, features, problems, solutions, businessModel, industry, sector,
+            country, competitors, askAmount, totalInvestment, team, milestones, slides,
+        } = req.body;
 
-        // Validate required fields
-        if (!startUpName || !problems || !solutions || !sector || !industry || !country || !founders || !features || !slides) {
+        if (!startupName || !description || !features || !problems || !solutions || !businessModel ||
+            !industry || !country || !competitors || !askAmount || !totalInvestment || !team || !milestones) {
             throw new AppError('All fields are required', 400);
         }
-        if (!Array.isArray(founders) || founders.length === 0) {
-            throw new AppError('Founders must be a non-empty array', 400);
+
+        if (slides && !Array.isArray(slides)) {
+            throw new AppError('Slides must be an array', 400);
         }
-        if (!Array.isArray(features) || features.length === 0) {
-            throw new AppError('Features must be a non-empty array', 400);
+        if (!Array.isArray(features) || !Array.isArray(problems) || !Array.isArray(solution) ||
+            !Array.isArray(team) || !Array.isArray(milestones)) {
+            throw new AppError('Features, problems, solutions, team, and milestones must be arrays', 400);
         }
-        if (!Array.isArray(problems) || problems.length === 0) {
-            throw new AppError('Problems must be a non-empty array', 400);
-        }
-        if (!Array.isArray(solutions) || solutions.length === 0) {
-            throw new AppError('solutions must be a non-empty array', 400);
-        }
-        if (!Array.isArray(slides) || slides.length === 0) {
-            throw new AppError('Slides must be a non-empty array', 400);
+        // Check slides length
+        if (slides.length === 0) {
+            throw new AppError("please select at least ten pitch deckslide to be generated", 400);
         }
 
-        // Confirm slides are among allowed types
-        const allowedSlides = ['cover', 'problem', 'solution', 'market', 'businessModel', 'goToMarket', 'competition',
-            'team', 'features', 'financials', 'ask', 'exit', 'roadMap', 'socialImpact', 'personas', 'performanceMetrics'];
-        for (const slide of slides) {
-            if (!allowedSlides.includes(slide)) {
-                throw new AppError(`Invalid slide type: ${slide}`, 400);
-            }
-        }
+        // Verify pitch deck slides
+        const allowedSlides = ['cover', 'vision', 'problem', 'solution', 'market', 'businessModel', 'goToMarket',
+            'competition', 'team', 'financials', 'ask', 'milestones', 'productDemo', 'targetCustomers', 
+            'traction', 'testimonials', 'exitStrategy', 'callToAction', 'thankYou', 'caseStudies', 'contactInfo',
+        ];
 
-        // Sanitize input
-        const sanitizedData = {
-            startUpName: sanitize(startUpName),
-            problems: problems.map(p => sanitize(p)),
-            solutions: solutions.map(s => sanitize(s)),
-            sector: sanitize(sector),
-            industry: sanitize(industry),
-            country: sanitize(country),
-            founders: founders.map(f => ({
-                name: sanitize(f.name),
-                role: sanitize(f.role),
-                title: sanitize(f.title),
-                linkedin: f.linkedin ? sanitize(f.linkedin) : undefined,
-                twitter: f.twitter ? sanitize(f.twitter) : undefined,
+        const deckSlides = slides.filter(slide => allowedSlides.includes(slide));
+
+        // validate input data
+        const startupData = {
+            startupName: sanitize(startupName),
+            description: sanitize(description),
+            features: features.map(feature => ({
+                feature: sanitize(feature.feature),
+                description: sanitize(feature.description)
             })),
-            features: features.map(f => ({
-                feature: sanitize(f.feature),
-                description: sanitize(f.description)
-            }))
+            problems: problems.map(problem => sanitize(problem)),
+            solutions: solutions.map(solution => sanitize(solution)),
+            businessModel: sanitize(businessModel),
+            industry: sanitize(industry),
+            competitors: competitors.map(competitor => sanitize(competitor)),
+            team: team.map(member => ({
+                name: sanitize(member.name),
+                role: sanitize(member.role),
+                title: sanitize(member.title),
+                linkedin: member.linkedin ? sanitize(member.linkedin) : '',
+                twitter: member.twitter ? sanitize(member.twitter) : '',
+            })),
+            country: sanitize(country),
+            askAmount: parseInt(askAmount, 10),
+            totalInvestment: parseInt(totalInvestment, 10),
+            milestones: milestones.map(milestone => ({
+                title: sanitize(milestone.title),
+                description: sanitize(milestone.description),
+                date: new Date(milestone.date),
+            })),
         };
 
-        // Generate pitch deck data
-        const pitchDeckData = await generatePitchDeckService(sanitizedData);
-        if (!pitchDeckData) {
-            throw new AppError('Failed to generate pitch deck data', 500);
+        if (sector) {
+            startupData.sector = sanitize(sector);
         }
 
-        // Add pitch deck data to sanitizedData
-        sanitizedData.pitchData = pitchDeckData;
-        // Add user ID from request
-        sanitizedData.user = req.user._id;
-        if (!sanitizedData.user) {
-            throw new AppError('User ID is required', 400);
+        // Generate Pitch Deck
+        const pitchDeckData = await generatePitchDeckService(startupData, deckSlides);
+        if (!pitchDeckData) {
+            throw new AppError('Failed to generate pitch deck', 500);
         }
-        console.log("sanitizedData: ", sanitizedData);
-        // Create pitch deck in the database
-        const pitchDeck = await createPitchDeckService(sanitizedData);
+
+        // Create Pitch Deck
+        const pitchDeck = await createPitchDeckService({
+            user: req.user._id,
+            startUpName: startupData.startupName,
+            problems: startupData.problems,
+            solutions: startupData.solutions,
+            sector: startupData.sector || '',
+            industry: startupData.industry,
+            country: startupData.country,
+            founders: startupData.team,
+            features: startupData.features,
+            pitchData: pitchDeckData,
+        });
         if (!pitchDeck) {
             throw new AppError('Failed to create pitch deck', 500);
         }
@@ -84,51 +98,14 @@ const createPitchDeckController = async (req, res, next) => {
         res.status(201).json({
             status: 'success',
             message: 'Pitch deck created successfully',
-            data: {
-                pitchDeck: pitchDeck.toObject(),
-                slides: pitchDeckData
-            }
+            data: { pitchDeck: pitchDeck.toObject() },
         });
     } catch (error) {
-        if (error instanceof AppError) {
-            return next(error); // Pass AppError to the error handler
-        }
         console.error('Error creating pitch deck:', error);
-        return next(new AppError('An error occurred while creating the pitch deck', 500));
-    }
-};
-
-
-// Controller to get user pitch decks
-const getUserPitchDecksController = async (req, res, next) => {
-    try {
-        const userId = req.user._id;
-        if (!userId) {
-            throw new AppError('User ID is required', 400);
-        }
-
-        // Fetch user pitch decks
-        const pitchDecks = await getUserPitchDecksService(userId);
-        if (!pitchDecks || pitchDecks.length === 0) {
-            return res.status(404).json({
-                status: 'success',
-                message: 'No pitch decks found for this user',
-                data: { pitchDecks: [] }
-            });
-        }
-
-        // Respond with the user's pitch decks
-        res.status(200).json({
-            status: 'success',
-            message: 'User pitch decks fetched successfully',
-            data: { pitchDecks }
-        });
-    } catch (error) {
-        console.error('Error fetching user pitch decks:', error);
         if (error instanceof AppError) {
             return next(error); // Pass AppError to the error handler
         }
-        return next(new AppError('An error occurred while fetching user pitch decks', 500));
+        return next(new AppError('An error occurred while creating the pitch deck', 500));
     }
 };
 
@@ -254,6 +231,6 @@ const createPitchDeckPdfController = async (req, res, next) => {
 
 // Export the controller
 module.exports = {
-    createPitchDeckController, getUserPitchDecksController, getPitchDeckByIdController, deletePitchDeckController,
+    createPitchDeckController, getPitchDeckByIdController, deletePitchDeckController,
     createPitchDeckPdfController,
 };
