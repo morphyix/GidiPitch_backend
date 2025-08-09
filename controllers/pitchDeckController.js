@@ -231,6 +231,6 @@ const createPitchDeckPdfController = async (req, res, next) => {
 
 // Export the controller
 module.exports = {
-    createPitchDeckController, getUserPitchDecksController, getPitchDeckByIdController, deletePitchDeckController,
+    createPitchDeckController, getPitchDeckByIdController, deletePitchDeckController,
     createPitchDeckPdfController,
 };
