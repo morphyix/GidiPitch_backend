@@ -10,18 +10,27 @@ const { generatePitchDeckService, createPitchDeckService, getUserPitchDecksServi
 const createPitchDeckController = async (req, res, next) => {
     try {
         const { startupName, description, features, problems, solutions, businessModel, industry, sector,
-            country, competitors, askAmount, totalInvestment, team, milestones, slides,
+            country, competitors, askAmount, totalInvestment, team, milestones, slides, brandColor
         } = req.body;
 
+        // check missing keys in req.body and print it out
+        for (const key of ['startupName', 'description', 'features', 'problems', 'solutions', 'businessModel',
+            'industry', 'country', 'competitors', 'askAmount', 'totalInvestment', 'team', 'milestones', 'brandColor'
+        ]) {
+            if (!req.body[key]) {
+                console.error(`Missing key in request body: ${key}`);
+            }
+        }   
+
         if (!startupName || !description || !features || !problems || !solutions || !businessModel ||
-            !industry || !country || !competitors || !askAmount || !totalInvestment || !team || !milestones) {
+            !industry || !country || !competitors || !askAmount || !totalInvestment || !team || !milestones || !brandColor) {
             throw new AppError('All fields are required', 400);
         }
 
         if (slides && !Array.isArray(slides)) {
             throw new AppError('Slides must be an array', 400);
         }
-        if (!Array.isArray(features) || !Array.isArray(problems) || !Array.isArray(solution) ||
+        if (!Array.isArray(features) || !Array.isArray(problems) || !Array.isArray(solutions) ||
             !Array.isArray(team) || !Array.isArray(milestones)) {
             throw new AppError('Features, problems, solutions, team, and milestones must be arrays', 400);
         }
@@ -66,6 +75,7 @@ const createPitchDeckController = async (req, res, next) => {
                 description: sanitize(milestone.description),
                 date: new Date(milestone.date),
             })),
+            brandColor: sanitize(brandColor),
         };
 
         if (sector) {
