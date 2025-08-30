@@ -9,23 +9,29 @@ const { generatePitchDeckService, createPitchDeckService, getUserPitchDecksServi
 // Controller to create a pitch deck
 const createPitchDeckController = async (req, res, next) => {
     try {
-        const { startUpName, problems, solutions, sector, industry, country, founders, features, slides } = req.body;
+        const { startupName, description, features, problems, solutions, businessModel, industry, sector,
+            country, competitors, askAmount, totalInvestment, team, milestones, slides, brandColor
+        } = req.body;
 
-        // Validate required fields
-        if (!startUpName || !problems || !solutions || !sector || !industry || !country || !founders || !features || !slides) {
+        // check missing keys in req.body and print it out
+        for (const key of ['startupName', 'description', 'features', 'problems', 'solutions', 'businessModel',
+            'industry', 'country', 'competitors', 'askAmount', 'totalInvestment', 'team', 'milestones', 'brandColor'
+        ]) {
+            if (!req.body[key]) {
+                console.error(`Missing key in request body: ${key}`);
+            }
+        }   
+
+        if (!startupName || !description || !features || !problems || !solutions || !businessModel ||
+            !industry || !country || !competitors || !askAmount || !totalInvestment || !team || !milestones || !brandColor) {
             throw new AppError('All fields are required', 400);
         }
         if (!Array.isArray(founders) || founders.length === 0) {
             throw new AppError('Founders must be a non-empty array', 400);
         }
-        if (!Array.isArray(features) || features.length === 0) {
-            throw new AppError('Features must be a non-empty array', 400);
-        }
-        if (!Array.isArray(problems) || problems.length === 0) {
-            throw new AppError('Problems must be a non-empty array', 400);
-        }
-        if (!Array.isArray(solutions) || solutions.length === 0) {
-            throw new AppError('solutions must be a non-empty array', 400);
+        if (!Array.isArray(features) || !Array.isArray(problems) || !Array.isArray(solutions) ||
+            !Array.isArray(team) || !Array.isArray(milestones)) {
+            throw new AppError('Features, problems, solutions, team, and milestones must be arrays', 400);
         }
         if (!Array.isArray(slides) || slides.length === 0) {
             throw new AppError('Slides must be a non-empty array', 400);
@@ -55,11 +61,12 @@ const createPitchDeckController = async (req, res, next) => {
                 linkedin: f.linkedin ? sanitize(f.linkedin) : undefined,
                 twitter: f.twitter ? sanitize(f.twitter) : undefined,
             })),
-            features: features.map(f => ({
-                feature: sanitize(f.feature),
-                description: sanitize(f.description)
-            }))
+            brandColor: sanitize(brandColor),
         };
+
+        if (sector) {
+            startupData.sector = sanitize(sector);
+        }
 
         // Generate pitch deck data
         const pitchDeckData = await generatePitchDeckService(sanitizedData);

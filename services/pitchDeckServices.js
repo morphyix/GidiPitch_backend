@@ -1,6 +1,7 @@
 const { GoogleGenAI } = require('@google/genai');
 const pitchDeck = require('../models/pitchDeck');
 const { AppError } = require('../utils/error');
+const { pitchDeckSlidePrompt } = require('../utils/generatePitchPrompts');
 
 
 // Service to generate a pitch deck using Google Gemini AI
@@ -15,105 +16,15 @@ const generatePitchDeckService = async (startupData, deckSlides) => {
         }
         
         // slides to be generated
-        const slides = {
-            cover: `
-                Create a cover slide. Return only a valid JSON object with:
-                - title: The pitch title
-                - subtitle: A short tagline
-                - design: A prompt for the design of the cover slide
-                - example: A url to or file of an example cover slide`,
-            problem: `
-                Create a problem slide for a pitch deck, return:
-                as a JSON object which would contain a problem key which is an array of strings which would contain the following informations:
-                - The problem statement
-                - The demograph affected by the problem
-                - The impact of the problem on the demograph
-                - The urgency of solving the problem
-                - The current solutions and their limitations
-                It would also contain a design JSON object with the following keys:
-                - icons: An array of prompts to create icons which can visually represent the problem
-                - design: A prompt for the design of the problem slide using the problem statements and icons`,
-            solution: `
-                Create a solution slide for a pitch deck using the business model and solutions provided, return:
-                a JSON object with the following keys:
-                firstly a solution key which is an array of strings that address the problems identified in the business model and solutions provided
-                ,it would contain the following information:
-                - The solution statement
-                - How the solution addresses the problem
-                - The unique value proposition of the solution
-                - The benefits of the solution
-                - The features of the solution
-                It would also contain a design JSON object with the following keys:
-                - icons: An array of prompts to create icons which can visually represent the solution
-                - design: A prompt for the design of the solution slide using the solution statements and icons`,
-            market: `
-                Create a market slide for a pitch deck backed with current data for ${startupData.country} cite data sources, return:
-                as a JSON object with the following keys:
-                - title: The title of the market slide
-                - totalMarketSize: The total market size in USD
-                - TAM: The total addressable market in USD
-                - SAM: The serviceable available market in USD
-                - SOM: The serviceable obtainable market in USD
-                - trends: emerging trends driving market growth
-                - growthRate: The expected growth rate of the market
-                - regulations: Any relevant regulations affecting the market
-                - dataSources: An array of sources for the data used in the slide
-                - graph: A prompt for the design of the market slide with a graph showing market growth
-                - chart: A prompt for the design of the market slide with a chart showing market segmentation
-                - design: A prompt for the overall design of the market slide
-                - icons: An array of prompts to create icons which can visually represent the market
-                - example: A url to or file of an example market slide`,
-            features: `
-                    Create a features slide for a pitch deck, return:
-                    as a JSON array of objects with the following two keys:
-                    - feature: The title of the features of the startup or product using information from ${startupData}
-                    - description: a detailed description of the feature and how it solves the pain point of the user`,
-            competition: `
-                Create a competition slide for a pitch deck based on current data for ${startupData?.industry} ${startupData?.sector} in ${startupData.country}, return:
-                as a JSON array of objects which would contain three objects with the following keys:
-                - name: The name of the competitor
-                - similarities: features that are similar to the startup
-                - differences: features that are different from the startup
-                - edge: The edge the startup has over the competitor
-                - logo: The logo of the competitor
-                It would also contain a design JSON object with the following keys:
-                - design: A prompt for the design of the competition slide using the competitor data
-                - example: A url to or file of an example competition slide`,
-            businessModel: `
-                Create a business model slide for a pitch deck, return:
-                as a JSON object with the following keys:
-                - title: The title of the business model
-                - description: A detailed description of the business model
-                - revenueStreams: An array of revenue streams`,
-            goToMarket: `
-                Create a go-to-market slide for a pitch deck, return:
-                as a JSON array of objects with the following keys:
-                - title: The title of the go-to-market strategy
-                - description: A detailed description of the go-to-market strategy
-                - channels: An array of channels to reach customers`,
-            team: `
-                Create a team slide for a pitch deck, return:
-                as a JSON array of objects with the following keys:
-                - title: The title of the team
-                - members: An array of team member objects with name, role, title and social links`,
-            roadMap: `
-                Create a roadmap slide for a pitch deck, return:
-                as a JSON array of objects with the following keys:
-                - title: The title of the roadmap
-                - milestones: An array of milestones with dates and descriptions`,
-        };
-
+        const slides = pitchDeckSlidePrompt(startupData);
         const ai = new GoogleGenAI({
             apiKey: process.env.GEMINI_API_KEY
         });
         // Generate slides using Google Gemini AI
         const pitchDeckData = {};
-        for (const [key, prompt] of Object.entries(slides)) {
-            const fullPrompt = `
-                You are a pitch deck expert. ${prompt}
-                Here is the startup data:
-                ${JSON.stringify(startupData)}
-                Return only a valid JSON object with no extra text or explanation or markdowns.`;
+        for (const slide of deckSlides) {
+            const fullPrompt = slides[slide];
+            console.log("Pompt: ", fullPrompt)
             const response = await ai.models.generateContent({
                 model: 'gemini-2.5-pro',
                 contents: [{ role: 'user', parts: [{ text: fullPrompt }] }],
@@ -123,10 +34,10 @@ const generatePitchDeckService = async (startupData, deckSlides) => {
             text = text.replace(/```json|```/g, '').trim();
 
             try {
-                pitchDeckData[key] = JSON.parse(text);
+                pitchDeckData[slide] = JSON.parse(text);
             } catch (err) {
-                console.error(`Error parsing gemini response for ${key}:`, err);
-                throw new AppError(`Failed to parse response for ${key}`, 500);
+                console.error(`Error parsing gemini response for ${slide}:`, err);
+                throw new AppError(`Failed to parse response for ${slide}`, 500);
             }
         }
         return pitchDeckData;

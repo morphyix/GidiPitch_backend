@@ -1,22 +1,35 @@
 // send mail function using sendgrid
-const sgMail = require('@sendgrid/mail');
+const { MailerSend, EmailParams, Sender, Recipient } = require('mailersend');
+const { AppError } = require('./error');
 
 
 const sendMail = async (to, subject, from, text, html) => {
     try {
-        sgMail.setApiKey(process.env.SENDGRID_SECRET_KEY);
+        const mailerSend = new MailerSend({
+            apiKey: process.env.SENDGRID_SECRET_KEY,
+        });
 
-        const msg = {
-            to,
-            from,
-            subject,
-            text,
-            html,
+        const sentFrom = new Sender(from, process.env.BRAND_NAME || 'Smart Commerce');
+
+        let recipients = [];
+
+        // check if 'to' is an array or a single email
+        if (Array.isArray(to) && to.length > 0) {
+            recipients = to.map(email => new Recipient(email));
+        } else if (typeof to === 'string') {
+            recipients = [new Recipient(to)];
+        } else {
+            throw new AppError('Invalid recipient email format', 400);
         }
+        const emailParams = new EmailParams()
+            .setFrom(sentFrom)
+            .setTo(recipients)
+            .setSubject(subject)
+            .setText(text)
+            .setHtml(html);
 
-        await sgMail.send(msg).then(() => {
-            console.log("Email Sent: ", subject);
-        })
+        await mailerSend.email.send(emailParams);
+        console.log("Email sent successfully to:", to);
     } catch (error) {
         console.error("Error sending email: ", error);
         if (error.response) {
