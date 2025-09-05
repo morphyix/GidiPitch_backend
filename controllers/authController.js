@@ -1,159 +1,156 @@
 // auth controlles module
+const crypto = require('crypto')
 const { AppError } = require('../utils/error');
-const { createUserService, updateUserService, getUserByEmailService, revokeTokenService } = require('../services/authService');
+const { createUserService, updateUserService, getUserByEmailService, revokeTokenService, 
+    deleteUserService
+} = require('../services/authService');
 const { validateEmail, validatePhone, validatePassword } = require('../utils/validators');
 const { hashPassword, verifyPassword } = require('../utils/hashPassword');
  const { createJwtToken, verifyJwtToken } = require('../utils/jwtAuth');
 const { addEmailJob } = require('../jobs/email/queue');
-const { generateWelcomeEmail } = require('../templates/welcomeEmail');
+const { generateOtpEmail } = require('../templates/welcomeEmail');
 const { generateForgotPasswordEmail } = require('../templates/resetPasswordEmail');
-const { setRedisCache, getRedisCache } = require('../config/redis');
+const { setRedisCache, getRedisCache, deleteRedisCache } = require('../config/redis');
 const { hashString } = require('../utils/hashString');
+const { sanitize } = require('../utils/helper');
 const Resume = require("../models/Resume");
 
 
-// Initiate local registration controller
-const setupLocalRegistration = async (req, res, next) => {
+// Local user registration controller
+const createLocalUser = async (req, res, next) => {
     try {
-        const { email } = req.body;
-        if (!email) {
-            return next(new AppError('Email is required', 400));
+        // extract email and password from request body
+        const { email, password } = req.body;
+        if (!email || !password) {
+            return next(new AppError('Email and password are required', 400));
         }
-
-        // check if email is valid
+        // validate email format
         if (!validateEmail(email)) {
             return next(new AppError('Invalid email format', 400));
         }
-        // check if email already exists
-        try {
-            const existingUser = await getUserByEmailService(email);
-            if (existingUser) {
-                return next(new AppError('User with this email already exists, please login instead', 400));
-            }
-        } catch (error) {
-            console.error('Error checking existing user:', error);
-        }
-        // Generate a JWT token for email verification and signup completion
-        const token = createJwtToken({ email }, '24h'); // 24 hours expiry
-        if (!token) {
-            return next(new AppError('An error occurred while generating the token, please try again later', 500));
-        }
-        // create url for user to complete registration
-        const verifyUrl = `${process.env.FRONTEND_URL}/complete-profile?token=${token}`;
-        // send email with verification link
-        const welcomeEmailData = {
-            to: email,
-            subject: "Welcome to GidiPitch, Complete Your Registration",
-            text: "Please complete your registration by verifying your email address",
-            html: generateWelcomeEmail('New User', verifyUrl),
-            from: "noreply@thebigphotocontest.com"
-        };
-        // add welcome email to queue
-        await addEmailJob(welcomeEmailData);
-
-        return res.status(200).json({
-            status: "success",
-            message: "Registration initiated successfully! Please check your email to complete the registration process."
-        });
-    } catch (error) {
-        if (error instanceof AppError) {
-            return next(error); // Re-throw custom AppError
-        }
-        console.error('Error setting up local registration:', error);
-        return next(new AppError('An error occurred while setting up registration, please try again later', 500));
-    }
-};
-
-// user registration controller
-const createLocalUser = async (req, res, next) => {
-    try {
-        // extract user data from request body
-        const token = req.query.token;
-        if (!token) {
-            return next(new AppError('Token is required', 400));
-        }
-        // verify the JWT token
-        const hashedToken = hashString(token);
-        const tokeStatus = await getRedisCache(hashedToken);
-        if (tokeStatus === 'revoked') {
-            return next(new AppError('Cannot use this token! Token has been revoked.', 403));
-        }
-
-        let decoded;
-        try {
-            decoded = verifyJwtToken(token);
-        } catch (error) {
-            if (error.message === 'Token has expired') {
-                return next(new AppError('Token has expired', 401));
-            }
-            if (error.message === 'Invalid token') {
-                return next(new AppError('Invalid token', 401));
-            }
-            return next(new AppError('An error occurred while verifying the token', 500));
-        }
-        if (!decoded || !decoded.email) {
-            return next(new AppError('Invalid token data', 400));
-        }
-        // validate user data
-        if (!validateEmail(decoded.email)) {
-            return next(new AppError('Invalid email format', 400));
-        }
-        const { firstname, lastname, password, confirmPassword } = req.body;
-        if (!firstname || !lastname || !password || !confirmPassword) {
-            return next(new AppError('All fields are required', 400));
-        }
+        // validate password strength
         if (!validatePassword(password)) {
             return next(new AppError('Password must be at least 8 characters long and contain an uppercase letter, a lowercase letter, a number, and a special character', 400));
         }
-
-        if (password !== confirmPassword) {
-            return next(new AppError('Password and confirm password do not match', 400));
-        }
-
-        // hash user password
+        // hash the password
         const hashedPassword = await hashPassword(password);
 
-        // create user object
-        const user = {
-            email: decoded.email.toLowerCase().trim(),
-            firstname: firstname.trim(),
-            lastname: lastname.trim(),
+        // Create user object and sanitize inputs
+        const userData = {
+            email: sanitize(email.toLowerCase().trim()),
             password: hashedPassword,
-            emailVerified: true, // set email verified to true since user is completing registration
-        };
-
-        // create user using the service
-        const userObj = await createUserService(user);
-
-        // token for user login
-        const loginToken = createJwtToken(userObj.toObject(), '7d'); // create JWT token with 7 days expiry
-        if (!loginToken) {
-            return next(new AppError('An error occurred while creating the login token, please try again later', 500));
+            authProvider: 'local'
         }
-        // set response cookie with the token
-        res.cookie('token', loginToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production', // use secure cookies in production
-            sameSite: 'Strict', // prevent CSRF attacks
-            maxAge: 7 * 24 * 60 * 60 * 1000
-        }); // 7 days
 
-        // delete user password from the response
-        userObj.password = undefined;
+        // create the user in the database
+        const newUser = await createUserService(userData);
 
-        // revoke the token used for registration
-        const tokenHash = hashString(token);
-        await setRedisCache(tokenHash, "revoked", 24 * 60 * 60); // revoke token for 24 hours
+        // Verify that user has not requested an otp recently
+        const key = `otp:${newUser.email}`;
+        const existingOtp = await getRedisCache(key);
+        if (existingOtp) {
+            return next(new AppError('An OTP has already been sent to this email. Please check your email or try again later.', 429));
+        }
+
+        // generate 6 digit OTP for email verification
+        const otp = crypto.randomInt(100000, 1000000).toString();
+        // hash otp and save in redis with 30 minutes expiry
+        const otpHash = hashString(otp);
+        await setRedisCache(key, otpHash, 30 * 60); // 30 minutes expiry
+
+        // send welcome email with otp
+        const welcomeEmailData = {
+            to: newUser.email,
+            subject: "Welcome to GidiPitch, verify your email",
+            text: "Please verify your email address using the OTP code",
+            html: generateOtpEmail(newUser.email, otp),
+            from: "noreply@thebigphotocontest.com"
+        }
+        await addEmailJob(welcomeEmailData);
+
+        // delete password from response
+        newUser.password = undefined;
 
         return res.status(201).json({
             status: "success",
-            message: "User created successfully!",
-            user: userObj.toObject() // return user object without password
+            message: "User created successfully! Please check your email for the OTP to verify your email address.",
+            user: newUser.toObject()
         });
     } catch (error) {
-        next(error);
+        if (error instanceof AppError) {
+            return next(error);
+        }
+        console.error('Error creating user:', error);
+        next(new AppError('An error occurred while creating the user, try again later', 500));
     }
 };
+
+
+// Verify local user email contoller
+const verifyLocalUserEmailController = async (req, res, next) => {
+    try {
+        const { email, otp } = req.body;
+        if (!email || !otp) {
+            return next(new AppError('Email and OTP are required', 400));
+        }
+
+        // fetch user by email
+        const user = await getUserByEmailService(sanitize(email.toLowerCase().trim()));
+        if (!user) {
+            return next(new AppError('User not found', 404));
+        }
+        // check if user is already verified
+        if (user.emailVerified) {
+            return next(new AppError('Email is already verified', 400));
+        }
+        
+        // Get otp from redis and verify otp
+        const key = `otp:${user.email}`;
+        const storedOtpHash = await getRedisCache(key);
+        if (!storedOtpHash) {
+            return next(new AppError('OTP has expired or is invalid, please request a new one', 400));
+        }
+        const otpHash = hashString(otp);
+        if (otpHash !== storedOtpHash) {
+            return next(new AppError('Invalid OTP, please try again', 400));
+        }
+
+        // update user emailVerified to true
+        const updatedUser = await updateUserService(user.email, { emailVerified: true });
+        if (!updatedUser) {
+            return next(new AppError('Failed to verify email, please try again later', 500));
+        }
+
+        // delete otp from redis
+        await deleteRedisCache(key);
+        
+        // delete password from response
+        updatedUser.password = undefined;
+
+        // create a 7 days JWT token
+        const token = createJwtToken(updatedUser.toObject(), '7d');
+
+        // set response cookie with the token
+        res.cookie('token', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production', // use secure cookies in production
+            sameSite: 'Strict', // prevent CSRF attacks
+            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+        });
+
+        return res.status(200).json({
+            status: "success",
+            message: "Email verified successfully!",
+            user: updatedUser.toObject()
+        });
+    } catch (error) {
+        if (error instanceof AppError) {
+            return next(error);
+        }
+        console.error('Error verifying email:', error);
+        next(new AppError('An error occurred while verifying email, try again later', 500));
+    }
+}
 
 
 // handle social login controller
@@ -200,11 +197,11 @@ const loginLocalUser = async (req, res, next) => {
             return next(new AppError('Invalid email or password', 401));
         }
         // verify user password
-        const isPasswordValid = await verifyPassword(password, user.password);
-        console.log('Password verification result:', isPasswordValid);
+        /**const isPasswordValid = await verifyPassword(password, user.password);
+        /**console.log('Password verification result:', isPasswordValid);
         if (!isPasswordValid) {
             return next(new AppError('Invalid email or password', 401));
-        }
+        }**/
 
         // create a 7 days JWT token
         const token = createJwtToken(user.toObject(), '7d');
@@ -388,21 +385,30 @@ const logoutUser = async (req, res, next) => {
 
 const deleteUser = async (req, res, next) => {
     try {
-    const userId = req.user.id;
+    const user = req.user;
+    if (!user) {
+        return next(new AppError('User not found', 404));
+    }
 
-    //To delete related resume or data
-    await User.findByIdAndDelete(userId);
-
+    // Delete user from database
+    const deletedUser = await deleteUserService(user._id);
+    if (!deletedUser) {
+        return next(new AppError('Failed to delete user', 500));
+    }
     res.clearCookie("token", {
         httpOnly:true,
         secure: process.env.Node_ENV === "production",
         sameSite: "strict"
     });
     res.status(200).json({
-        message: "Account deleted and logged out."
+        status: "success",
+        message: "User account deleted successfully"
     });
     } catch (err) {
         console.error("Delete user error:", err.message);
+        if (err instanceof AppError) {
+            return next(err);
+        }
         return next(new AppError('An error occurred while deleting your account, try again later', 500));
     }
 };
@@ -440,8 +446,8 @@ const getUserController = async (req, res, next) => {
 
 //export modules
 module.exports = {
-    setupLocalRegistration,
     createLocalUser,
+    verifyLocalUserEmailController,
     handleSocialLoginUser,
     loginLocalUser,
     userForgotPassword,

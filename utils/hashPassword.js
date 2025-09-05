@@ -27,6 +27,7 @@ const verifyPassword = async (password, hashedPassword) => {
         return isMatch;
     } catch (error) {
         // handle errors during comparison
+        console.error('Error verifying password:', error);
         throw new AppError('Error verifying password', 500);
     }
 };

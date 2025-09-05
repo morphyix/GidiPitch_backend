@@ -34,7 +34,11 @@ const getRedisCache = async (key) => {
         const value = await redisClient.get(key);
         if (value) {
             console.log(`Cache hit for key: ${key}`);
-            return JSON.parse(value);
+            try {
+                return JSON.parse(value); // Attempt to parse JSON
+            } catch (err) {
+                return value; // Return as string if parsing fails
+            }
         } else {
             console.log(`Cache miss for key: ${key}`);
             return null;

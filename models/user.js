@@ -3,8 +3,8 @@ const mongoose = require('mongoose');
 
 const UserSchema = new mongoose.Schema({
     email: { type: String, required: true, unique: true },
-    firstname: { type: String, required: true },
-    lastname: { type: String, required: true },
+    firstname: { type: String },
+    lastname: { type: String },
     password: { type: String, required: function() { return this.authProvider === 'local'; } },
     authProvider: { type: String, enum: ['google', 'local'], default: 'local' },
     socialId: { type: String, unique: true, sparse: true }, // For social logins

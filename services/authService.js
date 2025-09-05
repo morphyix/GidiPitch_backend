@@ -148,6 +148,28 @@ const revokeTokenService = async (token) => {
 };
 
 
+// Delete User account service
+const deleteUserService = async (userId) => {
+    try {
+        if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+            throw new AppError('Invalid user ID', 400);
+        }
+
+        // Delete the user by ID
+        const deletedUser = await User.findByIdAndDelete(userId);
+        if (!deletedUser) {
+            throw new AppError('User not found', 404);
+        }
+
+        return true; // return true if deletion is successful
+    } catch (error) {
+        if (error instanceof AppError) throw error; // Re-throw AppError for handling in the controller
+        console.error('Error deleting user:', error);
+        throw new AppError('An error occurred while deleting the user', 500);
+    }
+};
+
+
 //export modules
 module.exports = {
     createUserService,
@@ -155,4 +177,5 @@ module.exports = {
     getUserByEmailService,
     updateUserService,
     revokeTokenService,
+    deleteUserService
 };
