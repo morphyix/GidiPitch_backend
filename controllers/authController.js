@@ -197,11 +197,10 @@ const loginLocalUser = async (req, res, next) => {
             return next(new AppError('Invalid email or password', 401));
         }
         // verify user password
-        /**const isPasswordValid = await verifyPassword(password, user.password);
-        /**console.log('Password verification result:', isPasswordValid);
+        const isPasswordValid = await verifyPassword(password, user.password);
         if (!isPasswordValid) {
             return next(new AppError('Invalid email or password', 401));
-        }**/
+        }
 
         // create a 7 days JWT token
         const token = createJwtToken(user.toObject(), '7d');
@@ -442,7 +441,71 @@ const getUserController = async (req, res, next) => {
         }
         return next(new AppError('An error occurred while retrieving user data, try again later', 500));
     }
-}
+};
+
+
+// Update User Controller (for updating user password, fistname, lastname, industry, target audience, goals)
+const updateUserController = async (req, res, next) => {
+    try {
+        const user = req.user;
+        if (!user) {
+            return next(new AppError("User not found", 404));
+        }
+
+        const { firstname, lastname, newPassword, oldPassword, industry, target_audience, goals } = req.body;
+
+        const updateData = {};
+
+        if (firstname) updateData.firstname = sanitize(firstname.trim().toLowerCase());
+        if (lastname) updateData.lastname = sanitize(lastname.trim().toLowerCase());
+        if (industry) updateData.industry = sanitize(industry.trim().toLowerCase());
+        if (target_audience) updateData.target_audience = sanitize(target_audience.trim().toLowerCase());
+        if (goals && Array.isArray(goals)) updateData.goals = goals.map(goal => sanitize(goal.trim().toLowerCase()));
+
+        // If updating password, verify old password and validate new password
+        if (newPassword || oldPassword) {
+            if (!newPassword || !oldPassword) {
+                return next(new AppError('Both old password and new password are required to update password', 400));
+            }
+
+            if (user.authProvider !== 'local') {
+                return next(new AppError('Password update is only available for local authentication users', 400));
+            }
+
+            // validate old and new password
+            if (!validatePassword(oldPassword) || !validatePassword(newPassword)) {
+                return next(new AppError('Password must be at least 8 characters long and contain an uppercase letter, a lowercase letter, a number, and a special character', 400));
+            }
+
+            // verify old password
+            const isOldPasswordValid = await verifyPassword(oldPassword, user.password);
+            if (!isOldPasswordValid) {
+                return next(new AppError('Old password is incorrect', 401));
+            }
+
+            // hash new password
+            const hashedNewPassword = await hashPassword(newPassword);
+            updateData.password = hashedNewPassword;
+        }
+        // Update user data
+        const updatedUser = await updateUserService(user.email, updateData);
+
+        // Delete password from response
+        updatedUser.password = undefined;
+
+        return res.status(200).json({
+            status: "success",
+            message: "User updated successfully",
+            user: updatedUser.toObject()
+        });
+    } catch (error) {
+        console.error('Error updating user:', error);
+        if (error instanceof AppError) {
+            return next(error);
+        }
+        return next(new AppError('An error occurred while updating user data, try again later', 500));
+    }
+};
 
 //export modules
 module.exports = {
@@ -454,5 +517,6 @@ module.exports = {
     resetPassword,
     logoutUser,
     deleteUser,
-    getUserController
+    getUserController,
+    updateUserController
 }
