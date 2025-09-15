@@ -10,7 +10,6 @@ const { errorMiddleware } = require('./middleware/errorMiddleware');
 const { configurePassport } = require('./config/passport');
 const { querySanitizeMiddleware } = require('./middleware/querySanitizeMiddleware');
 const authRoutes = require('./routes/authRoute');
-const pitchDeckRoutes = require('./routes/pitchDeckRoutes');
 const jobsRoutes = require('./routes/jobRoute');
 const waitListRoutes = require('./routes/waitListRoutes');
 
@@ -51,7 +50,6 @@ const resumeRoutes = require("./routes/resumeRoutes");
 // use the routes
 app.use("/api/resumes", resumeRoutes);
 app.use('/api/auth', authRoutes);
-app.use('/api/pitch-deck', pitchDeckRoutes);
 app.use('/api/jobs', jobsRoutes);
 app.use('/api/waitlist', waitListRoutes);
 

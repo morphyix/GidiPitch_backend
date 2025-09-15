@@ -1,5 +1,6 @@
 // send mail function using sendgrid
 const { MailerSend, EmailParams, Sender, Recipient } = require('mailersend');
+const nodemailer = require('nodemailer');
 const { AppError } = require('./error');
 
 
@@ -39,4 +40,32 @@ const sendMail = async (to, subject, from, text, html) => {
 };
 
 
-module.exports = { sendMail };
+const mailTransporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASSWORD,
+    },
+});
+
+const mailSender = async (to, subject, text, html) => {
+    try {
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to,
+            subject,
+            text,
+            html,
+        };
+
+        await mailTransporter.sendMail(mailOptions);
+        console.log("Email sent successfully");
+    } catch (error) {
+        console.error("Error in mailSender: ", error);
+    }
+};
+
+
+module.exports = { sendMail, mailSender };
