@@ -9,6 +9,9 @@ const UserSchema = new mongoose.Schema({
     authProvider: { type: String, enum: ['google', 'local'], default: 'local' },
     socialId: { type: String, unique: true, sparse: true }, // For social logins
     emailVerified: { type: Boolean, default: false },
+    industry: { type: String },
+    target_audience: { type: String },
+    goals: [{ type: String }],
 }, { timestamps: true });
 
 // add index for email, authProvider, and socialId
