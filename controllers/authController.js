@@ -170,11 +170,11 @@ const handleSocialLoginUser = async (req, res, next) => {
             maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
         });
 
-        return res.status(200).json({
-            status: "success",
-            message: isNew ? "User created and logged in successfully!" : "User logged in successfully!",
-            user: user.toObject()
-        });
+        if (isNew) {
+            res.redirect(`${process.env.FRONTEND_URL}/onboarding`);
+        } else {
+            res.redirect(`${process.env.FRONTEND_URL}/dashboard`);
+        }
     } catch (error) {
         next(error);
     }
