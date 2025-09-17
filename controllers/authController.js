@@ -134,7 +134,7 @@ const verifyLocalUserEmailController = async (req, res, next) => {
         res.cookie('token', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production', // use secure cookies in production
-            sameSite: 'Strict', // prevent CSRF attacks
+            sameSite: 'None', // prevent CSRF attacks
             maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
         });
 
@@ -205,7 +205,7 @@ const loginLocalUser = async (req, res, next) => {
         // set response cookie with the token
         res.cookie('token', token, {
             httpOnly: true,
-            secure: true, // use secure cookies in production
+            secure: process.env.NODE_ENV === 'production', // use secure cookies in production
             path: '/',
             sameSite: 'None', // prevent CSRF attacks
             maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
@@ -356,7 +356,7 @@ const logoutUser = async (req, res, next) => {
         // clear token in cookies
         res.clearCookie('token', {
             httpOnly: true,
-            secure: true, // use secure cookies in production
+            secure: process.env.NODE_ENV === 'production', // use secure cookies in production
             path: '/',
             sameSite: 'None' // prevent CSRF attacks
         });
@@ -396,7 +396,7 @@ const deleteUser = async (req, res, next) => {
     res.clearCookie("token", {
         httpOnly:true,
         secure: process.env.Node_ENV === "production",
-        sameSite: "strict"
+        sameSite: "None"
     });
     res.status(200).json({
         status: "success",
@@ -541,7 +541,7 @@ const setCookieController = async (req, res, next) => {
         // set response cookie with the token
         res.cookie('token', token, {
             httpOnly: true,
-            secure: true, // use secure cookies in production
+            secure: process.env.NODE_ENV === 'production', // use secure cookies in production
             path: '/',
             sameSite: 'None', // prevent CSRF attacks
             maxAge: (decoded.exp - decoded.iat) * 1000 // set maxAge based on token expiry
