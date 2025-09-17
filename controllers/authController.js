@@ -205,8 +205,9 @@ const loginLocalUser = async (req, res, next) => {
         // set response cookie with the token
         res.cookie('token', token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production', // use secure cookies in production
-            sameSite: 'Strict', // prevent CSRF attacks
+            secure: true, // use secure cookies in production
+            path: '/',
+            sameSite: 'None', // prevent CSRF attacks
             maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
         });
         // delete user password from the response
@@ -355,8 +356,9 @@ const logoutUser = async (req, res, next) => {
         // clear token in cookies
         res.clearCookie('token', {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production', // use secure cookies in production
-            sameSite: 'Strict' // prevent CSRF attacks
+            secure: true, // use secure cookies in production
+            path: '/',
+            sameSite: 'None' // prevent CSRF attacks
         });
 
         // revoke token
@@ -539,8 +541,9 @@ const setCookieController = async (req, res, next) => {
         // set response cookie with the token
         res.cookie('token', token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production', // use secure cookies in production
-            sameSite: 'Strict', // prevent CSRF attacks
+            secure: true, // use secure cookies in production
+            path: '/',
+            sameSite: 'None', // prevent CSRF attacks
             maxAge: (decoded.exp - decoded.iat) * 1000 // set maxAge based on token expiry
         });
 
