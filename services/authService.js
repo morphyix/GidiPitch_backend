@@ -38,6 +38,8 @@ const handleSocialLoginService = async (provider, profile) => {
             socialId: profile.id
         });
 
+        console.log('Existing user:', existingUser);
+
         if (existingUser) {
             // if user exists, return the user
             return { user: existingUser, isNew: false };
