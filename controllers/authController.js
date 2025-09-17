@@ -74,7 +74,7 @@ const createLocalUser = async (req, res, next) => {
         return res.status(201).json({
             status: "success",
             message: "User created successfully! Please check your email for the OTP to verify your email address.",
-            user: newUser.toObject()
+            user: newUser.toJSON()
         });
     } catch (error) {
         if (error instanceof AppError) {
@@ -141,7 +141,7 @@ const verifyLocalUserEmailController = async (req, res, next) => {
         return res.status(200).json({
             status: "success",
             message: "Email verified successfully!",
-            user: updatedUser.toObject()
+            user: updatedUser.toJSON()
         });
     } catch (error) {
         if (error instanceof AppError) {
@@ -214,7 +214,7 @@ const loginLocalUser = async (req, res, next) => {
         return res.status(200).json({
             status: "success",
             message: "Login successful!",
-            user: user.toObject()
+            user: user.toJSON()
         });
     } catch (error) {
         if (error instanceof AppError) {
@@ -334,7 +334,7 @@ const resetPassword = async (req, res, next) => {
         return res.status(200).json({
             status: "success",
             message: "Password reset successfully!",
-            user: updatedUser.toObject()
+            user: updatedUser.toJSON()
         });
     } catch (error) {
         if (error instanceof AppError) {
@@ -495,7 +495,7 @@ const updateUserController = async (req, res, next) => {
         return res.status(200).json({
             status: "success",
             message: "User updated successfully",
-            user: updatedUser.toObject()
+            user: updatedUser.toJSON()
         });
     } catch (error) {
         console.error('Error updating user:', error);
@@ -547,7 +547,7 @@ const setCookieController = async (req, res, next) => {
         return res.status(200).json({
             status: "success",
             message: "Cookie set successfully",
-            user: decoded.toObject()
+            user: decoded
         });
     } catch (error) {
         console.error('Error setting cookie:', error);
