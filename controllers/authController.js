@@ -458,7 +458,7 @@ const updateUserController = async (req, res, next) => {
         if (industry) updateData.industry = sanitize(industry.trim().toLowerCase());
         if (target_audience) updateData.target_audience = sanitize(target_audience.trim().toLowerCase());
         if (goals && Array.isArray(goals)) updateData.goals = goals.map(goal => sanitize(goal.trim().toLowerCase()));
-        if (team_size) updateData.team_size = sanitize(parseInt(team_size, 10));
+        if (team_size) updateData.team_size = sanitize(team_size.trim());
         if (startup_goal) updateData.startup_goal = sanitize(startup_goal.trim().toLowerCase());
 
         // If updating password, verify old password and validate new password
