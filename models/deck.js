@@ -14,8 +14,8 @@ const DeckSchema = new mongoose.Schema({
     milestones: { type: String },
     financials: { type: String },
     ask: { type: String },
-    team: [{ name: { type: String }, role: { type: String } }],
-    status: { type: String, enum: ['draft', 'generating', 'ready', 'editing', 'finalized' ], default: 'draft' },
+    team: [{ name: { type: String }, role: { type: String }, asset: { type: String }, linkedIn: { type: String } }],
+    status: { type: String, enum: ['draft', 'generating', 'ready', 'editing', 'finalized', 'failed' ], default: 'draft' },
     slides: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Slide' }],
     PDFUrl: { type: String },
     pptxUrl: { type: String },
@@ -26,6 +26,7 @@ DeckSchema.index({ ownerId: 1 });
 
 // Index for status to optimize queries
 DeckSchema.index({ status: 1 });
+DeckSchema.index({ ownerId: 1, createdAt: -1 });
 
 const Deck = mongoose.model('Deck', DeckSchema, 'decks');
 
