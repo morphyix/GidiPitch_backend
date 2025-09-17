@@ -38,8 +38,6 @@ const handleSocialLoginService = async (provider, profile) => {
             socialId: profile.id
         });
 
-        console.log('Existing user:', existingUser);
-
         if (existingUser) {
             // if user exists, return the user
             return { user: existingUser, isNew: false };
@@ -54,7 +52,7 @@ const handleSocialLoginService = async (provider, profile) => {
         // check if email already exists
         const emailExists = await User.findOne({ email });
         if (emailExists) {
-            throw new AppError('User with this email already exists, login instead', 400);
+            throw new AppError('User with this email already exists, login manually instead', 400);
         }
 
         const userData = {
