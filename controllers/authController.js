@@ -208,6 +208,7 @@ const loginLocalUser = async (req, res, next) => {
             secure: process.env.NODE_ENV === 'production', // use secure cookies in production
             path: '/',
             sameSite: 'None', // prevent CSRF attacks
+            domain: "gidipitch-backend.onrender.com",
             maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
         });
         // delete user password from the response
