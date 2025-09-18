@@ -32,7 +32,9 @@ app.use(cors({
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.text({ type: 'text/html' })); // For HTML templates
-app.use(helmet()); // Security middleware to set various HTTP headers
+app.use(helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" }
+})); // Security middleware to set various HTTP headers
 app.use(querySanitizeMiddleware); // Middleware to sanitize query parameters
 app.use(session({
     secret: process.env.SESSION_SECRET || 'defaultsecret',
