@@ -3,6 +3,7 @@ const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const { handleSocialLoginService } = require('../services/authService');
 const User = require('../models/user');
+const { AppError } = require('../utils/error');
 
 
 function configurePassport() {
@@ -14,26 +15,13 @@ function configurePassport() {
     }, async (accessToken, refreshToken, profile, done) => {
         try {
             const {user, isNew } = await handleSocialLoginService('google', profile);
+            if (!user) return done(new AppError('Failed to login with Google', 500), null);
+
             done(null, { user, isNew });
         } catch (error) {
             done(error, null);
         }
     }));
-
-    // Serialize user to session
-    passport.serializeUser((data, done) => {
-        done(null, data.user._id);
-    });
-
-    // Deserialize user from session
-    passport.deserializeUser(async (id, done) => {
-        try {
-            const user = await User.findById(id);
-            done(null, user);
-        } catch (error) {
-            done(error, null);
-        }
-    });
 }
 
 

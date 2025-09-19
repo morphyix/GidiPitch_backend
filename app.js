@@ -4,7 +4,6 @@ const dotenv = require('dotenv');
 const passport = require('passport');
 const cookieParser = require('cookie-parser');
 const helmet = require('helmet');
-const session = require('express-session');
 const connectDB = require('./config/db');
 const { errorMiddleware } = require('./middleware/errorMiddleware');
 const { configurePassport } = require('./config/passport');
@@ -36,11 +35,6 @@ app.use(helmet({
     crossOriginResourcePolicy: { policy: "cross-origin" }
 })); // Security middleware to set various HTTP headers
 app.use(querySanitizeMiddleware); // Middleware to sanitize query parameters
-app.use(session({
-    secret: process.env.SESSION_SECRET || 'defaultsecret',
-    resave: false,
-    saveUninitialized: true,
-}));
 app.use(passport.initialize()); // Initialize Passport.js for authentication
 
 

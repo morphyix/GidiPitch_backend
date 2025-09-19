@@ -207,7 +207,7 @@ const loginLocalUser = async (req, res, next) => {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production', // use secure cookies in production
             sameSite: 'none', // prevent CSRF attacks
-            maxAge: 24 * 60 * 60 * 1000 // 1 day
+            maxAge: 7* 24 * 60 * 60 * 1000 // 7 days expiry
         });
         // delete user password from the response
         user.password = undefined;
@@ -544,7 +544,7 @@ const setCookieController = async (req, res, next) => {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production', // use secure cookies in production
             sameSite: 'none', // prevent CSRF attacks
-            maxAge: 24 * 60 * 60 * 1000 // 1 day expiry
+            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days expiry
         });
 
         return res.status(200).json({

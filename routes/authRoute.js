@@ -10,8 +10,8 @@ const router = express.Router();
 
 router.post('/local', rateLimiter, createLocalUser);
 router.put('/email/verify', rateLimiter, verifyLocalUserEmailController);
-router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
-router.get('/google/callback', passport.authenticate('google', { failureRedirect: '/login' }), handleSocialLoginUser);
+router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'], session: false }));
+router.get('/google/callback', passport.authenticate('google', { failureRedirect: '/login', session: false }), handleSocialLoginUser);
 router.post('/login', rateLimiter, loginLocalUser);
 router.post('/password/forgot', userForgotPassword);
 router.post('/password/reset', resetPassword);
