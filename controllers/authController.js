@@ -134,7 +134,7 @@ const verifyLocalUserEmailController = async (req, res, next) => {
         res.cookie('token', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production', // use secure cookies in production
-            sameSite: 'None', // prevent CSRF attacks
+            sameSite: 'none', // prevent CSRF attacks
             maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
         });
 
@@ -206,9 +206,7 @@ const loginLocalUser = async (req, res, next) => {
         res.cookie('token', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production', // use secure cookies in production
-            path: '/',
-            sameSite: 'None', // prevent CSRF attacks
-            domain: "gidipitch-backend.onrender.com",
+            sameSite: 'none', // prevent CSRF attacks
             maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
         });
         // delete user password from the response
@@ -358,8 +356,7 @@ const logoutUser = async (req, res, next) => {
         res.clearCookie('token', {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production', // use secure cookies in production
-            path: '/',
-            sameSite: 'None' // prevent CSRF attacks
+            sameSite: 'none' // prevent CSRF attacks
         });
 
         // revoke token
@@ -397,7 +394,7 @@ const deleteUser = async (req, res, next) => {
     res.clearCookie("token", {
         httpOnly:true,
         secure: process.env.Node_ENV === "production",
-        sameSite: "None"
+        sameSite: "none"
     });
     res.status(200).json({
         status: "success",
@@ -543,8 +540,7 @@ const setCookieController = async (req, res, next) => {
         res.cookie('token', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production', // use secure cookies in production
-            path: '/',
-            sameSite: 'None', // prevent CSRF attacks
+            sameSite: 'none', // prevent CSRF attacks
             maxAge: (decoded.exp - decoded.iat) * 1000 // set maxAge based on token expiry
         });
 
