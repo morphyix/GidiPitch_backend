@@ -207,7 +207,7 @@ const loginLocalUser = async (req, res, next) => {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production', // use secure cookies in production
             sameSite: 'none', // prevent CSRF attacks
-            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+            maxAge: 24 * 60 * 60 * 1000 // 1 day
         });
         // delete user password from the response
         user.password = undefined;
@@ -522,6 +522,9 @@ const setCookieController = async (req, res, next) => {
             return next(new AppError('Invalid token', 401));
         }
 
+        // delete toekn hash
+        await deleteRedisCache(tokenhash);
+
         // decode token to get user data
         let decoded;
         try {
@@ -541,7 +544,7 @@ const setCookieController = async (req, res, next) => {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production', // use secure cookies in production
             sameSite: 'none', // prevent CSRF attacks
-            maxAge: (decoded.exp - decoded.iat) * 1000 // set maxAge based on token expiry
+            maxAge: 24 * 60 * 60 * 1000 // 1 day expiry
         });
 
         return res.status(200).json({
