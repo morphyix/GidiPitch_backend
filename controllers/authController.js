@@ -168,9 +168,9 @@ const handleSocialLoginUser = async (req, res, next) => {
         await setRedisCache(tokenHash, 'active', 24 * 60 * 60); // 24 hours expiry
 
         if (isNew) {
-            res.redirect(`${process.env.FRONTEND_URL}/onboarding?token=${loginToken}`);
+            res.redirect(`${process.env.LIVE_URL}/onboarding?token=${loginToken}`);
         } else {
-            res.redirect(`${process.env.FRONTEND_URL}/dashboard?token=${loginToken}`);
+            res.redirect(`${process.env.LIVE_URL}/dashboard?token=${loginToken}`);
         }
     } catch (error) {
         next(error);
