@@ -10,7 +10,7 @@ const UserSchema = new mongoose.Schema({
     socialId: { type: String, unique: true, sparse: true }, // For social logins
     emailVerified: { type: Boolean, default: false },
     industry: { type: String },
-    team_sie: { type: String },
+    team_size: { type: String },
     target_audience: { type: String },
     startup_goal: { type: String },
     goals: [{ type: String }],
