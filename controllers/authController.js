@@ -441,7 +441,7 @@ const updateUserController = async (req, res, next) => {
             return next(new AppError("User not found", 404));
         }
 
-        const { firstname, lastname, newPassword, oldPassword, industry, target_audience, goals, team_size, startup_goal } = req.body;
+        const { firstname, lastname, newPassword, oldPassword, industry, target_audience, goals, team_size, goal } = req.body;
 
         const updateData = {};
 
@@ -451,7 +451,7 @@ const updateUserController = async (req, res, next) => {
         if (target_audience) updateData.target_audience = sanitize(target_audience.trim().toLowerCase());
         if (goals && Array.isArray(goals)) updateData.goals = goals.map(goal => sanitize(goal.trim().toLowerCase()));
         if (team_size) updateData.team_size = sanitize(team_size.trim());
-        if (startup_goal) updateData.startup_goal = sanitize(startup_goal.trim().toLowerCase());
+        if (goal) updateData.startup_goal = sanitize(goal.trim().toLowerCase());
 
         // If updating password, verify old password and validate new password
         if (newPassword || oldPassword) {
