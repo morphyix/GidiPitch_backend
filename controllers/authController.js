@@ -421,15 +421,7 @@ const getUserController = async (req, res, next) => {
         return res.status(200).json({
             status: "success",
             message: "User retrieved successfully",
-            user: {
-                id: user._id,
-                email: user.email,
-                firstname: user.firstname,
-                lastname: user.lastname,
-                emailVerified: user.emailVerified,
-                createdAt: user.createdAt,
-                updatedAt: user.updatedAt
-            }
+            user: user.toJSON()
         });
     } catch (error) {
         console.error('Error retrieving user:', error);
