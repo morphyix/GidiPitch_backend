@@ -12,7 +12,7 @@ const UserSchema = new mongoose.Schema({
     industry: { type: String },
     team_size: { type: String },
     target_audience: { type: String },
-    startup_goal: { type: String },
+    goal: { type: String },
     goals: [{ type: String }],
 }, { timestamps: true });
 
