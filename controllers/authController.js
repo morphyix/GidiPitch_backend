@@ -418,6 +418,8 @@ const getUserController = async (req, res, next) => {
             return next(new AppError('User not found', 404));
         }
 
+        // delete password field
+        user.password = undefined;
         return res.status(200).json({
             status: "success",
             message: "User retrieved successfully",
