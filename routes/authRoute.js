@@ -1,7 +1,7 @@
 const express = require('express');
 const passport = require('passport');
 const { createLocalUser, verifyLocalUserEmailController, handleSocialLoginUser, loginLocalUser, userForgotPassword, resetPassword,
-    deleteUser, getUserController, updateUserController, setCookieController } = require('../controllers/authController');
+    deleteUser, getUserController, updateUserController, setCookieController,logoutUser } = require('../controllers/authController');
 const { authMiddleware } = require('../middleware/authMiddleware');
 const { rateLimiter } = require('../config/rateLimit');
 
@@ -17,6 +17,7 @@ router.post('/password/forgot', userForgotPassword);
 router.post('/password/reset', resetPassword);
 router.put("/", authMiddleware, updateUserController);
 router.delete("/", authMiddleware, deleteUser);
+router.post("/logout", authMiddleware, logoutUser);
 router.get("/user", authMiddleware, getUserController);
 router.post("/set-cookie", setCookieController);
 
