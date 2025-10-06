@@ -41,8 +41,8 @@ const sendMail = async (to, subject, from, text, html) => {
 
 
 const mailTransporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 465,
+    host: 'smtp.mailersend.net',
+    port: 587,
     secure: true,
     auth: {
         user: process.env.EMAIL_USER,
@@ -53,7 +53,7 @@ const mailTransporter = nodemailer.createTransport({
 const mailSender = async (to, subject, text, html) => {
     try {
         const mailOptions = {
-            from: process.env.EMAIL_USER,
+            from: 'noreply @techfortress.qzz.io',
             to,
             subject,
             text,

@@ -15,6 +15,9 @@ const startJobs = async () => {
         // import and initialize email worker
         require('./email/worker');
 
+        // import and initialize pitch deck worker
+        require('./pitchDeckGenerator/worker');
+
         console.log('All job queues and workers initialized successfully.');
     } catch (error) {
         console.error('Error starting jobs:', error);

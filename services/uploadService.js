@@ -76,8 +76,49 @@ const deleteFileService = async (fileUrl) => {
 };
 
 
+const uploadImageService = async (file) => {
+    try {
+        if (!file) {
+            throw new AppError('Please upload an image', 400);
+        }
+
+        const allowedTypes = [ 'image/png', 'image/jpg', 'image/jpeg', 'image/webp'];
+        if (!allowedTypes.includes(file.mimetype)) {
+            throw new AppError('Invalid file type. Only PNG, JPG, JPEG, and WEBP are allowed.', 400);
+        }
+
+        const fileKey = `uploads/${Date.now()}-${file.originalname}`;
+        const imageBuffer = await sharp(file.buffer)
+            .jpeg({ quality: 80 }) // Convert to Web4 with 80% quality
+            .toBuffer();
+        
+        // upload parameters
+        const uploadParams = {
+            Bucket: process.env.S3_BUCKET,
+            Key: fileKey,
+            Body: imageBuffer,
+            ContentType: 'image/jpeg', // Set the content type to JPEG
+        };
+
+        // Upload the image to S3
+        const command = new PutObjectCommand(uploadParams);
+        await s3Client.send(command);
+
+        // Return the file key of the uploaded image
+        return fileKey;
+    } catch (error) {
+        if (error instanceof AppError) {
+            throw error; // Re-throw custom errors
+        }
+        console.error('Error uploading image:', error);
+        throw new AppError('Failed to upload image', 500);
+    }
+};
+
+
 // Export the services
 module.exports = {
     uploadPdfService,
     deleteFileService,
+    uploadImageService,
 };
