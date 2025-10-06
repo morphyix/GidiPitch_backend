@@ -61,8 +61,58 @@ const generatePdfFromHtml = async (htmlContent) => {
 };
 
 
+// Sanitize gemini response
+const sanitizeGeminiResponse = (rawResponse) => {
+  if (!rawResponse || typeof rawResponse !== 'string') {
+    throw new AppError('Invalid response from AI model', 500);
+  }
+
+  // Remove markdown code fences if present
+  let cleanResponse = rawResponse.trim();
+  if (cleanResponse.startsWith('```')) {
+    cleanResponse = cleanResponse.replace(/^```[a-zA-Z]*\n?/, '').replace(/```$/, '');
+  }
+
+  // try parsing at first
+  cleanResponse = cleanResponse.trim();
+  try {
+    return JSON.parse(cleanResponse);
+  } catch (_) {
+    
+  }
+
+  // Identify the first and last curly braces to extract JSON
+  const firstBraceIndex = Math.min(
+    cleanResponse.indexOf('{') !== -1 ? cleanResponse.indexOf('{') : Infinity,
+    cleanResponse.indexOf('[') !== -1 ? cleanResponse.indexOf('[') : Infinity
+  );
+  const lastBraceIndex = Math.max(
+    cleanResponse.lastIndexOf('}'), cleanResponse.lastIndexOf(']')
+  );
+
+  if (firstBraceIndex === Infinity || lastBraceIndex === -1 || lastBraceIndex <= firstBraceIndex) {
+    console.log('AI response did not contain valid JSON:', rawResponse);
+    throw new AppError('No valid JSON found in AI response', 500);
+  }
+
+  cleanResponse = cleanResponse.substring(firstBraceIndex, lastBraceIndex + 1);
+
+  // Parse the cleaned JSON string
+  let parsedData;
+  try {
+    parsedData = JSON.parse(cleanResponse);
+  } catch (error) {
+    console.error('Error parsing JSON from AI response:', error);
+    throw new AppError('Failed to parse JSON from AI response', 500);
+  }
+
+  return parsedData;
+};
+
+
 module.exports = {
     sanitize,
     extractFileKey,
     generatePdfFromHtml,
+    sanitizeGeminiResponse
 }

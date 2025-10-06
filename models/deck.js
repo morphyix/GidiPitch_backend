@@ -17,8 +17,11 @@ const DeckSchema = new mongoose.Schema({
     team: [{ name: { type: String }, role: { type: String }, asset: { type: String }, linkedIn: { type: String } }],
     status: { type: String, enum: ['draft', 'generating', 'ready', 'editing', 'finalized', 'failed' ], default: 'draft' },
     slides: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Slide' }],
+    slideCount: { type: Number, default: 0 },
     PDFUrl: { type: String },
     pptxUrl: { type: String },
+    progress: { type: Number, default: 0 },
+    error: { type: String },
 }, { timestamps: true });
 
 // Index for ownerId to optimize queries

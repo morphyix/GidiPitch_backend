@@ -8,8 +8,9 @@ const { validateEmail, validatePhone, validatePassword } = require('../utils/val
 const { hashPassword, verifyPassword } = require('../utils/hashPassword');
  const { createJwtToken, verifyJwtToken } = require('../utils/jwtAuth');
 const { addEmailJob } = require('../jobs/email/queue');
-const { generateOtpEmail } = require('../templates/welcomeEmail');
+const { generateOtpEmail } = require('../templates/otpEmail');
 const { generateForgotPasswordEmail } = require('../templates/resetPasswordEmail');
+const { generateWelcomeEmail } = require('../templates/welcomeEmail');
 const { setRedisCache, getRedisCache, deleteRedisCache } = require('../config/redis');
 const { hashString } = require('../utils/hashString');
 const { sanitize } = require('../utils/helper');
@@ -63,7 +64,7 @@ const createLocalUser = async (req, res, next) => {
             to: newUser.email,
             subject: "Welcome to GidiPitch, verify your email",
             text: "Please verify your email address using the OTP code",
-            html: generateOtpEmail(newUser.email, otp),
+            html: generateOtpEmail(newUser.firstname, String(otp)),
             from: "noreply@thebigphotocontest.com"
         }
         await addEmailJob(welcomeEmailData);
@@ -126,6 +127,16 @@ const verifyLocalUserEmailController = async (req, res, next) => {
         
         // delete password from response
         updatedUser.password = undefined;
+
+        // send welcome email
+        const welcomeEmailData = {
+            to: updatedUser.email,
+            subject: "Welcome to GidiPitch!",
+            text: "Your email has been verified successfully. Welcome to GidiPitch!",
+            html: generateWelcomeEmail(updatedUser.firstname),
+            from: "noreply@thebigphotocontest.com"
+        }
+        await addEmailJob(welcomeEmailData);
 
         // create a 7 days JWT token
         const token = createJwtToken(updatedUser.toObject(), '7d');
@@ -251,7 +262,7 @@ const userForgotPassword = async (req, res, next) => {
                 subject: "Reset Your Password",
                 text: "Click the link below to reset your password",
                 html: generateForgotPasswordEmail(resetUrl),
-                from: "noreply@thebigphotocontest.com"
+                from: "noreply@techfortress.qzz.io"
             };
 
             await addEmailJob(resetPasswordEmailData);
