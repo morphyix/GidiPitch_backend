@@ -21,9 +21,9 @@ const Resume = require("../models/Resume");
 const createLocalUser = async (req, res, next) => {
     try {
         // extract email and password from request body
-        const { email, password } = req.body;
-        if (!email || !password) {
-            return next(new AppError('Email and password are required', 400));
+        const { email, password, firstname, lastname } = req.body;
+        if (!email || !password || !firstname || !lastname) {
+            return next(new AppError('All fields are required', 400));
         }
         // validate email format
         if (!validateEmail(email)) {
@@ -40,6 +40,8 @@ const createLocalUser = async (req, res, next) => {
         const userData = {
             email: sanitize(email.toLowerCase().trim()),
             password: hashedPassword,
+            firstname: sanitize(firstname.toLowerCase().trim()),
+            lastname: sanitize(lastname.toLowerCase().trim()),
             authProvider: 'local'
         }
 
