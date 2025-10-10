@@ -59,6 +59,8 @@ const createLocalUser = async (req, res, next) => {
         const otpHash = hashString(otp);
         await setRedisCache(key, otpHash, 30 * 60); // 30 minutes expiry
 
+        console.log(otp)
+
         // send welcome email with otp
         const welcomeEmailData = {
             to: newUser.email,
