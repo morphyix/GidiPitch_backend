@@ -1,4 +1,4 @@
-const { addToWaitListService, getWaitListCountService } = require('../services/waitListService');
+const { addToWaitListService, getWaitListCountService, getEmailFromWaitListService } = require('../services/waitListService');
 const { AppError } = require('../utils/error');
 const { validateEmail } = require('../utils/validators');
 
@@ -11,6 +11,13 @@ const addToWaitListController = async (req, res, next) => {
             throw new AppError('Invalid email format', 400);
         }
 
+        // Check if email already in waitlist
+        const existingEntry = await getEmailFromWaitListService(email);
+        if (existingEntry) {
+            throw new AppError('This email is already on the waitlist', 400);
+        }
+        
+        // Add email to waitlist
         const newEntry = await addToWaitListService(email);
         
         const waitListCount = await getWaitListCountService();

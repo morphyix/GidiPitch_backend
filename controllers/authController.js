@@ -22,6 +22,7 @@ const createLocalUser = async (req, res, next) => {
     try {
         // extract email and password from request body
         const { email, password, firstname, lastname } = req.body;
+        console.log(req.body)
         if (!email || !password || !firstname || !lastname) {
             return next(new AppError('All fields are required', 400));
         }
