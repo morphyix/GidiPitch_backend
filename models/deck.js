@@ -9,6 +9,11 @@ const DeckSchema = new mongoose.Schema({
     scope: { type: String },
     problems: { type: String },
     solutions: { type: String },
+    features: { type: String },
+    moreInfo: { type: String },
+    imageGenType: { type: String, enum: ['manual', 'ai'], default: 'ai' },
+    brandColor: { type: String },
+    brandStyle: { type: String },
     competition: { type: String },
     businessModel: { type: String },
     milestones: { type: String },
@@ -22,6 +27,7 @@ const DeckSchema = new mongoose.Schema({
     pptxUrl: { type: String },
     progress: { type: Number, default: 0 },
     error: { type: String },
+    activityStatus: { type: String, default: 'All slides layout created, pending content generation' },
 }, { timestamps: true });
 
 // Index for ownerId to optimize queries

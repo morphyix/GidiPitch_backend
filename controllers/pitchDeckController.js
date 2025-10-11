@@ -1,4 +1,4 @@
-const { createDeckService, updateDeckByIdService } = require('../services/deckService');
+const { createDeckService, updateDeckByIdService, getDeckByIdService } = require('../services/deckService');
 const { createSlideService, getSlidesByDeckIdService } = require('../services/slideService');
 const { addPitchDeckJob } = require('../jobs/pitchDeckGenerator/queue');
 const { generatePromptsForSlides, getAllowedSlides } = require('../utils/generatePitchPrompts');
@@ -23,11 +23,14 @@ const createPitchDeckController = async (req, res, next) => {
             return next(new AppError('Slides array is required and cannot be empty', 400));
         }
 
-        const { startupName, industry, scope, problems, solutions,
-            competitions, businessModel, milestones, financials, ask, team } = body;
+        const { startupName, industry, scope, problems, solutions, imageGenType, brandColor, brandStyle,
+            competitions, businessModel, milestones, financials, ask, team, moreInfo, features } = body;
         
-        if (!startupName || !industry || !scope || !problems || !solutions || !competitions || !businessModel || !milestones || !financials || !ask || !team) {
+        if (!startupName || !industry || !scope || !problems || !solutions || !competitions || !businessModel || !team || !Array.isArray(team) || team.length === 0 || !features) {
             return next(new AppError('All startup details are required to create a pitch deck', 400));
+        }
+        if (!imageGenType || (imageGenType !== 'manual' && imageGenType !== 'ai')) {
+            return next(new AppError("imageGenType is required and must be either 'manual' or 'ai'", 400));
         }
 
         // Check if slides is in allowed slides
@@ -45,18 +48,30 @@ const createPitchDeckController = async (req, res, next) => {
             scope: sanitize(scope),
             problems: sanitize(problems),
             solutions: sanitize(solutions),
+            features: sanitize(features),
+            moreInfo: moreInfo ? sanitize(moreInfo) : '',
             competitions: sanitize(competitions),
             businessModel: sanitize(businessModel),
-            milestones: sanitize(milestones),
-            financials: sanitize(financials),
-            ask: sanitize(ask),
             team: team.map(member => ({
                 name: sanitize(member.name),
                 role: sanitize(member.role),
                 asset: member.asset ? sanitize(member.asset) : '',
                 linkedIn: member.linkedIn ? sanitize(member.linkedIn) : '',
             })),
+            imageGenType: sanitize(imageGenType),
+            brandColor: brandColor ? sanitize(brandColor) : '',
+            brandStyle: brandStyle ? sanitize(brandStyle) : '',
         };
+
+        if (milestones) {
+            startupData.milestones = sanitize(milestones);
+        }
+        if (financials) {
+            startupData.financials = sanitize(financials);
+        }
+        if (ask) {
+            startupData.ask = sanitize(ask);
+        }
         // Generate prompts for each slide
         const prompts = generatePromptsForSlides(startupData, body.slides);
         if (!prompts || Object.keys(prompts).length === 0) {
@@ -95,7 +110,8 @@ const createPitchDeckController = async (req, res, next) => {
             deckId: newDeck._id,
             prompts,
             startupData,
-            deckSlides
+            deckSlides,
+            imageGenType
         };
 
         await addPitchDeckJob(jobData);
@@ -119,7 +135,61 @@ const createPitchDeckController = async (req, res, next) => {
 };
 
 
+// Track pitch deck generation progress and return generated slides
+const getPitchDeckProgressController = async (req, res, next) => {
+    try {
+        const userId = req.user._id;
+        if (!userId) {
+            return next(new AppError('User not authenticated', 401));
+        }
+
+        const { deckId } = req.params;
+        if (!deckId) {
+            return next(new AppError('deckId parameter is required', 400));
+        }
+
+        // Fetch the deck and ensure it belongs to the user
+        const deck = await getDeckByIdService(deckId);
+        if (!deck) {
+            return next(new AppError('Deck not found', 404));
+        }
+        if (deck.ownerId.toString() !== userId.toString()) {
+            return next(new AppError('Unauthorized access to this deck', 403));
+        }
+
+        // Get all completed slides for the deck
+        const deckSlides = await getSlidesByDeckIdService(deckId);
+        if (deckSlides.length === 0) {
+            return next(new AppError('No slides found for this deck', 404));
+        }
+
+        const completedSlides = deckSlides.filter(slide => slide.progress === 100 && slide.status === 'ready');
+
+        const currentStatus = deck.activityStatus;
+        return res.status(200).json({
+            status: 'success',
+            message: 'Deck progress fetched successfully',
+            data: {
+                deckId: deck._id,
+                status: deck.status,
+                activityStatus: currentStatus || 'In Queue',
+                progress: deck.progress || 0,
+                totalSlides: deck.slideCount || deckSlides.length,
+                completedSlides: completedSlides.length,
+                slides: completedSlides.map(slide => slide.toObject()),
+            }
+        });
+    } catch (error) {
+        if (error instanceof AppError) {
+            return next(error);
+        }
+        next(new AppError(error.message, 500));
+    }
+};
+
+
 // Export the controller
 module.exports = {
-    createPitchDeckController
+    createPitchDeckController,
+    getPitchDeckProgressController,
 };

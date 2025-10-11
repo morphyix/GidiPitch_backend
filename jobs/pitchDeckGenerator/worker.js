@@ -10,8 +10,8 @@ const { createSlideService, updateSlideByIdService, getSlidesByDeckIdService } =
 const pitchDeckWorker = new Worker('pitchDeckQueue', async (job) => {
     try {
         console.log("Processing pitch deck job:", job.id);
-        const { deckId, prompts, startupData, deckSlides } = job.data;
-        if (!deckId || !prompts || !startupData || !deckSlides) {
+        const { deckId, prompts, startupData, deckSlides, imageGenType } = job.data;
+        if (!deckId || !prompts || !startupData || !deckSlides || !imageGenType) {
             throw new AppError('Invalid job data for pitch deck generation', 400);
         }
 
@@ -31,15 +31,17 @@ const pitchDeckWorker = new Worker('pitchDeckQueue', async (job) => {
 
             // Generate slide content using AI service
             // update slide status to 'generating'
+            await updateDeckByIdService(deckId, { activityStatus: `Generating content for slide: ${key}` });
             await updateSlideByIdService(slideId, { status: 'generating', progress: 20 });
             console.log(`Slide status updated to 'generating' for slide: ${key}`);
 
             const slideContent = await generateSlideContent(slidePrompt);
             console.log(`Slide content generated for slide: ${key}`);
             // Update slide entry with generated content
-            slideContent.status = 'image-gen';
-            slideContent.progress = 50;
+            slideContent.status = imageGenType === 'ai' ? 'image_gen' : 'ready';
+            slideContent.progress = imageGenType === 'ai' ? 50 : 100; // if AI image generation, set progress to 50%, else 100%
             await updateSlideByIdService(slideId, slideContent);
+            await updateDeckByIdService(deckId, { activityStatus: `Slide content generated for slide: ${key}` });
             console.log(`Slide content saved to DB for slide: ${key}`);
 
             console.log(slideContent);
@@ -50,9 +52,43 @@ const pitchDeckWorker = new Worker('pitchDeckQueue', async (job) => {
             const updatedAverageProgress = Math.floor(updatedTotalProgress / updatedSlides.length);
             await updateDeckByIdService(deckId, { progress: updatedAverageProgress });
             console.log(`Deck progress updated to ${updatedAverageProgress}% after generating content for slide: ${key}`);
+
+            // Generate Slide image
+            if (imageGenType === 'ai' && slideContent.images.length > 0) {
+                console.log(`Generating images for slide: ${key}`);
+                for (let i = 0; i < slideContent.images.length; i++) {
+                    const image = slideContent.images[i];
+                    console.log(`Generating image ${i + 1} for slide: ${key}`);
+                    await updateDeckByIdService(deckId, { activityStatus: `Generating image ${i + 1} for slide: ${key}` });
+                    try {
+                        const imgObj = await generateSlideImage(image.prompt, { caption: image.caption });
+                        console.log(`Image generated for slide: ${key}, image ${i + 1}`);
+                        // update slide image entry with generated image key and status
+                        await updateSlideByIdService(slideId, {
+                            $inc: { progress: Math.floor(50 / slideContent.images.length) },
+                            $set: {
+                                [`images.${i}.key`]: imgObj.key,
+                                [`images.${i}.status`]: 'generated'
+                            }
+                        });
+                        await updateDeckByIdService(deckId, { activityStatus: `Image ${i + 1} generated for slide: ${key}` });
+                    } catch (imgError) {
+                        console.error(`Error generating image for slide: ${key}, image ${i + 1}:`, imgError);
+                        // update slide image entry with error message and status
+                        await updateSlideByIdService(slideId, {
+                            $set: {
+                                [`images.${i}.status`]: 'failed',
+                                [`images.${i}.error`]: imgError.message
+                            }
+                        });
+                    }
+                }
+            }
         }
         // After all slide contents are generated
-        console.log("All slide contents generated. Starting image generation...");
+        console.log("All slide contents generated.");
+        await updateDeckByIdService(deckId, { status: 'ready', activityStatus: 'All slide contents generated, ready for review' });
+        console.log("Deck status updated to 'ready'.");
     } catch (error) {
         console.error('Error processing pitch deck job:', error);
         if (job.data && job.data.deckId) {
