@@ -23,11 +23,14 @@ const createPitchDeckController = async (req, res, next) => {
             return next(new AppError('Slides array is required and cannot be empty', 400));
         }
 
-        const { startupName, industry, scope, problems, solutions,
-            competitions, businessModel, milestones, financials, ask, team } = body;
+        const { startupName, industry, scope, problems, solutions, imageGenType, brandColor, brandStyle,
+            competitions, businessModel, milestones, financials, ask, team, moreInfo, features } = body;
         
-        if (!startupName || !industry || !scope || !problems || !solutions || !competitions || !businessModel || !milestones || !financials || !ask || !team) {
+        if (!startupName || !industry || !scope || !problems || !solutions || !competitions || !businessModel || !team || !Array.isArray(team) || team.length === 0 || !features) {
             return next(new AppError('All startup details are required to create a pitch deck', 400));
+        }
+        if (!imageGenType || (imageGenType !== 'manual' && imageGenType !== 'ai')) {
+            return next(new AppError("imageGenType is required and must be either 'manual' or 'ai'", 400));
         }
 
         // Check if slides is in allowed slides
@@ -45,18 +48,30 @@ const createPitchDeckController = async (req, res, next) => {
             scope: sanitize(scope),
             problems: sanitize(problems),
             solutions: sanitize(solutions),
+            features: sanitize(features),
+            moreInfo: moreInfo ? sanitize(moreInfo) : '',
             competitions: sanitize(competitions),
             businessModel: sanitize(businessModel),
-            milestones: sanitize(milestones),
-            financials: sanitize(financials),
-            ask: sanitize(ask),
             team: team.map(member => ({
                 name: sanitize(member.name),
                 role: sanitize(member.role),
                 asset: member.asset ? sanitize(member.asset) : '',
                 linkedIn: member.linkedIn ? sanitize(member.linkedIn) : '',
             })),
+            imageGenType: sanitize(imageGenType),
+            brandColor: brandColor ? sanitize(brandColor) : '',
+            brandStyle: brandStyle ? sanitize(brandStyle) : '',
         };
+
+        if (milestones) {
+            startupData.milestones = sanitize(milestones);
+        }
+        if (financials) {
+            startupData.financials = sanitize(financials);
+        }
+        if (ask) {
+            startupData.ask = sanitize(ask);
+        }
         // Generate prompts for each slide
         const prompts = generatePromptsForSlides(startupData, body.slides);
         if (!prompts || Object.keys(prompts).length === 0) {
@@ -95,7 +110,8 @@ const createPitchDeckController = async (req, res, next) => {
             deckId: newDeck._id,
             prompts,
             startupData,
-            deckSlides
+            deckSlides,
+            imageGenType
         };
 
         await addPitchDeckJob(jobData);

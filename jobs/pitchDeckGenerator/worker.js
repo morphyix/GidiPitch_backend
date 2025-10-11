@@ -10,8 +10,8 @@ const { createSlideService, updateSlideByIdService, getSlidesByDeckIdService } =
 const pitchDeckWorker = new Worker('pitchDeckQueue', async (job) => {
     try {
         console.log("Processing pitch deck job:", job.id);
-        const { deckId, prompts, startupData, deckSlides } = job.data;
-        if (!deckId || !prompts || !startupData || !deckSlides) {
+        const { deckId, prompts, startupData, deckSlides, imageGenType } = job.data;
+        if (!deckId || !prompts || !startupData || !deckSlides || !imageGenType) {
             throw new AppError('Invalid job data for pitch deck generation', 400);
         }
 
@@ -50,6 +50,36 @@ const pitchDeckWorker = new Worker('pitchDeckQueue', async (job) => {
             const updatedAverageProgress = Math.floor(updatedTotalProgress / updatedSlides.length);
             await updateDeckByIdService(deckId, { progress: updatedAverageProgress });
             console.log(`Deck progress updated to ${updatedAverageProgress}% after generating content for slide: ${key}`);
+
+            // Generate Slide image
+            if (imageGenType === 'ai' && slideContent.images.length > 0) {
+                console.log(`Generating images for slide: ${key}`);
+                for (let i = 0; i < slideContent.images.length; i++) {
+                    const image = slideContent.images[i];
+                    console.log(`Generating image ${i + 1} for slide: ${key}`);
+                    try {
+                        const imgObj = await generateSlideImage(image.prompt, { caption: image.caption });
+                        console.log(`Image generated for slide: ${key}, image ${i + 1}`);
+                        // update slide image entry with generated image key and status
+                        await updateSlideByIdService(slideId, {
+                            $inc: { progress: Math.floor(50 / slideContent.images.length) },
+                            $set: {
+                                [`images.${i}.key`]: imgObj.key,
+                                [`images.${i}.status`]: 'generated'
+                            }
+                        });
+                    } catch (imgError) {
+                        console.error(`Error generating image for slide: ${key}, image ${i + 1}:`, imgError);
+                        // update slide image entry with error message and status
+                        await updateSlideByIdService(slideId, {
+                            $set: {
+                                [`images.${i}.status`]: 'failed',
+                                [`images.${i}.error`]: imgError.message
+                            }
+                        });
+                    }
+                }
+            }
         }
         // After all slide contents are generated
         console.log("All slide contents generated. Starting image generation...");
