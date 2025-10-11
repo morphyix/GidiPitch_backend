@@ -38,7 +38,30 @@ const getWaitListCountService = async () => {
     }
 };
 
+
+// Get email from waitlist service
+const getEmailFromWaitListService = async (email) => {
+    try {
+        if (!email) {
+            throw new AppError('Email is required', 400);
+        }
+
+        const entry = await WaitList.findOne({ email });
+        if (!entry) {
+            return null; // Return null if email not found
+        }
+
+        return entry;
+    } catch (error) {
+        if (error instanceof AppError) {
+            throw error; // Re-throw custom errors
+        }
+        console.error('Error fetching email from waitlist:', error);
+        throw new AppError('Failed to fetch email from waitlist', 500);
+    }
+};
+
 // export services
 module.exports = {
-    addToWaitListService, getWaitListCountService,
+    addToWaitListService, getWaitListCountService, getEmailFromWaitListService
 }
