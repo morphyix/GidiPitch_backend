@@ -34,7 +34,7 @@ const addToWaitListController = async (req, res, next) => {
         if (error instanceof AppError) {
             return next(error); // Pass AppError to
         }
-
+        console.error('Error in addToWaitListController:', error);
         return next(new AppError('An error occurred while adding to the waitlist', 500));
     }
 };

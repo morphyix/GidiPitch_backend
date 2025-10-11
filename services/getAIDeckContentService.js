@@ -56,7 +56,7 @@ const generateSlideContent = async (
 // Generate image using Google Gemini AI
 const generateSlideImage = async (
   prompt,
-  { caption = "", retries = 2, model = "gemini-2.5-flash-image-preview", generationConfig = {} } = {}
+  { caption = "", retries = 2, model = "gemini-2.5-flash-image", generationConfig = {} } = {}
 ) => {
   if (!prompt || typeof prompt !== "string") {
     throw new AppError("Prompt must be a non-empty string", 400);
