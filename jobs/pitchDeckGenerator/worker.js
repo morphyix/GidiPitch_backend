@@ -31,15 +31,17 @@ const pitchDeckWorker = new Worker('pitchDeckQueue', async (job) => {
 
             // Generate slide content using AI service
             // update slide status to 'generating'
+            await updateDeckByIdService(deckId, { activityStatus: `Generating content for slide: ${key}` });
             await updateSlideByIdService(slideId, { status: 'generating', progress: 20 });
             console.log(`Slide status updated to 'generating' for slide: ${key}`);
 
             const slideContent = await generateSlideContent(slidePrompt);
             console.log(`Slide content generated for slide: ${key}`);
             // Update slide entry with generated content
-            slideContent.status = 'image-gen';
-            slideContent.progress = 50;
+            slideContent.status = imageGenType === 'ai' ? 'image_gen' : 'ready';
+            slideContent.progress = imageGenType === 'ai' ? 50 : 100; // if AI image generation, set progress to 50%, else 100%
             await updateSlideByIdService(slideId, slideContent);
+            await updateDeckByIdService(deckId, { activityStatus: `Slide content generated for slide: ${key}` });
             console.log(`Slide content saved to DB for slide: ${key}`);
 
             console.log(slideContent);
@@ -57,6 +59,7 @@ const pitchDeckWorker = new Worker('pitchDeckQueue', async (job) => {
                 for (let i = 0; i < slideContent.images.length; i++) {
                     const image = slideContent.images[i];
                     console.log(`Generating image ${i + 1} for slide: ${key}`);
+                    await updateDeckByIdService(deckId, { activityStatus: `Generating image ${i + 1} for slide: ${key}` });
                     try {
                         const imgObj = await generateSlideImage(image.prompt, { caption: image.caption });
                         console.log(`Image generated for slide: ${key}, image ${i + 1}`);
@@ -68,6 +71,7 @@ const pitchDeckWorker = new Worker('pitchDeckQueue', async (job) => {
                                 [`images.${i}.status`]: 'generated'
                             }
                         });
+                        await updateDeckByIdService(deckId, { activityStatus: `Image ${i + 1} generated for slide: ${key}` });
                     } catch (imgError) {
                         console.error(`Error generating image for slide: ${key}, image ${i + 1}:`, imgError);
                         // update slide image entry with error message and status
@@ -82,7 +86,9 @@ const pitchDeckWorker = new Worker('pitchDeckQueue', async (job) => {
             }
         }
         // After all slide contents are generated
-        console.log("All slide contents generated. Starting image generation...");
+        console.log("All slide contents generated.");
+        await updateDeckByIdService(deckId, { status: 'ready', activityStatus: 'All slide contents generated, ready for review' });
+        console.log("Deck status updated to 'ready'.");
     } catch (error) {
         console.error('Error processing pitch deck job:', error);
         if (job.data && job.data.deckId) {

@@ -27,6 +27,7 @@ const DeckSchema = new mongoose.Schema({
     pptxUrl: { type: String },
     progress: { type: Number, default: 0 },
     error: { type: String },
+    activityStatus: { type: String, default: 'All slides layout created, pending content generation' },
 }, { timestamps: true });
 
 // Index for ownerId to optimize queries

@@ -1,4 +1,4 @@
-const { createDeckService, updateDeckByIdService } = require('../services/deckService');
+const { createDeckService, updateDeckByIdService, getDeckByIdService } = require('../services/deckService');
 const { createSlideService, getSlidesByDeckIdService } = require('../services/slideService');
 const { addPitchDeckJob } = require('../jobs/pitchDeckGenerator/queue');
 const { generatePromptsForSlides, getAllowedSlides } = require('../utils/generatePitchPrompts');
@@ -135,7 +135,61 @@ const createPitchDeckController = async (req, res, next) => {
 };
 
 
+// Track pitch deck generation progress and return generated slides
+const getPitchDeckProgressController = async (req, res, next) => {
+    try {
+        const userId = req.user._id;
+        if (!userId) {
+            return next(new AppError('User not authenticated', 401));
+        }
+
+        const { deckId } = req.params;
+        if (!deckId) {
+            return next(new AppError('deckId parameter is required', 400));
+        }
+
+        // Fetch the deck and ensure it belongs to the user
+        const deck = await getDeckByIdService(deckId);
+        if (!deck) {
+            return next(new AppError('Deck not found', 404));
+        }
+        if (deck.ownerId.toString() !== userId.toString()) {
+            return next(new AppError('Unauthorized access to this deck', 403));
+        }
+
+        // Get all completed slides for the deck
+        const deckSlides = await getSlidesByDeckIdService(deckId);
+        if (deckSlides.length === 0) {
+            return next(new AppError('No slides found for this deck', 404));
+        }
+
+        const completedSlides = deckSlides.filter(slide => slide.progress === 100 && slide.status === 'ready');
+
+        const currentStatus = deck.activityStatus;
+        return res.status(200).json({
+            status: 'success',
+            message: 'Deck progress fetched successfully',
+            data: {
+                deckId: deck._id,
+                status: deck.status,
+                activityStatus: currentStatus || 'In Queue',
+                progress: deck.progress || 0,
+                totalSlides: deck.slideCount || deckSlides.length,
+                completedSlides: completedSlides.length,
+                slides: completedSlides.map(slide => slide.toObject()),
+            }
+        });
+    } catch (error) {
+        if (error instanceof AppError) {
+            return next(error);
+        }
+        next(new AppError(error.message, 500));
+    }
+};
+
+
 // Export the controller
 module.exports = {
-    createPitchDeckController
+    createPitchDeckController,
+    getPitchDeckProgressController,
 };
