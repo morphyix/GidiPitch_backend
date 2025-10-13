@@ -1,6 +1,6 @@
 const { Worker } = require('bullmq');
 const { redisClient } = require('../../config/redis');
-const { sendMail, mailSender } = require('../../utils/mail');
+const { sendMail } = require('../../utils/mail');
 const { AppError } = require('../../utils/error');
 
 
@@ -10,7 +10,7 @@ const emailWorker = new Worker('emailQueue', async (job) => {
         console.log("Proccessing email job:", job.id);
         const { to, subject, text, html, from } = job.data;
         // Call the sendEmail function to send the email
-        await mailSender(to, subject, text, html);
+        await sendMail(to, subject, from, text, html);
         console.log("Email job completed:", job.id);
     } catch (error) {
         console.error("Error processing email job:", error);

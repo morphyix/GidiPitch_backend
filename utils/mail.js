@@ -10,7 +10,7 @@ const sendMail = async (to, subject, from, text, html) => {
             apiKey: process.env.SENDGRID_SECRET_KEY,
         });
 
-        const sentFrom = new Sender(from, process.env.BRAND_NAME || 'Smart Commerce');
+        const sentFrom = new Sender(from, process.env.BRAND_NAME || 'Gidi Pitch Team');
 
         let recipients = [];
 
