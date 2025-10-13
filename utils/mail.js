@@ -1,6 +1,6 @@
 // send mail function using sendgrid
 const { MailerSend, EmailParams, Sender, Recipient } = require('mailersend');
-const nodemailer = require('nodemailer');
+const { MailtrapClient } = require('mailtrap');
 const { AppError } = require('./error');
 
 
@@ -10,7 +10,7 @@ const sendMail = async (to, subject, from, text, html) => {
             apiKey: process.env.SENDGRID_SECRET_KEY,
         });
 
-        const sentFrom = new Sender(from, process.env.BRAND_NAME || 'Smart Commerce');
+        const sentFrom = new Sender(from, process.env.BRAND_NAME || 'Gidi Pitch Team');
 
         let recipients = [];
 
@@ -40,32 +40,37 @@ const sendMail = async (to, subject, from, text, html) => {
 };
 
 
-const mailTransporter = nodemailer.createTransport({
-    host: 'smtp.mailersend.net',
-    port: 587,
-    secure: true,
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD,
-    },
-});
-
-const mailSender = async (to, subject, text, html) => {
+const mailSender = async (from, to, subject, text, html, category) => {
+    const TOKEN = process.env.SENDGRID_SECRET_KEY;
     try {
-        const mailOptions = {
-            from: 'noreply @techfortress.qzz.io',
-            to,
-            subject,
-            text,
-            html,
+        const client = new MailtrapClient({ token: TOKEN });
+        
+        const sender = {
+            email: from,
+            name: 'GidiPitch Team'
         };
 
-        await mailTransporter.sendMail(mailOptions);
-        console.log("Email sent successfully");
+        const recipients = [
+            {
+                email: to,
+            }
+        ];
+
+        client
+            .send({
+                from: sender,
+                to: recipients,
+                subject: subject,
+                text: text,
+                html: html,
+                category: category || 'Email Verification'
+            })
+            .then(console.log, console.error);
     } catch (error) {
         console.error("Error in mailSender: ", error);
     }
 };
+
 
 
 module.exports = { sendMail, mailSender };

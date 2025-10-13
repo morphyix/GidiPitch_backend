@@ -12,6 +12,7 @@ const authRoutes = require('./routes/authRoute');
 const jobsRoutes = require('./routes/jobRoute');
 const waitListRoutes = require('./routes/waitListRoutes');
 const pitchDeckRoutes = require('./routes/pitchDeckRoutes');
+const uploadRoutes = require('./routes/uploadRoutes');
 
 dotenv.config();
 connectDB();
@@ -50,6 +51,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/jobs', jobsRoutes);
 app.use('/api/waitlist', waitListRoutes);
 app.use('/api/pitch/deck', pitchDeckRoutes);
+app.use('/api/image', uploadRoutes);
 
 
 // Error handling middleware
