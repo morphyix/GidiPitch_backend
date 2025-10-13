@@ -70,7 +70,8 @@ const createLocalUser = async (req, res, next) => {
             subject: "Welcome to GidiPitch, verify your email",
             text: "Please verify your email address using the OTP code",
             html: generateOtpEmail(newUser.firstname, String(otp)),
-            from: "noreply@gidipitch.app"
+            from: "support@gidipitch.app",
+            category: "Email Verification"
         }
         await addEmailJob(welcomeEmailData);
 
@@ -139,7 +140,8 @@ const verifyLocalUserEmailController = async (req, res, next) => {
             subject: "Welcome to GidiPitch!",
             text: "Your email has been verified successfully. Welcome to GidiPitch!",
             html: generateWelcomeEmail(updatedUser.firstname),
-            from: "noreply@gidipitch.app"
+            from: "hello@gidipitch.app",
+            category: "Welcome Email"
         }
         await addEmailJob(welcomeEmailData);
 
@@ -267,7 +269,8 @@ const userForgotPassword = async (req, res, next) => {
                 subject: "Reset Your Password",
                 text: "Click the link below to reset your password",
                 html: generateForgotPasswordEmail(resetUrl),
-                from: "noreply@gidipitch.app"
+                from: "passwordreset@gidipitch.app",
+                category: "Password Reset"
             };
 
             await addEmailJob(resetPasswordEmailData);
