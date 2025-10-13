@@ -1,6 +1,8 @@
 const { addToWaitListService, getWaitListCountService, getEmailFromWaitListService } = require('../services/waitListService');
 const { AppError } = require('../utils/error');
 const { validateEmail } = require('../utils/validators');
+const { addEmailJob } = require('../jobs/email/queue');
+const { getWaitlistEmailTemplate } = require('../templates/waitlistEmail');
 
 
 // Controller to handle adding an email to the waitlist
@@ -21,6 +23,18 @@ const addToWaitListController = async (req, res, next) => {
         const newEntry = await addToWaitListService(email);
         
         const waitListCount = await getWaitListCountService();
+
+        // Send Waitlist signup success email
+        const waitlistEmailData = {
+            to: email,
+            subject: "Welcome to the GidiPitch Waitlist!",
+            text: "Thank you for joining the GidiPitch waitlist. We'll notify you when we launch!",
+            html: getWaitlistEmailTemplate(),
+            from: "hello@gidipitch.com",
+            category: "Waitlist Signup"
+        };
+
+        await addEmailJob(waitlistEmailData);
 
         return res.status(201).json({
             status: 'success',
