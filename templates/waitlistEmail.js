@@ -32,7 +32,7 @@ function getWaitlistEmailTemplate({ name = "there" } = {}) {
                   <tr>
                     <td>
                       <img
-                        src="/gidipitch_email/assets/GidiPitch.png"
+                        src="https://files.thebigphotocontest.com/GidiPitch.png"
                         alt="GidiPitch Logo"
                         style="vertical-align:middle;"
                       />
