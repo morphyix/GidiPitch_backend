@@ -28,10 +28,10 @@ const addToWaitListController = async (req, res, next) => {
         const waitlistEmailData = {
             to: email,
             subject: "Welcome to the GidiPitch Waitlist!",
-            text: "Thank you for joining the GidiPitch waitlist. We'll notify you when we launch!",
-            html: getWaitlistEmailTemplate(),
-            from: "hello@gidipitch.com",
-            category: "Waitlist Signup"
+            text: "Your email has been successfully added to the GidiPitch waitlist. We'll keep you updated with the latest news and features.",
+            html: generateWaitlistEmailTemplate(),
+            from: "hello@gidipitch.app",
+            category: "Waitlist Confirmation"
         };
 
         await addEmailJob(waitlistEmailData);
