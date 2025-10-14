@@ -188,8 +188,65 @@ const getPitchDeckProgressController = async (req, res, next) => {
 };
 
 
+// Return all slides for an industry controller
+const getIndustrySlidesController = async (req, res, next) => {
+    try {
+        const { industry } = req.params;
+        if (!industry) {
+            return next(new AppError('Industry parameter is required', 400));
+        }
+
+        const allowedSlides = getAllowedSlides(industry);
+        if (!allowedSlides || allowedSlides.length === 0) {
+            return next(new AppError('No slides found for the specified industry', 404));
+        }
+
+        return res.status(200).json({
+            status: 'success',
+            message: 'Allowed slides fetched successfully',
+            data: {
+                industry,
+                allowedSlides,
+            }
+        });
+    } catch (error) {
+        if (error instanceof AppError) {
+            return next(error);
+        }
+        next(new AppError(error.message, 500));
+    }
+};
+
+
+const getAllIndustriesController = async (req, res, next) => {
+    try {
+        const industries = [
+            'finTech', 'healthTech', 'eduTech', 'ecommerce', 'saas', 'aiML',
+            'foodAndBeverage', 'realEstate', 'entertainment', 'travelAndHospitality',
+            'cleantech', 'logistics', 'socialImpact', 'gaming', 'hardware',
+            'agriTech', 'biotech', 'fashion', 'automotive', 'media', 'telecommunications',
+            'agriculture', 'aerospace', 'construction', 'consulting', 'energy',
+            'fitness', 'legal', 'manufacturing', 'music', 'nonProfit', 'publishing',
+            'retail', 'sports', 'transportation', 'utilities'
+        ];
+        return res.status(200).json({
+            status: 'success',
+            message: 'Industries fetched successfully',
+            data: { industries }
+        });
+    } catch (error) {
+        if (error instanceof AppError) {
+            return next(error);
+        }
+        next(new AppError(error.message, 500));
+    }
+}
+
+
 // Export the controller
 module.exports = {
     createPitchDeckController,
     getPitchDeckProgressController,
+    getIndustrySlidesController,
+    getAllIndustriesController
 };
