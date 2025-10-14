@@ -29,7 +29,7 @@ const addToWaitListController = async (req, res, next) => {
             to: email,
             subject: "Welcome to the GidiPitch Waitlist!",
             text: "Your email has been successfully added to the GidiPitch waitlist. We'll keep you updated with the latest news and features.",
-            html: generateWaitlistEmailTemplate(),
+            html: getWaitlistEmailTemplate(),
             from: "hello@gidipitch.app",
             category: "Waitlist Confirmation"
         };
