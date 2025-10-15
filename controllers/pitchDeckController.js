@@ -1,9 +1,10 @@
 const { createDeckService, updateDeckByIdService, getDeckByIdService } = require('../services/deckService');
-const { createSlideService, getSlidesByDeckIdService } = require('../services/slideService');
+const { createSlideService, getSlidesByDeckIdService, getSlideByIdService } = require('../services/slideService');
 const { addPitchDeckJob } = require('../jobs/pitchDeckGenerator/queue');
-const { generatePromptsForSlides, getAllowedSlides } = require('../utils/generatePitchPrompts');
+const { generatePromptsForSlides, getAllowedSlides, generateCorrectionPrompt } = require('../utils/generatePitchPrompts');
 const { AppError } = require('../utils/error');
 const { sanitize } = require('../utils/helper');
+const { addSlideCorrectionJob } = require('../jobs/slideCorrection/queue');
 
 
 // Controller to handle pitch deck creation request
@@ -188,6 +189,147 @@ const getPitchDeckProgressController = async (req, res, next) => {
 };
 
 
+// Correct a specific slide controller
+const correctSlideController = async (req, res, next) => {
+    try {
+        const user = req.user;
+        if (!user || !user._id) {
+            return next(new AppError('User not authenticated', 401));
+        }
+
+        const { slideId } = req.params;
+        if (!slideId) {
+            return next(new AppError('slideId parameter is required', 400));
+        }
+
+        const { correction, generateImage } = req.body;
+        if (!correction || typeof correction !== 'string' || correction.trim().length === 0) {
+            return next(new AppError('Correction text is required', 400));
+        }
+
+        const slideData = await getSlideByIdService(slideId);
+        if (!slideData) {
+            return next(new AppError('Slide not found', 404));
+        }
+
+        if (typeof generateImage !== 'boolean') {
+            return next(new AppError('generateImage must be a boolean', 400));
+        }
+
+        // Ensure slide belongs to user
+        const deck = await getDeckByIdService(slideData.deckId);
+        if (!deck) {
+            return next(new AppError('Associated deck not found', 404));
+        }
+        if (deck.ownerId.toString() !== user._id.toString()) {
+            return next(new AppError('Unauthorized access to this slide', 403));
+        }
+
+        // Create prompt for slide correction
+        const prompt = generateCorrectionPrompt(slideData, correction);
+        if (!prompt) {
+            return next(new AppError('Failed to generate correction prompt', 500));
+        }
+
+        // Add slide correction job
+        const jobData = {
+            slideId,
+            prompt,
+            generateImage
+        };
+
+        await addSlideCorrectionJob(jobData);
+
+        return res.status(200).json({
+            status: 'success',
+            message: 'Slide correction initiated',
+            data: {
+                slideId,
+                status: 'correction_queued'
+            }
+        });
+    } catch (error) {
+        if (error instanceof AppError) {
+            return next(error);
+        }
+        console.error('Error in correctSlideController:', error);
+        next(new AppError(error.message, 500));
+    }
+};
+
+
+// Track Slide Correction Progress and return updated slide
+const trackSlideCorrectionProgressController = async (req, res, next) => {
+    try {
+        const user = req.user;
+        if (!user || !user._id) {
+            return next(new AppError('User not authenticated', 401));
+        }
+
+        const { slideId } = req.params;
+        if (!slideId) {
+            return next(new AppError('slideId parameter is required', 400));
+        }
+
+        // Fetch the slide and ensure it belongs to the user
+        const slide = await getSlideByIdService(slideId);
+        if (!slide) {
+            return next(new AppError('Slide not found', 404));
+        }
+
+        // Ensure slide belongs to user
+        const deck = await getDeckByIdService(slide.deckId);
+        if (!deck) {
+            return next(new AppError('Associated deck not found', 404));
+        }
+        if (deck.ownerId.toString() !== user._id.toString()) {
+            return next(new AppError('Unauthorized access to this slide', 403));
+        }
+
+        // Check slide correction status
+        const progress = slide.progress || 0;
+        const status = slide.status || 'pending';
+
+        if (status === 'ready' && progress === 100) {
+            return res.status(200).json({
+                status: 'success',
+                message: 'Slide correction completed',
+                data: {
+                    progress,
+                    status,
+                    slide: slide.toObject(),
+                }
+            });
+        } else if (status === 'failed') {
+            return res.status(200).json({
+                status: 'failed',
+                message: 'Slide correction failed',
+                data: {
+                    error: slide.error || 'Unknown error during slide correction',
+                    slide: slide.toObject(),
+                }
+            });
+        } else {
+            return res.status(200).json({
+                status: 'in_progress',
+                message: 'Slide correction is in progress',
+                data: {
+                    progress,
+                    status,
+                    slide: slide.toObject(),
+                }
+            });
+        }
+    } catch (error) {
+        if (error instanceof AppError) {
+            return next(error);
+        }
+        console.error('Error in trackSlideCorrectionProgressController:', error);
+        next(new AppError(error.message, 500));
+    }
+};
+
+
 // Return all slides for an industry controller
 const getIndustrySlidesController = async (req, res, next) => {
     try {
@@ -247,6 +389,8 @@ const getAllIndustriesController = async (req, res, next) => {
 module.exports = {
     createPitchDeckController,
     getPitchDeckProgressController,
+    correctSlideController,
     getIndustrySlidesController,
-    getAllIndustriesController
+    getAllIndustriesController,
+    trackSlideCorrectionProgressController,
 };

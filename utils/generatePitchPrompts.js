@@ -321,6 +321,89 @@ const generatePromptsForSlides = (startupData, slides) => {
   return selectedPrompts;
 };
 
+
+/**
+ * Correction Prompt Generator
+ * ---------------------------
+ * Takes an existing slide object and a user-provided correction prompt,
+ * and returns a rich AI prompt that guides model to regenerate the slide
+ * according to the correction, while enforcing JSON-only output rules.
+ */
+
+const generateCorrectionPrompt = (slideData, correctionPrompt) => {
+  if (!slideData || typeof slideData !== 'object') {
+    throw new Error("Invalid slideData provided to correction prompt generator.");
+  }
+
+  const {
+    slideType,
+    title,
+    bullets = [],
+    notes = "",
+    layout = "default",
+    images = [],
+  } = slideData;
+
+  // Serialize image prompts for reference
+  const imagePrompts = images
+    ?.map((img, i) => ({
+      index: i + 1,
+      prompt: img.prompt || "",
+      caption: img.caption || "",
+      source: img.source || "ai-generated",
+    }))
+    ?.filter(img => img.prompt || img.caption)
+    ?.map(img => `Image ${img.index}: prompt="${img.prompt}", caption="${img.caption}", source="${img.source}"`)
+    ?.join("\n") || "No image prompts found.";
+
+  // RFC 8259 JSON compliance + formatting instruction
+  const globalRules = `
+IMPORTANT:
+- Return ONLY valid RFC 8259 JSON
+- No markdown, no comments, no extra text
+- The final output must exactly match this schema:
+{
+  "slideType": "string",
+  "title": "string",
+  "bullets": ["string"],
+  "notes": "string",
+  "layout": "default|title-bullets|image-text|full-image",
+  "images": [
+    { "prompt": "string", "caption": "string" }
+  ]
+}
+`;
+
+  // The core correction prompt with full context
+  return `
+${globalRules}
+
+You are an expert AI prompt engineer and startup storytelling designer.
+You will revise an existing pitch deck slide JSON object based on the user’s correction instructions.
+
+Here is the CURRENT SLIDE DATA:
+{
+  "slideType": "${slideType}",
+  "title": "${title}",
+  "bullets": ${JSON.stringify(bullets, null, 2)},
+  "notes": "${notes}",
+  "layout": "${layout}",
+  "images": ${JSON.stringify(images.map(i => ({ prompt: i.prompt, caption: i.caption })) || [], null, 2)}
+}
+
+IMAGE CONTEXT:
+${imagePrompts}
+
+USER CORRECTION INSTRUCTION:
+"${correctionPrompt}"
+
+TASK:
+Regenerate the slide based on the correction above while preserving its logical intent, accuracy, and relevance to the pitch deck.
+Ensure the output remains concise, persuasive, and formatted as strict JSON according to the provided schema.
+`;
+};
+
+
 // Allowed slide types
 const getAllowedSlides = (industry) => {
   const baseSlides = [
@@ -340,4 +423,4 @@ const getAllowedSlides = (industry) => {
   return [...baseSlides, ...extra];
 };
 
-module.exports = { generatePromptsForSlides, getAllowedSlides };
+module.exports = { generatePromptsForSlides, getAllowedSlides, generateCorrectionPrompt };

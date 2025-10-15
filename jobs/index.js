@@ -18,6 +18,9 @@ const startJobs = async () => {
         // import and initialize pitch deck worker
         require('./pitchDeckGenerator/worker');
 
+        // import and initialize slide correction worker
+        require('./slideCorrection/worker');
+
         console.log('All job queues and workers initialized successfully.');
     } catch (error) {
         console.error('Error starting jobs:', error);

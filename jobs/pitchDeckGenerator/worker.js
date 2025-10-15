@@ -2,8 +2,8 @@ const { Worker } = require('bullmq');
 const { redisClient } = require('../../config/redis');
 const { AppError } = require('../../utils/error');
 const { generateSlideContent, generateSlideImage } = require('../../services/getAIDeckContentService');
-const { getDeckByIdService, updateDeckByIdService } = require('../../services/deckService');
-const { createSlideService, updateSlideByIdService, getSlidesByDeckIdService } = require('../../services/slideService');
+const { updateDeckByIdService } = require('../../services/deckService');
+const { updateSlideByIdService, getSlidesByDeckIdService, updateSlideImageService } = require('../../services/slideService');
 
 
 // Create a worker to process pitch deck generation jobs
@@ -64,23 +64,23 @@ const pitchDeckWorker = new Worker('pitchDeckQueue', async (job) => {
                         const imgObj = await generateSlideImage(image.prompt, { caption: image.caption });
                         console.log(`Image generated for slide: ${key}, image ${i + 1}`);
                         // update slide image entry with generated image key and status
-                        await updateSlideByIdService(slideId, {
-                            $inc: { progress: Math.floor(50 / slideContent.images.length) },
-                            $set: {
-                                [`images.${i}.key`]: imgObj.key,
-                                [`images.${i}.status`]: 'generated'
-                            }
+                        await updateSlideImageService(slideId, i, {
+                            key: imgObj.key,
+                            status: 'completed'
                         });
+                        // increment slide progress by equal parts based on number of images
+                        const imageProgressIncrement = Math.floor(50 / slideContent.images.length);
+                        await updateSlideByIdService(slideId, { $inc: { progress: imageProgressIncrement } });
+                        console.log(`Image key saved to DB for slide: ${key}, image ${i + 1}`);
                         await updateDeckByIdService(deckId, { activityStatus: `Image ${i + 1} generated for slide: ${key}` });
                     } catch (imgError) {
                         console.error(`Error generating image for slide: ${key}, image ${i + 1}:`, imgError);
                         // update slide image entry with error message and status
-                        await updateSlideByIdService(slideId, {
-                            $set: {
-                                [`images.${i}.status`]: 'failed',
-                                [`images.${i}.error`]: imgError.message
-                            }
+                        await updateSlideImageService(slideId, i, {
+                            status: 'failed',
+                            error: imgError.message
                         });
+                        await updateDeckByIdService(deckId, { activityStatus: `Error generating image ${i + 1} for slide: ${key}` });
                     }
                 }
             }
