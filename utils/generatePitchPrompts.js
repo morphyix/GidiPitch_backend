@@ -1,4 +1,4 @@
-// Global rules applied to all slides - *MODIFIED FOR EXPERT RESEARCH CAPABILITY*
+// Global rules applied to all slides - *MODIFIED FOR MAX INFO DENSITY & NO FOOTNOTES*
 const globalRules = (startupData) => {
     const { startupName, industry, scope, problems, solutions, financials, milestones, ask } = startupData;
 
@@ -17,7 +17,8 @@ IMPORTANT NARRATIVE & FORMATTING RULES:
 - Return ONLY valid RFC 8259 JSON
 - No markdown, no comments, no extra text
 - The generated content for this slide **MUST BE FACTUAL, QUANTIFIED, AND CONSISTENT** with the "FULL PITCH CONTEXT" provided below.
-- DO NOT speculate or hallucinate. If the context data is vague (e.g., problems, market size), **use your Google Search tool to find a relevant, current, and quantified fact** that supports the narrative. All generated data must be explicitly cited as either from "Provided Context" or "External Research."
+- DO NOT speculate or hallucinate. If the context data is vague (e.g., problems, market size), **use your Google Search tool to find a relevant, current, and quantified fact** that supports the narrative.
+- **Keep all content extremely concise and high-impact.** Every bullet must convey a quantified or strategic advantage.
 - Keep all bullets brief, concise, and persuasive (max 3 bullets per slide).
 - Each slide JSON must match this shape:
   {
@@ -36,7 +37,7 @@ ${allContext}
 `;
 };
 
-// Optimized Base slide prompt builder (Now accepts startupData for global context) - *MODIFIED FOR FACTUAL TITLE*
+// Optimized Base slide prompt builder (Now accepts startupData for global context) - *MODIFIED FOR CONCISE DELIVERY*
 const baseSlidePrompt = (slideType, titlePrefix, bulletsInstruction, notesInstruction, layoutHint, imagePrompts, startupData) => {
 
     // Enforce the title format: "SlideType: The Compelling, Factual Topic"
@@ -50,14 +51,14 @@ TASK: Generate the JSON for the "${titlePrefix}" slide.
 Generate a "${titlePrefix}" slide with:
 - slideType: "${slideType}"
 - title: ${title}
-- bullets: Generate a maximum of **3 brief, high-impact, quantifiable bullet points**. The content MUST be based on and explicitly reference the context data, **using external research to quantify when necessary**: ${bulletsInstruction}
-- notes: The note must be concise and persuasive, and **MUST draw specific facts or data** from the "FULL PITCH CONTEXT" block or **external research**: ${notesInstruction}
+- bullets: Generate a maximum of **3 maximally dense, quantified data points or strategic claims**. The content MUST be based on and explicitly reference the context data, **using external research to quantify when necessary**: ${bulletsInstruction}
+- notes: The note must be **ultra-concise (single-sentence takeaway)**, highly persuasive, and MUST draw specific facts or data from the "FULL PITCH CONTEXT" block or external research: ${notesInstruction}
 - layout: Suggest one layout, prefer "${layoutHint}"
 - images: ${imagePrompts}
 `;
 };
 
-// Main slide prompt builder (core + industry + scope) - *KEY SLIDES MODIFIED*
+// Main slide prompt builder (core + industry + scope) - *STREAMLINED INSTRUCTIONS*
 const pitchDeckSlidePrompt = (startupData) => {
     const {
         startupName, industry, scope, problems, solutions,
@@ -85,11 +86,11 @@ const pitchDeckSlidePrompt = (startupData) => {
             startupData
         ),
 
-        // 2. Problem Slide - *DATA DRIVEN PROBLEM - MODIFIED*
+        // 2. Problem Slide - *DATA DRIVEN PROBLEM*
         problem: baseSlidePrompt(
             "problem",
             "Problem: The Quantified Pain",
-            `3 bullet points: Each must be a **specific, quantified problem statement** derived from the "CORE PROBLEM" context, highlighting its **financial or efficiency impact** (e.g., "$5M lost annually due to X"). **Use external research if needed to quantify the magnitude of the pain point in the market.**`,
+            `3 bullet points: Each must be a **specific, quantified problem statement** derived from the "CORE PROBLEM" context, highlighting its **financial or efficiency impact**. Use external research if needed to quantify the magnitude of the pain point in the market.`,
             `Explain the "Why Now?"—why this problem is critical and timely to solve in ${scope || "the target region"}, referencing the severity stated in the context.`,
             "title-bullets",
             `1 metaphorical image prompt visualizing the key challenge related to "${problems}" within ${scope || "target market"}`,
@@ -118,11 +119,11 @@ const pitchDeckSlidePrompt = (startupData) => {
             startupData
         ),
 
-        // 5. Market Opportunity Slide - *QUANTIFIED MARKET - MODIFIED*
+        // 5. Market Opportunity Slide - *QUANTIFIED MARKET*
         market: baseSlidePrompt(
             "market",
             "Market Opportunity: Size & Growth",
-            `3 bullet points: 1. **Quantified TAM (External Research Required)** for the "${industry}" context. 2. **Quantified SOM** focused on ${scope || "target geography"}. 3. The **CAGR (Compound Annual Growth Rate) or key quantified trend** (e.g., "55% YoY Growth") driving market expansion. **If context data is vague, find external data and cite the source/year in a footnote.**`,
+            `3 bullet points: 1. **Quantified TAM** estimate for the "${industry}" context. 2. **Quantified SOM** focused on ${scope || "target geography"}. 3. The **CAGR or key quantified trend** driving market expansion. **Use external research if internal context is vague.**`,
             `Explain the market dynamics and identify the specific beachhead market where "${startupName}" will focus for the next 12 months.`,
             "title-bullets",
             `1 data visualization prompt showing market opportunity size (TAM/SOM) and growth within ${scope || "target region"}`,
@@ -184,7 +185,7 @@ const pitchDeckSlidePrompt = (startupData) => {
             startupData
         ),
 
-        // 11. Financials Slide - *FACTUAL PROJECTIONS - MODIFIED*
+        // 11. Financials Slide - *FACTUAL PROJECTIONS*
         financials: baseSlidePrompt(
             "financials",
             "Financial Projections & Outlook",
@@ -230,8 +231,6 @@ const pitchDeckSlidePrompt = (startupData) => {
     };
 
     // --- Industry-specific slides (STRICTLY DATA DRIVEN) ---
-    // (Instructions for these slides can also be updated to require external research for quantification if needed, 
-    // but the principle is established in globalRules and baseSlidePrompt)
 
     const industryLower = (industry || "").toLowerCase();
 
@@ -306,8 +305,6 @@ const pitchDeckSlidePrompt = (startupData) => {
 
     return slides;
 };
-
-// ... (The rest of the functions remain the same)
 
 // Generate prompts for selected slides - *NO CHANGE REQUIRED*
 const generatePromptsForSlides = (startupData, slides) => {

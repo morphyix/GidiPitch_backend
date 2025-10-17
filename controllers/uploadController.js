@@ -6,11 +6,6 @@ const { extractFileKey } = require('../utils/helper');
 // Controller to handle image upload
 const uploadImageController = async (req, res, next) => {
     try {
-        const { action } = req.body;
-        if (!action || (action !== 'upload' && action !== 'delete')) {
-            return next(new AppError("Action is required and must be either 'upload' or 'delete'", 400));
-        }
-
         if (!req.file) {
             return next(new AppError('No file uploaded', 400));
         }
