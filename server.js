@@ -46,6 +46,7 @@ process.on('SIGINT', async () => {
 
 server.listen(PORT, async () => {
   try {
+    await testBucket();
     startBackgroundJobs();
     console.log('Background jobs started successfully.');
   } catch (error) {
