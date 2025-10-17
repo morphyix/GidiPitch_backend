@@ -14,7 +14,7 @@ const uploadImageController = async (req, res, next) => {
         if (!fileKey) {
             return next(new AppError('Failed to upload image', 500));
         }
-         const imageUrl = `${process.env.CDN_URL}/${fileKey}`;
+         const imageUrl = `${process.env.S3_CDN_URL}/${fileKey}`;
 
         res.status(200).json({
             status: 'success',
