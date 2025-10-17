@@ -4,6 +4,7 @@ const User = require('../models/user');
 const { verifyJwtToken } = require('../utils/jwtAuth');
 const { hashString } = require('../utils/hashString');
 const { setRedisCache } = require('../config/redis');
+const { Operations } = require('@google/genai');
 
 
 // This service checks for duplicate users and creates a new user if no duplicates are found.
@@ -105,6 +106,9 @@ const updateUserService = async (email, updateData) => {
                 user[key] = updateData[key];
             }
         });
+        // Remove forbidden fields if present in updateData
+        const forbiddenFields = ['_id', 'email', 'socialId', 'authProvider', 'tokens']
+        forbiddenFields.forEach(field => delete user[field]);
         // save updated user
         const updatedUser = await user.save();
         return updatedUser;
@@ -170,6 +174,42 @@ const deleteUserService = async (userId) => {
 };
 
 
+// Add or deduct tokens from user account
+const modifyUserTokensService = async (userId, operation, amount) => {
+    try {
+        if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+            throw new AppError('Invalid user ID', 400);
+        }
+        if (!['add', 'deduct'].includes(operation)) {
+            throw new AppError('Invalid operation type, must be "add" or "deduct"', 400);
+        }
+
+        if (amount <= 0) {
+            throw new AppError('Amount must be greater than zero', 400);
+        }
+
+        const delta = operation === 'deduct' ? -Math.abs(amount) : Math.abs(amount);
+
+        // Update user's token atomically with condition
+        const updatedUser = await User.findOneAndUpdate(
+            { _id: userId, ...(operation === 'deduct' ? { tokens: { $gte: amount } } : {}) },
+            { $inc: { tokens: delta } },
+            { new: true, runValidators: true }
+        );
+
+        if (!updatedUser) {
+            throw new AppError(operation === 'deduct' ? 'Insufficient tokens' : 'User not found', 400);
+        }
+
+        return updatedUser;
+    } catch (error) {
+        if (error instanceof AppError) throw error; // Re-throw AppError for handling in the controller
+        console.error('Error modifying user tokens:', error);
+        throw new AppError('An error occurred while modifying user tokens', 500);
+    }
+};
+
+
 //export modules
 module.exports = {
     createUserService,
@@ -177,5 +217,6 @@ module.exports = {
     getUserByEmailService,
     updateUserService,
     revokeTokenService,
-    deleteUserService
+    deleteUserService,
+    modifyUserTokensService
 };

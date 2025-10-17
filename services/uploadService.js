@@ -1,3 +1,4 @@
+const sharp = require('sharp');
 const { s3Client } = require('../config/s3Config');
 const { PutObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3');
 const { AppError } = require('../utils/error');
