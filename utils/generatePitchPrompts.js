@@ -45,7 +45,9 @@ ${allContext}
 const baseSlidePrompt = (slideType, titlePrefix, bulletsInstruction, notesInstruction, layoutHint, imagePrompts, startupData) => {
 
     // The title should be a *claim* of massive potential, not just a topic.
-    const title = `${titlePrefix}: The single, most compelling, quantified claim that sells this slide's argument. (MUST be grounded in context/research)`;
+    const title = slideType === 'cover'
+        ? `${titlePrefix}`
+        : `${titlePrefix}: The single, most compelling, quantified claim that sells this slide's argument. (MUST be grounded in context/research)`;
 
     return `
 ${globalRules(startupData)}
@@ -82,10 +84,10 @@ const pitchDeckSlidePrompt = (startupData) => {
         // 1. Cover Slide - *HIGHLY CATCHY & DYNAMIC*
         cover: baseSlidePrompt(
             "cover",
-            "Cover",
-            `Generate a single, **hyper-compelling and creative tagline** (max 10 words) that immediately sells the **massive opportunity**. Example style: 'Uber: The NetJets of Limos' or 'Monzo: Banking that feels like magic'. MUST reference "${startupName}", "${industry}", and the core value of "${solutions}".`,
+            `${startupName}`,
+            `Generate a single, **hyper-compelling and creative tagline** (max 15 words) that immediately sells the **massive opportunity**. Example style: 'Uber: The NetJets of Limos' or 'Monzo: Banking that feels like magic'. MUST reference "${startupName}", "${industry}", and the core value of "${solutions}". (MANDATORY: Return EXACTLY ONE bullet point)`,
             // Notes for the cover should be EMPTY as per investor deck best practices
-            `Return an empty string for the notes field.`,
+            `Generate a single, power-packed sentence (max 10 words) selling the unique, quantified benefit of the solution/features/business model. Focus on the core USP of "${solutions}", referencing key features from "${features}" and the commercial angle of the business model from "${businessModel}".`,
             "full-image",
             `1 **lively, interactive, and visually stunning** image prompt capturing the **disruptive future** of brand color "${brandColor}", style "${brandStyle}", and industry "${industry}" within ${scope || "the target market"}`,
             startupData
