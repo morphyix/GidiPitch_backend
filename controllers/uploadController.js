@@ -1,11 +1,18 @@
 const { AppError } = require('../utils/error');
 const { uploadImageService, deleteFileService } = require('../services/uploadService');
+const { updateSlideImageService } = require('../services/slideService');
 const { extractFileKey } = require('../utils/helper');
+const { kernel } = require('sharp');
 
 
 // Controller to handle image upload
 const uploadImageController = async (req, res, next) => {
     try {
+        const { slideId, index = 0 } = req.body;
+        if (!slideId) {
+            return next(new AppError('Slide ID is required', 400));
+        }
+
         if (!req.file) {
             return next(new AppError('No file uploaded', 400));
         }
@@ -14,13 +21,18 @@ const uploadImageController = async (req, res, next) => {
         if (!fileKey) {
             return next(new AppError('Failed to upload image', 500));
         }
-         const imageUrl = `${process.env.S3_CDN_URL}/${fileKey}`;
+
+        // Update slide with new image URL
+        const updatedSlide = await updateSlideImageService(slideId, parseInt(index), { key: fileKey });
+        if (!updatedSlide) {
+            return next(new AppError('Failed to update slide with image', 500));
+        }
 
         res.status(200).json({
             status: 'success',
             message: 'Image uploaded successfully',
             data: {
-                imageUrl,
+                slide: updatedSlide,
             },
         });
     } catch (error) {
