@@ -1,8 +1,10 @@
-// Global rules applied to all slides - *MODIFIED FOR MAX INFO DENSITY & NO FOOTNOTES*
+// Global rules applied to all slides - *MODIFIED FOR MAX INFO DENSITY, QUANTIFICATION & HIGH-IMPACT VOICE*
 const globalRules = (startupData) => {
-    const { startupName, industry, scope, problems, solutions, financials, milestones, ask } = startupData;
+    const { startupName, industry, scope, problems, solutions, financials, milestones, ask, team } = startupData;
 
     // Condense all core data into a single, cohesive context block
+    const teamContext = team ? team.map(t => `${t.name} (${t.role}): ${t.expertise}`).join(" | ") : "Founders and key executives with relevant expertise.";
+
     const allContext = `
         STARTUP NAME: ${startupName}
         INDUSTRY / SCOPE: ${industry} within ${scope || "Global Market"}
@@ -10,16 +12,18 @@ const globalRules = (startupData) => {
         CORE SOLUTION / VALUE: ${solutions}
         TRACTION / MILESTONES: ${milestones}
         FINANCIALS / ASK: Ask is ${ask}. Key financials are ${financials}.
+        CORE TEAM EXPERTISE: ${teamContext}
     `;
 
     return `
 IMPORTANT NARRATIVE & FORMATTING RULES:
 - Return ONLY valid RFC 8259 JSON
 - No markdown, no comments, no extra text
+- The voice must be **aggressive, confident, and ROI-focused** (like an expert selling a massive opportunity).
 - The generated content for this slide **MUST BE FACTUAL, QUANTIFIED, AND CONSISTENT** with the "FULL PITCH CONTEXT" provided below.
-- DO NOT speculate or hallucinate. If the context data is vague (e.g., problems, market size), **use your Google Search tool to find a relevant, current, and quantified fact** that supports the narrative.
-- **Keep all content extremely concise and high-impact.** Every bullet must convey a quantified or strategic advantage.
-- Keep all bullets brief, concise, and persuasive (max 3 bullets per slide).
+- **MANDATORY GOOGLE SEARCH:** If any core metric (TAM, CAGR, LTV/CAC ratio, problem size) is missing or vague in the context, **you MUST use your Google Search tool to find a relevant, current, and quantified fact** that supports the narrative.
+- **Keep all content extremely concise and high-impact.** Every bullet must convey a quantified or strategic advantage (max 1-2 lines of text per bullet).
+- Keep all bullets brief, concise, and persuasive (maximum of 3 main bullet points per slide, unless explicitly noted).
 - Each slide JSON must match this shape:
   {
     "slideType": "string",
@@ -37,11 +41,13 @@ ${allContext}
 `;
 };
 
-// Optimized Base slide prompt builder (Now accepts startupData for global context) - *MODIFIED FOR CONCISE DELIVERY*
+// Optimized Base slide prompt builder - *MODIFIED FOR HIGH-IMPACT TITLES & INVESTOR TAKEAWAYS*
 const baseSlidePrompt = (slideType, titlePrefix, bulletsInstruction, notesInstruction, layoutHint, imagePrompts, startupData) => {
 
-    // Enforce the title format: "SlideType: The Compelling, Factual Topic"
-    const title = `${titlePrefix}: A highly factual and quantified statement framing the slide's core argument. (Must be grounded in context/research)`;
+    // The title should be a *claim* of massive potential, not just a topic.
+    const title = slideType === 'cover'
+        ? `${titlePrefix}`
+        : `${titlePrefix}: The single, most compelling, quantified claim that sells this slide's argument. (MUST be grounded in context/research)`;
 
     return `
 ${globalRules(startupData)}
@@ -51,14 +57,14 @@ TASK: Generate the JSON for the "${titlePrefix}" slide.
 Generate a "${titlePrefix}" slide with:
 - slideType: "${slideType}"
 - title: ${title}
-- bullets: Generate a maximum of **3 maximally dense, quantified data points or strategic claims**. The content MUST be based on and explicitly reference the context data, **using external research to quantify when necessary**: ${bulletsInstruction}
-- notes: The note must be **ultra-concise (single-sentence takeaway)**, highly persuasive, and MUST draw specific facts or data from the "FULL PITCH CONTEXT" block or external research: ${notesInstruction}
+- bullets: Generate a maximum of **3 maximally dense, quantified, and visually dynamic data points or strategic claims**. The content MUST be based on and explicitly reference the context data, **using external research to quantify when necessary**. Focus on **traction, scale, and defensibility**: ${bulletsInstruction}
+- notes: **THE INVESTOR TAKEAWAY (Single, Powerfully Persuasive Sentence):** ${notesInstruction}
 - layout: Suggest one layout, prefer "${layoutHint}"
-- images: ${imagePrompts}
+- images: **(Focus on Interactive/Lively Prompts):** ${imagePrompts}
 `;
 };
 
-// Main slide prompt builder (core + industry + scope) - *STREAMLINED INSTRUCTIONS*
+// Main slide prompt builder (core + industry + scope) - *STREAMLINED & IMPROVED FOR INVESTOR APPEAL*
 const pitchDeckSlidePrompt = (startupData) => {
     const {
         startupName, industry, scope, problems, solutions,
@@ -70,158 +76,170 @@ const pitchDeckSlidePrompt = (startupData) => {
         ? `Focus on the operational scope: "${scope}" when describing context, opportunities, and examples.`
         : "";
 
-    const teamNames = team?.map(t => t.name).join(", ") || "Founders and key executives";
+    // Pre-process team data for specific instructions
+    const teamNamesList = team?.map(t => t.name).join(", ") || "Founders and key executives";
+    const teamImageCount = team?.length || 3;
 
     const slides = {
-        // 1. Cover Slide - *STRICTLY CONCISE*
+        // 1. Cover Slide - *HIGHLY CATCHY & DYNAMIC*
         cover: baseSlidePrompt(
             "cover",
-            "Cover",
-            // Bullets instruction for the cover is now a single, catchy tagline
-            `Generate a single, **catchy, investor-appealing tagline** (max 10 words) that immediately sells the core idea. MUST reference "${startupName}", "${industry}", and "${solutions}".`,
+            `${startupName}`,
+            `Generate a single, **hyper-compelling and creative tagline** (max 15 words) that immediately sells the **massive opportunity**. Example style: 'Uber: The NetJets of Limos' or 'Monzo: Banking that feels like magic'. MUST reference "${startupName}", "${industry}", and the core value of "${solutions}". (MANDATORY: Return EXACTLY ONE bullet point)`,
             // Notes for the cover should be EMPTY as per investor deck best practices
-            `Return an empty string for the notes field.`,
+            `Generate a single, power-packed sentence (max 10 words) selling the unique, quantified benefit of the solution/features/business model. Focus on the core USP of "${solutions}", referencing key features from "${features}" and the commercial angle of the business model from "${businessModel}".`,
             "full-image",
-            `1 image prompt capturing brand color "${brandColor}", style "${brandStyle}", and industry "${industry}" within ${scope || "the target market"}`,
+            `1 **lively, interactive, and visually stunning** image prompt capturing the **disruptive future** of brand color "${brandColor}", style "${brandStyle}", and industry "${industry}" within ${scope || "the target market"}`,
             startupData
         ),
 
-        // 2. Problem Slide - *DATA DRIVEN PROBLEM*
+        // 2. Problem Slide - *FEEL THE PAIN*
         problem: baseSlidePrompt(
             "problem",
-            "Problem: The Quantified Pain",
-            `3 bullet points: Each must be a **specific, quantified problem statement** derived from the "CORE PROBLEM" context, highlighting its **financial or efficiency impact**. Use external research if needed to quantify the magnitude of the pain point in the market.`,
-            `Explain the "Why Now?"—why this problem is critical and timely to solve in ${scope || "the target region"}, referencing the severity stated in the context.`,
+            "Problem: The Multi-Billion Dollar Friction Point",
+            `3 bullet points: Each must be a **specific, quantified problem statement** (e.g., "$500B wasted annually" or "80% of users drop off") derived from the "CORE PROBLEM" context. The language must be aggressive, highlighting the **massive financial or efficiency impact** this problem creates.`,
+            `The note must be a single, powerful sentence emphasizing the market's current pain and the **immediate urgency/opportunity window** for ${startupName} to capture it.`,
             "title-bullets",
-            `1 metaphorical image prompt visualizing the key challenge related to "${problems}" within ${scope || "target market"}`,
+            `1 **dramatic, symbolic, and high-quality** image prompt visualizing the **magnitude** of the challenge related to "${problems}" within ${scope || "target market"}`,
             startupData
         ),
 
-        // 3. Solution Slide - *DATA DRIVEN VALUE*
+        // 3. Solution Slide - *THE MAGIC*
         solution: baseSlidePrompt(
             "solution",
-            "Solution: The Value Proposition",
-            `3 bullet points: Explain how the "CORE SOLUTION / VALUE" directly addresses the quantified pain points, focusing on **measurable benefits** (e.g., "Saves $X and Y hours/week"). **MUST link back to the pain points in the context.**`,
-            `Briefly describe the core innovation ("Magic") that makes this solution possible or superior to current alternatives.`,
+            "Solution: The Disruptive, Proprietary Edge",
+            `3 bullet points: Explain how the "CORE SOLUTION / VALUE" directly addresses the quantified pain points, focusing on **measurable, highly-leveraged benefits** (e.g., "10x speed boost" or "Guaranteed $X ROI"). One bullet **MUST** explain the "magic" or core intellectual property/network effect that makes it proprietary. **MUST link back to the quantified pain points.**`,
+            `The note must define the **core innovation/technology** that makes this solution possible or superior to current alternatives (e.g., "The only platform built on a proprietary LLM for B2B contracts").`,
             "image-text",
-            `1 image prompt showing the product/service "${solutions}" solving problems in ${scope || "target market"}`,
+            `1 **interactive product demonstration** image prompt showing the product/service "${solutions}" in action, showcasing its unique value in ${scope || "target market"}`,
             startupData
         ),
 
-        // 4. Product/Features Slide - *TRACTION FIRST*
+        // 4. Product/Features Slide - *CUSTOMER OUTCOMES & MAGIC*
         product: baseSlidePrompt(
             "product",
-            "Product & Traction",
-            `3 bullet points: 1. The **most defensible feature** from "${features}". 2. The **key traction metric** from the "TRACTION / MILESTONES" context (e.g., "30k MRR," "10k Active Users"). 3. The current **development stage**.`,
-            `Describe the core technology and how the features deliver a superior user experience, consistent with the solutions described in the context.`,
+            "Product: Outcomes & Defensibility",
+            `3 bullet points: 1. A clear, quantified **customer outcome** or testimonial summary (e.g., "90% retention, 5-star reviews"). 2. The key **"Magic" or core product differentiator** (e.g., proprietary AI, network effect) from "${features}". 3. The **most impressive traction metric** from the "TRACTION / MILESTONES" context, emphasizing velocity.`,
+            `The note must briefly describe the superior user experience and defensible technology that secures initial market adoption.`,
             "image-text",
-            `1 image prompt of a user interface (UI) or product concept, using the imageGenType: "${startupData.imageGenType}" and brandStyle: "${brandStyle}"`,
+            `1 **lively screenshot** image prompt of a user interface (UI) or product concept, using the imageGenType: "${startupData.imageGenType}" and brandStyle: "${brandStyle}"`,
             startupData
         ),
 
         // 5. Market Opportunity Slide - *QUANTIFIED MARKET*
         market: baseSlidePrompt(
             "market",
-            "Market Opportunity: Size & Growth",
+            "Market Opportunity: The $Billion Land Grab",
             `3 bullet points: 1. **Quantified TAM** estimate for the "${industry}" context. 2. **Quantified SOM** focused on ${scope || "target geography"}. 3. The **CAGR or key quantified trend** driving market expansion. **Use external research if internal context is vague.**`,
             `Explain the market dynamics and identify the specific beachhead market where "${startupName}" will focus for the next 12 months.`,
             "title-bullets",
-            `1 data visualization prompt showing market opportunity size (TAM/SOM) and growth within ${scope || "target region"}`,
+            `1 **dynamic data visualization** prompt showing market opportunity size (TAM/SOM) and growth within ${scope || "target region"}`,
             startupData
         ),
 
         // 6. Business Model Slide - *UNIT ECONOMICS*
         businessModel: baseSlidePrompt(
             "businessModel",
-            "Business Model & Unit Economics",
-            `3 bullet points: 1. Primary **revenue stream** (from "${businessModel}") and **ASP**. 2. Clear statement on **Unit Economics** (e.g., "LTV $X / CAC $Y = Ratio Z"). 3. Key channel for margin defense/cost reduction. **Must be consistent with the solution's nature in the context.**`,
+            "Business Model: Profitable Unit Economics",
+            `3 bullet points: 1. Primary **revenue stream** (from "${businessModel}") and **ASP**. 2. Clear statement on **Unit Economics** (e.g., "LTV $X / CAC $Y = Ratio Z > 3.0"). 3. Key channel for margin defense/cost reduction. **Must be consistent with the solution's nature in the context.**`,
             `Explain the key drivers for revenue scalability (e.g., network effects, low marginal cost) in ${scope || "the operational landscape"}.`,
             "image-text",
-            `1 image prompt showing the revenue flow diagram or business canvas model in ${scope || "target region"}`,
+            `1 **clear, interactive** image prompt showing the revenue flow diagram or business canvas model in ${scope || "target region"}`,
             startupData
         ),
 
-        // 7. Go-to-Market Strategy - *SCALABLE CHANNELS*
+        // 7. Go-to-Market Strategy - *SCALABLE & VIRAL CHANNELS*
         goMarket: baseSlidePrompt(
             "goMarket",
-            "Go-to-Market (GTM) Strategy",
-            `3 bullet points outlining the **three most efficient customer acquisition channels** for ${scope || "the region"}, including a mention of the estimated customer acquisition cost (CAC) or conversion rate. **MUST reference "${businessModel}" and "${features}" for channel choice.**`,
+            "Go-to-Market (GTM): Viral, Scalable Distribution",
+            `3 bullet points outlining the **three most efficient/scalable customer acquisition channels** (e.g., SEO, Referral, Virality). Include a mention of the estimated customer acquisition cost (CAC) or conversion rate. **MUST reference "${businessModel}" and "${features}" for channel choice, prioritizing organic/viral loops.**`,
             `Outline the early sales process and the scaling plan for achieving a defensible distribution advantage.`,
             "title-bullets",
-            `1 image prompt visualizing a marketing funnel or customer acquisition strategy map for ${startupName} in ${scope || "target area"}`,
+            `1 **dynamic visualization** image prompt showing a marketing funnel or customer acquisition strategy map for ${startupName} in ${scope || "target area"}`,
             startupData
         ),
 
         // 8. Competitive Landscape Slide - *THE MOAT*
         competitions: baseSlidePrompt(
             "competition",
-            "Competitive Moat & Advantage",
-            `3 bullet points: 1. Identification of **2-3 closest competitors** (from "${competitions}"). 2. Clear statement on "${startupName}'s" **unique, sustainable competitive advantage (Moat)** derived from the "CORE SOLUTION" in the context. 3. Key difference **quantified**.`,
+            "Competitive Moat: Why We Win",
+            `3 bullet points: 1. Identification of **2-3 closest competitors** (from "${competitions}"). 2. Clear statement on "${startupName}'s" **unique, sustainable competitive advantage (Moat)** derived from the "CORE SOLUTION" in the context. 3. Key difference **quantified** (e.g., "5x faster" or "70% lower cost").`,
             `Justify why competitors have not successfully addressed the problem or why the timing is right for disruption.`,
             "title-bullets",
-            `1 infographic image prompt comparing ${startupName} vs top 3 competitors in ${scope} (${industry} sector), highlighting key differentiation factors`,
+            `1 **infographic image prompt** comparing ${startupName} vs top 3 competitors in ${scope} (${industry} sector), highlighting key differentiation factors`,
             startupData
         ),
 
         // 9. Milestones & Traction - *FUTURE LOOKING*
         milestones: baseSlidePrompt(
             "milestones",
-            "Traction & Future Timeline",
-            `3 bullet points: 1. **Most impressive historical metric** from the "TRACTION / MILESTONES" context. 2. The **specific, measurable 6-month goal** to be hit with this funding. 3. The **major outcome/milestone** that triggers the next funding round.`,
+            "Traction & Future Velocity",
+            `3 bullet points: 1. **Most impressive historical metric** from the "TRACTION / MILESTONES" context, focused on growth velocity. 2. The **specific, measurable 6-month goal** to be hit with this funding. 3. The **major outcome/milestone** that triggers the next funding round.`,
             `Quantify the current momentum and demonstrate a credible plan to achieve significant growth based on the context's milestones.`,
             "title-bullets",
-            `1 timeline or roadmap image prompt showing past achievements and future product milestones for ${startupName}`,
+            `1 **dynamic timeline or roadmap** image prompt showing past achievements and future product milestones for ${startupName}`,
             startupData
         ),
 
-        // 10. Team Slide - *FIT FOR PURPOSE*
+        // 10. Team Slide - *FIT FOR EXECUTION - CUSTOM FORMAT*
         team: baseSlidePrompt(
             "team",
-            "Team: Fit for Execution",
-            `3 bullet points: 1. Highlight the **most relevant domain expertise** of the founders (${teamNames}). 2. Mention the **collective experience**. 3. The team's unique network or competitive advantage in ${scope} within the "${industry}" context.`,
-            `Emphasize why this specific team's background, resilience, and network are uniquely suited to execute the plan.`,
+            "Team: The Only Group Built to Win This Market",
+            `Generate **one high-impact bullet point per core team member** (max ${teamImageCount} bullets). Each bullet must state the team member's **Name, Role, and a single, quantified career achievement/expertise summary** directly relevant to the startup's success (e.g., "Jane Doe, CTO: 10+ years scaling $100M infrastructure"). MUST be derived from the context data or essential expertise for the ${industry} industry.`,
+            `The note must be a single, persuasive paragraph (max 3 sentences) that emphasizes the team's collective domain expertise, founder-market fit, and track record of collaboration/resilience. It must sell the team as capable of executing the plan based on their cumulative skills.`,
             "image-text",
-            "1 image prompt showing team portraits or symbolic representation of diverse, expert leadership",
+            `Generate a separate image object for each of the ${teamImageCount} core team members (${teamNamesList}). The prompt for each should be a professional, high-quality portrait/headshot placeholder for the specific team member's name and role, emphasizing **competence and diversity of expertise**.`,
             startupData
         ),
 
         // 11. Financials Slide - *FACTUAL PROJECTIONS*
         financials: baseSlidePrompt(
             "financials",
-            "Financial Projections & Outlook",
+            "Financial Projections: Path to Profitability",
             `3 bullet points: 1. **Historical Revenue or MRR** and **current burn rate**. 2. **3-Year Revenue Forecast** (clear, high number). 3. **Key Assumption** driving the growth. **MUST use the facts/figures from the "FINANCIALS / ASK" context block, using external research to benchmark against industry standards if numbers are vague.**`,
             `Briefly describe the key assumptions underpinning the projections and the projected path to profitability within the next 3-5 years.`,
             "title-bullets",
-            `1 graph or chart prompt showing revenue growth projection and key financial milestones for ${startupName} in ${scope || "target area"}`,
+            `1 **clear, vibrant graph or chart** prompt showing revenue growth projection and key financial milestones for ${startupName} in ${scope || "target area"}`,
             startupData
         ),
 
-        // 12. Industry Specifics & Partnerships - *DERISKING*
+        // 12. Vision & Exit Strategy - *NEW REQUIRED SLIDE*
+        vision: baseSlidePrompt(
+            "vision",
+            "Vision: The $1B+ Exit Strategy",
+            `3 bullet points: 1. The **long-term vision** for market disruption. 2. **2-3 credible strategic acquirers** (e.g., Google, Stripe, Pfizer). 3. The **specific, measurable outcome** (e.g., $100M ARR, 5M users) that makes the company a target for acquisition at a $1B+ valuation. **Use external research to justify potential acquirers/valuations for the ${industry} sector.**`,
+            `A final, inspiring statement on the potential for massive, disruptive returns, framing the investment as a pathway to an IPO or major acquisition within 5-7 years.`,
+            "title-bullets",
+            `1 **abstract image prompt** symbolizing exponential growth, market domination, and a clear path to exit/IPO for ${startupName}`,
+            startupData
+        ),
+
+        // 13. Industry Specifics & Partnerships - *DERISKING*
         industrySpecific: baseSlidePrompt(
             "industrySpecific",
             `Industry & ${industry === "fintech" || industry === "healthtech" ? "Regulation" : "Key Partnerships"}`,
             `3 bullet points outlining **2 critical derisking factors** (e.g., partnership, IP, compliance status) and **1 key strategic asset** (e.g., proprietary data, regulatory advantage). **MUST use specific details from "${moreInfo}"**.`,
             `Explain how ${startupName} leverages its unique position to overcome industry-specific barriers or accelerates growth.`,
             "image-text",
-            `1 image prompt showing visuals related to compliance, strategic alliances, or proprietary technology in the ${industry} sector within ${scope || "target region"}`,
+            `1 **highly specific** image prompt showing visuals related to compliance, strategic alliances, or proprietary technology in the ${industry} sector within ${scope || "target region"}`,
             startupData
         ),
 
-        // 13. Funding Ask Slide - *FUNDS UTILIZATION*
+        // 14. Funding Ask Slide - *FUNDS UTILIZATION*
         ask: baseSlidePrompt(
             "ask",
-            "The Ask & Use of Funds",
+            "The Ask & Use of Funds: Fueling the Next Growth Phase",
             `3 bullet points: 1. **Total Funding Amount** and **Round Type** (from "FINANCIALS / ASK" context). 2. The **clear breakdown** of funds use (e.g., "70% Product, 30% GTM"). 3. The **single biggest milestone** the fund will achieve (from "TRACTION / MILESTONES" context).`,
             `Describe the expected runway (e.g., 18 months) and the key metrics/valuation target for the next funding round.`,
             "title-bullets",
-            `1 image prompt showing funding allocation pie chart or milestone roadmap tied to the capital raise in ${scope || "target geography"}`,
+            `1 **dynamic, clear image prompt** showing funding allocation pie chart or milestone roadmap tied to the capital raise in ${scope || "target geography"}`,
             startupData
         ),
 
-        // 14. Contact/Call to Action Slide - *FINAL CTA*
+        // 15. Contact/Call to Action Slide - *FINAL CTA*
         contact: baseSlidePrompt(
             "contact",
-            "Next Steps & Contact",
+            "Next Steps: Let's Build the Future Together",
             `2 bullet points: 1. **Clear Call-to-Action** for the investor (e.g., "Schedule a Demo" or "Discuss Term Sheet"). 2. Key contact information (Email and Website).`,
             `A final, brief statement of conviction and excitement about the opportunity.`,
             "full-image",
@@ -238,7 +256,7 @@ const pitchDeckSlidePrompt = (startupData) => {
     if (industryLower === "healthtech" || industryLower === "biotech") {
         slides.compliance = baseSlidePrompt(
             "compliance",
-            "Regulatory Status & Risk",
+            "Regulatory Status: Risk Mitigated",
             `3 bullet points: 1. **Specific regulatory status** (e.g., "FDA Clearance anticipated Q3 2026"). 2. **Key compliance measures** (e.g., "HIPAA/GDPR adherence verified"). 3. **Mitigation plan** for the largest regulatory risk. **MUST use specific compliance data from "${moreInfo}" or relevant external research for validation.**`,
             `Highlight how the regulatory roadmap is a key competitive advantage and derisks the investment.`,
             "image-text",
@@ -403,12 +421,12 @@ Ensure the output remains concise, persuasive, and formatted as strict JSON acco
 };
 
 
-// Allowed slide types - *NO CHANGE REQUIRED*
+// Allowed slide types - *MODIFIED TO INCLUDE 'vision'*
 const getAllowedSlides = (industry) => {
     const baseSlides = [
         'cover', 'problem', 'solution', 'product', 'market',
         'businessModel', 'goMarket', 'competitions', 'milestones',
-        'team', 'financials', 'industrySpecific', 'ask', 'contact'
+        'team', 'financials', 'vision', 'industrySpecific', 'ask', 'contact'
     ];
 
     const industrySlides = {
