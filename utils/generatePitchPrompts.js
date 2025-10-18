@@ -1,17 +1,20 @@
 // Global rules applied to all slides - *MODIFIED FOR MAX INFO DENSITY, QUANTIFICATION & HIGH-IMPACT VOICE*
 const globalRules = (startupData) => {
-    const { startupName, industry, scope, problems, solutions, financials, milestones, ask, team } = startupData;
+    // NOTE: 'milestones', 'financials', and 'ask' are now expected to be consolidated within 'moreInfo'.
+    const { startupName, industry, scope, problems, solutions, moreInfo, team } = startupData;
 
     // Condense all core data into a single, cohesive context block
     const teamContext = team ? team.map(t => `${t.name} (${t.role}): ${t.expertise}`).join(" | ") : "Founders and key executives with relevant expertise.";
+
+    // Consolidate the data that is no longer required as separate fields
+    const financialMilestoneContext = moreInfo || "No specific financial, ask, or milestone data provided. The AI must use Google Search to find relevant industry benchmarks (TAM, CAGR, LTV/CAC) to fill this gap.";
 
     const allContext = `
         STARTUP NAME: ${startupName}
         INDUSTRY / SCOPE: ${industry} within ${scope || "Global Market"}
         CORE PROBLEM: ${problems}
         CORE SOLUTION / VALUE: ${solutions}
-        TRACTION / MILESTONES: ${milestones}
-        FINANCIALS / ASK: Ask is ${ask}. Key financials are ${financials}.
+        ALL KEY FINANCIALS, MILESTONES, AND ASK DETAILS: ${financialMilestoneContext}
         CORE TEAM EXPERTISE: ${teamContext}
     `;
 
@@ -69,7 +72,9 @@ const pitchDeckSlidePrompt = (startupData) => {
     const {
         startupName, industry, scope, problems, solutions,
         brandColor, brandStyle, competitions, businessModel,
-        milestones, financials, ask, team, moreInfo, features
+        // The following fields are now consolidated into 'moreInfo' for the global context.
+        // milestones, financials, ask,
+        team, moreInfo, features
     } = startupData;
 
     const scopeContext = scope
@@ -119,7 +124,7 @@ const pitchDeckSlidePrompt = (startupData) => {
         product: baseSlidePrompt(
             "product",
             "Product: Outcomes & Defensibility",
-            `3 bullet points: 1. A clear, quantified **customer outcome** or testimonial summary (e.g., "90% retention, 5-star reviews"). 2. The key **"Magic" or core product differentiator** (e.g., proprietary AI, network effect) from "${features}". 3. The **most impressive traction metric** from the "TRACTION / MILESTONES" context, emphasizing velocity.`,
+            `3 bullet points: 1. A clear, quantified **customer outcome** or testimonial summary (e.g., "90% retention, 5-star reviews"). 2. The key **"Magic" or core product differentiator** (e.g., proprietary AI, network effect) from "${features}". 3. The **most impressive traction metric** extracted from the "ALL KEY FINANCIALS, MILESTONES, AND ASK DETAILS" context, emphasizing velocity.`,
             `The note must briefly describe the superior user experience and defensible technology that secures initial market adoption.`,
             "image-text",
             `1 **lively screenshot** image prompt of a user interface (UI) or product concept, using the imageGenType: "${startupData.imageGenType}" and brandStyle: "${brandStyle}"`,
@@ -174,7 +179,7 @@ const pitchDeckSlidePrompt = (startupData) => {
         milestones: baseSlidePrompt(
             "milestones",
             "Traction & Future Velocity",
-            `3 bullet points: 1. **Most impressive historical metric** from the "TRACTION / MILESTONES" context, focused on growth velocity. 2. The **specific, measurable 6-month goal** to be hit with this funding. 3. The **major outcome/milestone** that triggers the next funding round.`,
+            `3 bullet points: 1. **Most impressive historical metric** extracted from the "ALL KEY FINANCIALS, MILESTONES, AND ASK DETAILS" context, focused on growth velocity. 2. The **specific, measurable 6-month goal** to be hit with this funding. 3. The **major outcome/milestone** that triggers the next funding round.`,
             `Quantify the current momentum and demonstrate a credible plan to achieve significant growth based on the context's milestones.`,
             "title-bullets",
             `1 **dynamic timeline or roadmap** image prompt showing past achievements and future product milestones for ${startupName}`,
@@ -196,7 +201,7 @@ const pitchDeckSlidePrompt = (startupData) => {
         financials: baseSlidePrompt(
             "financials",
             "Financial Projections: Path to Profitability",
-            `3 bullet points: 1. **Historical Revenue or MRR** and **current burn rate**. 2. **3-Year Revenue Forecast** (clear, high number). 3. **Key Assumption** driving the growth. **MUST use the facts/figures from the "FINANCIALS / ASK" context block, using external research to benchmark against industry standards if numbers are vague.**`,
+            `3 bullet points: 1. **Historical Revenue or MRR** and **current burn rate**. 2. **3-Year Revenue Forecast** (clear, high number). 3. **Key Assumption** driving the growth. **MUST use the facts/figures from the "ALL KEY FINANCIALS, MILESTONES, AND ASK DETAILS" context block, using external research to benchmark against industry standards if numbers are vague.**`,
             `Briefly describe the key assumptions underpinning the projections and the projected path to profitability within the next 3-5 years.`,
             "title-bullets",
             `1 **clear, vibrant graph or chart** prompt showing revenue growth projection and key financial milestones for ${startupName} in ${scope || "target area"}`,
@@ -229,7 +234,7 @@ const pitchDeckSlidePrompt = (startupData) => {
         ask: baseSlidePrompt(
             "ask",
             "The Ask & Use of Funds: Fueling the Next Growth Phase",
-            `3 bullet points: 1. **Total Funding Amount** and **Round Type** (from "FINANCIALS / ASK" context). 2. The **clear breakdown** of funds use (e.g., "70% Product, 30% GTM"). 3. The **single biggest milestone** the fund will achieve (from "TRACTION / MILESTONES" context).`,
+            `3 bullet points: 1. **Total Funding Amount** and **Round Type** (from "ALL KEY FINANCIALS, MILESTONES, AND ASK DETAILS" context). 2. The **clear breakdown** of funds use (e.g., "70% Product, 30% GTM"). 3. The **single biggest milestone** the fund will achieve (from "ALL KEY FINANCIALS, MILESTONES, AND ASK DETAILS" context).`,
             `Describe the expected runway (e.g., 18 months) and the key metrics/valuation target for the next funding round.`,
             "title-bullets",
             `1 **dynamic, clear image prompt** showing funding allocation pie chart or milestone roadmap tied to the capital raise in ${scope || "target geography"}`,
