@@ -25,7 +25,7 @@ const createPitchDeckController = async (req, res, next) => {
         }
 
         const { startupName, industry, scope, problems, solutions, imageGenType, brandColor, brandStyle,
-            competitions, businessModel, milestones, financials, ask, team, moreInfo, features } = body;
+            competitions, businessModel, team, moreInfo, features } = body;
         
         if (!startupName || !industry || !scope || !problems || !solutions || !competitions || !businessModel || !team || !Array.isArray(team) || team.length === 0 || !features) {
             return next(new AppError('All startup details are required to create a pitch deck', 400));
@@ -56,23 +56,13 @@ const createPitchDeckController = async (req, res, next) => {
             team: team.map(member => ({
                 name: sanitize(member.name),
                 role: sanitize(member.role),
-                asset: member.asset ? sanitize(member.asset) : '',
-                linkedIn: member.linkedIn ? sanitize(member.linkedIn) : '',
+                asset: member.expertise ? sanitize(member.expertise) : '',
             })),
             imageGenType: sanitize(imageGenType),
             brandColor: brandColor ? sanitize(brandColor) : '',
             brandStyle: brandStyle ? sanitize(brandStyle) : '',
         };
 
-        if (milestones) {
-            startupData.milestones = sanitize(milestones);
-        }
-        if (financials) {
-            startupData.financials = sanitize(financials);
-        }
-        if (ask) {
-            startupData.ask = sanitize(ask);
-        }
         // Generate prompts for each slide
         const prompts = generatePromptsForSlides(startupData, body.slides);
         if (!prompts || Object.keys(prompts).length === 0) {

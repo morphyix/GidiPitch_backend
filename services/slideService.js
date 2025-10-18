@@ -114,11 +114,14 @@ const deleteSlideByIdService = async (slideId) => {
 
 
 // Update slide image service
-const updateSlideImageService = async (slideId, imageIndex, imageData) => {
+const updateSlideImageService = async (slideId, caption, imageData) => {
     try {
         if (!slideId) throw new AppError('Slide ID is required', 400);
-        if (typeof imageIndex !== 'number' || imageIndex < 0) {
-            throw new AppError('Invalid image index', 400);
+        if (caption === undefined || caption === null) {
+            throw new AppError('Image index is required', 400);
+        }
+        if (typeof caption !== 'string') {
+            throw new AppError('Caption must be a string', 400);
         }
         if (!imageData || typeof imageData !== 'object') {
             throw new AppError('Invalid image data provided', 400);
@@ -126,20 +129,24 @@ const updateSlideImageService = async (slideId, imageIndex, imageData) => {
 
         // Build dynamic field paths for update
         const updateFields = {};
+        const slide = await Slide.findById(slideId);
+        if (!slide) {
+            throw new AppError('Slide not found', 404);
+        }
+
+        // Find the image by caption
+        const imageIndex = slide.images.findIndex(img => img.caption === caption);
+        if (imageIndex === -1) {
+            throw new AppError('Image with the specified caption not found', 404);
+        }
+        
+        // Update only provided fields in imageData
         for (const [key, value] of Object.entries(imageData)) {
             updateFields[`images.${imageIndex}.${key}`] = value;
         }
 
-        // Perform the update
-        const updatedSlide = await Slide.findByIdAndUpdate(
-            slideId,
-            { $set: updateFields },
-            { new: true }
-        );
-
-        if (!updatedSlide) {
-            throw new AppError('Slide not found or image update failed', 404);
-        }
+        const updatedSlide = await slide.save();
+        
         return updatedSlide;
     } catch (error) {
         if (error instanceof AppError) {
