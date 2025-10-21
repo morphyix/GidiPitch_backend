@@ -25,7 +25,7 @@ const slideSchema = {
         }
     },
     required: ["slideType", "title", "bullets", "notes", "layout", "images"],
-    additionalProperties: false
+    additionalProperties: true
 };
 
 const ajv = new Ajv({ allErrors: true, strict: false });
