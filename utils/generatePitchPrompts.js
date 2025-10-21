@@ -50,7 +50,7 @@ const baseSlidePrompt = (slideType, titlePrefix, bulletsInstruction, notesInstru
     // The title should be a *claim* of massive potential, not just a topic.
     const title = slideType === 'cover'
         ? `${titlePrefix}`
-        : `${titlePrefix}: The single, most compelling, quantified claim that sells this slide's argument. (MUST be grounded in context/research)`;
+        : `TITLE FORMAT (STRICTLY REQUIRED): "${titlePrefix}: [Quantified, High-Impact Claim]" (Total Max 15 words). Generate the single, most compelling, quantified claim (max 10 words) that sells this slide's argument. The claim MUST be grounded in context/research and focus on ROI/Scale/Defensibility, e.g., "${titlePrefix}: [85% Retention in the First 6 Months]".`;
 
     return `
 ${globalRules(startupData)}
@@ -101,7 +101,7 @@ const pitchDeckSlidePrompt = (startupData) => {
         // 2. Problem Slide - *FEEL THE PAIN*
         problem: baseSlidePrompt(
             "problem",
-            "Problem(max 15 words): The Multi-Billion Dollar Friction Point",
+            "Problem(max 15 words)",
             `3 bullet points: Each must be a **specific, quantified problem statement** (e.g., "$500B wasted annually" or "80% of users drop off") (MAX 25 WORDS each) derived from the "CORE PROBLEM" context. The language must be aggressive, highlighting the **massive financial or efficiency impact** this problem creates.`,
             `The note must be a single, powerful sentence emphasizing the market's current pain and the **immediate urgency/opportunity window** for ${startupName} to capture it.`,
             "title-bullets",
@@ -112,7 +112,7 @@ const pitchDeckSlidePrompt = (startupData) => {
         // 3. Solution Slide - *THE MAGIC*
         solution: baseSlidePrompt(
             "solution",
-            "Solution(max 15 words): The Disruptive, Proprietary Edge",
+            "Solution(max 15 words)",
             `3 bullet points: (MAX 25 WORDS each) Explain how the "CORE SOLUTION / VALUE" directly addresses the quantified pain points, focusing on **measurable, highly-leveraged benefits** (e.g., "10x speed boost" or "Guaranteed $X ROI"). One bullet **MUST** explain the "magic" or core intellectual property/network effect that makes it proprietary. **MUST link back to the quantified pain points.**`,
             `The note must define the **core innovation/technology** that makes this solution possible or superior to current alternatives (e.g., "The only platform built on a proprietary LLM for B2B contracts").`,
             "image-text",
@@ -134,7 +134,7 @@ const pitchDeckSlidePrompt = (startupData) => {
         // 5. Market Opportunity Slide - *QUANTIFIED MARKET*
         market: baseSlidePrompt(
             "market",
-            "Market Opportunity(max 15 words): The $Billion Land Grab",
+            "Market Opportunity(max 15 words)",
             `3 bullet points: (MAX 25 WORDS each) 1. **Quantified TAM** estimate for the "${industry}" context. 2. **Quantified SOM** focused on ${scope || "target geography"}. 3. The **CAGR or key quantified trend** driving market expansion. **Use external research if internal context is vague.**`,
             `Explain the market dynamics and identify the specific beachhead market where "${startupName}" will focus for the next 12 months.`,
             "title-bullets",
@@ -145,7 +145,7 @@ const pitchDeckSlidePrompt = (startupData) => {
         // 6. Business Model Slide - *UNIT ECONOMICS*
         businessModel: baseSlidePrompt(
             "businessModel",
-            "Business Model(max 15 words): Profitable Unit Economics",
+            "Business Model(max 15 words)",
             `3 bullet points: (MAX 25 WORDS each) 1. Primary **revenue stream** (from "${businessModel}") and **ASP**. 2. Clear statement on **Unit Economics** (e.g., "LTV $X / CAC $Y = Ratio Z > 3.0"). 3. Key channel for margin defense/cost reduction. **Must be consistent with the solution's nature in the context.**`,
             `Explain the key drivers for revenue scalability (e.g., network effects, low marginal cost) in ${scope || "the operational landscape"}.`,
             "image-text",
@@ -156,7 +156,7 @@ const pitchDeckSlidePrompt = (startupData) => {
         // 7. Go-to-Market Strategy - *SCALABLE & VIRAL CHANNELS*
         goMarket: baseSlidePrompt(
             "goMarket",
-            "Go-to-Market (GTM)(max 15 words): Viral, Scalable Distribution",
+            "Go-to-Market (GTM)(max 15 words)",
             `3 bullet points (MAX 25 WORDS each) outlining the **three most efficient/scalable customer acquisition channels** (e.g., SEO, Referral, Virality). Include a mention of the estimated customer acquisition cost (CAC) or conversion rate. **MUST reference "${businessModel}" and "${features}" for channel choice, prioritizing organic/viral loops.**`,
             `Outline the early sales process and the scaling plan for achieving a defensible distribution advantage.`,
             "title-bullets",
@@ -167,7 +167,7 @@ const pitchDeckSlidePrompt = (startupData) => {
         // 8. Competitive Landscape Slide - *THE MOAT*
         competitions: baseSlidePrompt(
             "competition",
-            "Competitive Moat(max 15 words): Why We Win",
+            "Competitive Moat(max 15 words)",
             `3 bullet points: (MAX 25 WORDS each) 1. Identification of **2-3 closest competitors** (from "${competitions}"). 2. Clear statement on "${startupName}'s" **unique, sustainable competitive advantage (Moat)** derived from the "CORE SOLUTION" in the context. 3. Key difference **quantified** (e.g., "5x faster" or "70% lower cost").`,
             `Justify why competitors have not successfully addressed the problem or why the timing is right for disruption.`,
             "title-bullets",
@@ -189,7 +189,7 @@ const pitchDeckSlidePrompt = (startupData) => {
         // 10. Team Slide - *FIT FOR EXECUTION - CUSTOM FORMAT*
         team: baseSlidePrompt(
             "team",
-            "Team(max 15 words): The Only Group Built to Win This Market",
+            "Team(max 15 words)",
             `Generate **one high-impact bullet point per core team member** (max ${teamImageCount} bullets) (MAX 25 WORDS each). Each bullet must state the team member's **Name, Role, and a single, quantified career achievement/expertise summary** directly relevant to the startup's success (e.g., "Jane Doe, CTO: 10+ years scaling $100M infrastructure"). MUST be derived from the context data or essential expertise for the ${industry} industry.`,
             `The note must be a single, persuasive paragraph (max 2 sentences) that emphasizes the team's collective domain expertise, founder-market fit, and track record of collaboration/resilience. It must sell the team as capable of executing the plan based on their cumulative skills.`,
             "image-text",
@@ -200,7 +200,7 @@ const pitchDeckSlidePrompt = (startupData) => {
         // 11. Financials Slide - *FACTUAL PROJECTIONS*
         financials: baseSlidePrompt(
             "financials",
-            "Financial Projections(max 15 words): Path to Profitability",
+            "Financial Projections(max 15 words)",
             `3 bullet points: (MAX 25 WORDS each) 1. **Historical Revenue or MRR** and **current burn rate**. 2. **3-Year Revenue Forecast** (clear, high number). 3. **Key Assumption** driving the growth. **MUST use the facts/figures from the "ALL KEY FINANCIALS, MILESTONES, AND ASK DETAILS" context block, using external research to benchmark against industry standards if numbers are vague.**`,
             `Briefly describe the key assumptions underpinning the projections and the projected path to profitability within the next 3-5 years.`,
             "title-bullets",
@@ -211,7 +211,7 @@ const pitchDeckSlidePrompt = (startupData) => {
         // 12. Vision & Exit Strategy - *NEW REQUIRED SLIDE*
         vision: baseSlidePrompt(
             "vision",
-            "Vision(max 15 words): The $1B+ Exit Strategy",
+            "Vision(max 15 words)",
             `3 bullet points: (MAX 25 WORDS each) 1. The **long-term vision** for market disruption. 2. **2-3 credible strategic acquirers** (e.g., Google, Stripe, Pfizer). 3. The **specific, measurable outcome** (e.g., $100M ARR, 5M users) that makes the company a target for acquisition at a $1B+ valuation. **Use external research to justify potential acquirers/valuations for the ${industry} sector.**`,
             `A final, inspiring statement on the potential for massive, disruptive returns, framing the investment as a pathway to an IPO or major acquisition within 5-7 years.`,
             "title-bullets",
@@ -233,7 +233,7 @@ const pitchDeckSlidePrompt = (startupData) => {
         // 14. Funding Ask Slide - *FUNDS UTILIZATION*
         ask: baseSlidePrompt(
             "ask",
-            "The Ask & Use of Funds(max 15 words): Fueling the Next Growth Phase",
+            "The Ask & Use of Funds(max 15 words)",
             `3 bullet points (MAX 25 WORDS each): 1. **Total Funding Amount** and **Round Type** (from "ALL KEY FINANCIALS, MILESTONES, AND ASK DETAILS" context). 2. The **clear breakdown** of funds use (e.g., "70% Product, 30% GTM"). 3. The **single biggest milestone** the fund will achieve (from "ALL KEY FINANCIALS, MILESTONES, AND ASK DETAILS" context).`,
             `Describe the expected runway (e.g., 18 months) and the key metrics/valuation target for the next funding round.`,
             "title-bullets",
@@ -244,7 +244,7 @@ const pitchDeckSlidePrompt = (startupData) => {
         // 15. Contact/Call to Action Slide - *FINAL CTA*
         contact: baseSlidePrompt(
             "contact",
-            "Next Steps(max 15 words): Let's Build the Future Together",
+            "Next Steps(max 15 words)",
             `2 bullet points (MAX 25 WORDS each): 1. **Clear Call-to-Action** for the investor (e.g., "Schedule a Demo" or "Discuss Term Sheet"). 2. Key contact information (Email and Website).`,
             `A final, brief statement of conviction and excitement about the opportunity.`,
             "full-image",
@@ -261,7 +261,7 @@ const pitchDeckSlidePrompt = (startupData) => {
     if (industryLower === "healthtech" || industryLower === "biotech") {
         slides.compliance = baseSlidePrompt(
             "compliance",
-            "Regulatory Status(max 15 words): Risk Mitigated",
+            "Regulatory Status(max 15 words)",
             `3 bullet points (MAX 25 WORDS each): 1. **Specific regulatory status** (e.g., "FDA Clearance anticipated Q3 2026"). 2. **Key compliance measures** (e.g., "HIPAA/GDPR adherence verified"). 3. **Mitigation plan** for the largest regulatory risk. **MUST use specific compliance data from "${moreInfo}" or relevant external research for validation.**`,
             `Highlight how the regulatory roadmap is a key competitive advantage and derisks the investment.`,
             "image-text",
@@ -407,7 +407,7 @@ You will revise an existing pitch deck slide JSON object based on the user’s c
 ## WORD COUNT & STYLE RULES (STRICTLY ENFORCE)
 - **Title**: Maximum of 15 words.
 - **Bullets**: Each bullet point (item in the "bullets" array) has a maximum of 25 words.
-- **Notes**: Maximum of 25 words for the notes text.
+- **Notes**: Maximum of 25 words for the actual notes text.
 
 Here is the CURRENT SLIDE DATA:
 
