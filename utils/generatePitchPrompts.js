@@ -455,4 +455,64 @@ const getAllowedSlides = (industry) => {
     return [...baseSlides, ...extra];
 };
 
-module.exports = { generatePromptsForSlides, getAllowedSlides, generateCorrectionPrompt };
+
+/**
+ * Generate Brand guidlines for a startup pitch deck slides.
+ */
+const createTailwindPrompt = (brandColor = 'orange', brandStyle = 'default') => {
+    const isHex = /^#([0-9A-F]{3}){1,2}$/i.test(brandColor);
+  const colorHint = isHex
+    ? `The background color should use a Tailwind class that best matches the hex code ${brandColor}.`
+    : `The background color should be set using Tailwind's color palette for "${brandColor}".`;
+
+  const prompt = `
+IMPORTANT:
+You are to generate a Tailwind CSS design kit for a startup pitch deck slide.
+
+Requirements:
+- Return ONLY valid RFC 8259 JSON.
+- No markdown, no comments, no extra text.
+- The JSON should describe Tailwind CSS classes to style a slide.
+
+Branding:
+- Brand color: ${brandColor}
+- Font style: ${brandStyle}
+
+${colorHint}
+Generate complementary Tailwind text colors for the title, bullets, and notes so that the design is:
+- Investor appealing
+- Professional and legible
+- Harmonious and interactive
+
+JSON structure:
+{
+  "background": "tailwind-bg-class",
+  "title": {
+    "color": "tailwind-text-class",
+    "font": "tailwind-font-class",
+    "size": "tailwind-text-size-class",
+    "weight": "tailwind-font-weight-class",
+    "tracking": "tailwind-tracking-class"
+  },
+  "bullets": {
+    "color": "tailwind-text-class",
+    "font": "tailwind-font-class",
+    "size": "tailwind-text-size-class",
+    "spacing": "tailwind-leading-class"
+  },
+  "notes": {
+    "color": "tailwind-text-class",
+    "font": "tailwind-font-class",
+    "size": "tailwind-text-size-class",
+    "opacity": "tailwind-opacity-class"
+  }
+}
+
+The tone of the visual hierarchy should make the title dominant, the bullets clean and readable, and the notes subtle but clear.
+`;
+
+  return prompt;
+}
+
+
+module.exports = { generatePromptsForSlides, getAllowedSlides, generateCorrectionPrompt, createTailwindPrompt };

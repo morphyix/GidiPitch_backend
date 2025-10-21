@@ -1,7 +1,7 @@
 const { createDeckService, updateDeckByIdService, getDeckByIdService } = require('../services/deckService');
 const { createSlideService, getSlidesByDeckIdService, getSlideByIdService } = require('../services/slideService');
 const { addPitchDeckJob } = require('../jobs/pitchDeckGenerator/queue');
-const { generatePromptsForSlides, getAllowedSlides, generateCorrectionPrompt } = require('../utils/generatePitchPrompts');
+const { generatePromptsForSlides, getAllowedSlides, generateCorrectionPrompt, createTailwindPrompt } = require('../utils/generatePitchPrompts');
 const { AppError } = require('../utils/error');
 const { sanitize } = require('../utils/helper');
 const { addSlideCorrectionJob } = require('../jobs/slideCorrection/queue');
@@ -69,6 +69,12 @@ const createPitchDeckController = async (req, res, next) => {
             return next(new AppError('Failed to generate prompts for the selected slides', 500));
         }
 
+        // Create BrandKit prompt
+        const tailwindPrompt = createTailwindPrompt(brandColor, brandStyle);
+        if (!tailwindPrompt) {
+            return next(new AppError('Failed to generate Tailwind CSS prompt for brand kit', 500));
+        }
+
         // Create a new deck entry in the database with status 'draft'
         startupData.ownerId = userId;
         startupData.status = 'draft';
@@ -102,7 +108,8 @@ const createPitchDeckController = async (req, res, next) => {
             prompts,
             startupData,
             deckSlides,
-            imageGenType
+            imageGenType,
+            tailwindPrompt
         };
 
         await addPitchDeckJob(jobData);
@@ -148,6 +155,9 @@ const getPitchDeckProgressController = async (req, res, next) => {
             return next(new AppError('Unauthorized access to this deck', 403));
         }
 
+        // Set brand kit
+        const brandKit = deck?.brandKit || {};
+
         // Get all completed slides for the deck
         const deckSlides = await getSlidesByDeckIdService(deckId);
         if (deckSlides.length === 0) {
@@ -163,6 +173,7 @@ const getPitchDeckProgressController = async (req, res, next) => {
             data: {
                 deckId: deck._id,
                 status: deck.status,
+                brandKit: brandKit,
                 activityStatus: currentStatus || 'In Queue',
                 progress: deck.progress || 0,
                 totalSlides: deck.slideCount || deckSlides.length,

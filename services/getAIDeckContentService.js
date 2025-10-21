@@ -117,5 +117,39 @@ const generateSlideImage = async (
 };
 
 
+// Generate Brand Kit
+const generateBrandKit = async (
+    prompt, { retries = 2, model = DEFAULT_MODEL, generationConfig = {} } = {}) => {
+        if (!prompt || typeof prompt !== 'string') {
+            throw new AppError('Prompt must be a non empty string', 400);
+        }
+        let lastError = null;
+        for (let attempt = 0; attempt <= retries; attempt++) {
+            try {
+                const response = await ai.models.generateContent({
+                    model,
+                    contents: [{ role: "user", parts: [{ text: prompt }] }],
+                    generationConfig,
+                });
+
+                const raw = response.text;
+                if (!raw) throw new AppError('Empty response from GEMINI AI model', 500);
+
+                const parsedResponse = sanitizeGeminiResponse(raw);
+
+                return parsedResponse;
+            } catch (error) {
+                lastError = error;
+                if (attempt < retries) {
+                    console.warn(`Attempt ${attempt + 1} failed. Retrying...`, error);
+                    await new Promise(res => setTimeout(res, 500 * Math.pow(2, attempt))); // Exponential backoff
+                    continue;
+                }
+            }
+        }
+        throw new AppError(`Failed to generate Brand Kit after ${retries + 1} attempts: ${lastError.message}`, 500);
+  };
+
+
 // Export function
-module.exports = { generateSlideContent, generateSlideImage };
+module.exports = { generateSlideContent, generateSlideImage, generateBrandKit };
