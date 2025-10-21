@@ -105,7 +105,7 @@ const pitchDeckSlidePrompt = (startupData) => {
             `3 bullet points: Each must be a **specific, quantified problem statement** (e.g., "$500B wasted annually" or "80% of users drop off") (MAX 25 WORDS each) derived from the "CORE PROBLEM" context. The language must be aggressive, highlighting the **massive financial or efficiency impact** this problem creates.`,
             `The note must be a single, powerful sentence emphasizing the market's current pain and the **immediate urgency/opportunity window** for ${startupName} to capture it.`,
             "title-bullets",
-            `1 **dramatic, symbolic, and high-quality** image prompt visualizing the **magnitude** of the challenge related to "${problems}" within ${scope || "target market"}`,
+            `3 distinct, symbolic icons visualizing the quantified pain points/barriers related to "${problems}"`,
             startupData
         ),
 
@@ -116,7 +116,7 @@ const pitchDeckSlidePrompt = (startupData) => {
             `3 bullet points: (MAX 25 WORDS each) Explain how the "CORE SOLUTION / VALUE" directly addresses the quantified pain points, focusing on **measurable, highly-leveraged benefits** (e.g., "10x speed boost" or "Guaranteed $X ROI"). One bullet **MUST** explain the "magic" or core intellectual property/network effect that makes it proprietary. **MUST link back to the quantified pain points.**`,
             `The note must define the **core innovation/technology** that makes this solution possible or superior to current alternatives (e.g., "The only platform built on a proprietary LLM for B2B contracts").`,
             "image-text",
-            `1 **interactive product demonstration** image prompt showing the product/service "${solutions}" in action, showcasing its unique value in ${scope || "target market"}`,
+            `3 distinct, symbolic icons visualizing the quantified benefits and proprietary edge of the solution: "${solutions}"`,
             startupData
         ),
 
@@ -265,7 +265,7 @@ const pitchDeckSlidePrompt = (startupData) => {
             `3 bullet points (MAX 25 WORDS each): 1. **Specific regulatory status** (e.g., "FDA Clearance anticipated Q3 2026"). 2. **Key compliance measures** (e.g., "HIPAA/GDPR adherence verified"). 3. **Mitigation plan** for the largest regulatory risk. **MUST use specific compliance data from "${moreInfo}" or relevant external research for validation.**`,
             `Highlight how the regulatory roadmap is a key competitive advantage and derisks the investment.`,
             "image-text",
-            `1 image prompt showing health compliance, secure data management, or regulatory approval badges in ${scope || "target area"}`,
+            `3 distinct icons symbolizing compliance, secure data, and risk mitigation in the health sector`,
             startupData
         );
 
@@ -275,7 +275,7 @@ const pitchDeckSlidePrompt = (startupData) => {
             `3 bullet points: (MAX 25 WORDS each) 1. **Strongest quantified clinical/pilot outcome** (e.g., "Phase 2 Trial showed 85% efficacy"). 2. **IP protection status** (e.g., "Patent-pending U.S. priority"). 3. **Source of validation data**. **MUST use specific validation and IP data from "${moreInfo}" or relevant external research for validation.**`,
             `Prove scientific credibility and show proprietary advantage against potential competitors.`,
             "title-bullets",
-            `1 image prompt showing healthcare or research validation results, focusing on patient/data outcomes in ${scope || "target market"}`,
+            `3 distinct icons representing clinical efficacy, intellectual property (IP), and scientific validation in healthtech`,
             startupData
         );
     }
@@ -288,7 +288,7 @@ const pitchDeckSlidePrompt = (startupData) => {
             `3 bullet points (MAX 25 WORDS each): 1. **Key security protocol** (e.g., "AES-256 encryption, bank-grade"). 2. **Quantified Risk Mitigation** (e.g., "Fraud loss rate maintained below X% due to enhanced KYC/AML systems"). 3. **Audit/Certification Status** (e.g., "PCI DSS compliant"). **MUST use specific security data from "${moreInfo}" or relevant external research for validation.**`,
             `Assure investors of operational security, data protection, and adherence to industry best practices to manage financial risk.`,
             "image-text",
-            `1 image prompt showing fintech data protection, encryption, and secure transaction visual in ${scope || "target region"}`,
+            `3 distinct icons symbolizing data protection, fraud prevention, and audit certification for a fintech product in ${scope || "target region"}`,
             startupData
         );
 
@@ -298,7 +298,7 @@ const pitchDeckSlidePrompt = (startupData) => {
             `3 bullet points (MAX 25 WORDS each): 1. **Specific Licensing Status** in ${scope}. 2. **Next compliance milestone** (e.g., "Achieve full regulatory status in Brazil by Q2"). 3. **Regulatory advantage** over competitors. **MUST use specific licensing data from "${moreInfo}" or relevant external research for validation.**`,
             `Demonstrate readiness and adherence to the regional financial compliance standards, which is a key barrier to entry.`,
             "title-bullets",
-            `1 image prompt showing fintech compliance, regulatory approvals, or licensing seals in ${scope || "target region"}`,
+            `3 distinct icons representing regulatory licensing, compliance milestones, and legal advantage in a fintech setting within ${scope || "target region"}`,
             startupData
         );
     }
@@ -311,7 +311,7 @@ const pitchDeckSlidePrompt = (startupData) => {
             `3 bullet points (MAX 25 WORDS each): 1. **Key quantifiable adoption metric** (e.g., "50k Student Users, 90% retention"). 2. **Most valuable strategic partnership** (e.g., "Exclusive pilot with State Education Ministry"). 3. **User retention/engagement metric**. **MUST use specific adoption and partnership data from "${moreInfo}" or relevant external research for validation.**`,
             `Show strong collaboration strength and measurable traction in the education ecosystem.`,
             "image-text",
-            `1 image prompt showing teachers/students using digital learning tools and educational collaboration in ${scope || "region"}`,
+            `3 distinct icons representing student user count, strategic partnerships, and user engagement/retention in edtech`,
             startupData
         );
 
@@ -321,7 +321,7 @@ const pitchDeckSlidePrompt = (startupData) => {
             `3 bullet points (MAX 25 WORDS each): 1. **Quantifiable student impact result** (e.g., "20% increase in national test scores"). 2. **Alignment with key curriculum/standards**. 3. **Proprietary learning theory/data advantage**. **MUST use specific outcome and curriculum data from "${moreInfo}" or relevant external research for validation.**`,
             `Prove the measurable educational impact and academic rigor of the solution to justify its value to institutions/users.`,
             "title-bullets",
-            `1 image prompt showing quantifiable improved learning results or a graph of academic progress in ${scope || "region"}`,
+            `3 distinct icons symbolizing measurable learning outcomes, curriculum alignment, and proprietary learning data/AI`,
             startupData
         );
     }
@@ -385,6 +385,7 @@ IMPORTANT:
 - No markdown, no comments, no extra text
 - The final output must exactly match this schema:
 {
+  "generateImage": "boolean",
   "slideType": "string",
   "title": "string",
   "bullets": ["string"],
@@ -402,6 +403,13 @@ ${globalRulesSchema}
 
 You are an expert AI prompt engineer and startup storytelling designer.
 You will revise an existing pitch deck slide JSON object based on the user’s correction instructions.
+
+## WORD COUNT & STYLE RULES (STRICTLY ENFORCE)
+- **Title**: Maximum of 15 words.
+- **Bullets**: Each bullet point (item in the "bullets" array) has a maximum of 25 words.
+- **Notes**: Maximum of 25 words for the notes text.
+
+Here is the CURRENT SLIDE DATA:
 
 Here is the CURRENT SLIDE DATA:
 {
@@ -421,6 +429,8 @@ USER CORRECTION INSTRUCTION:
 
 TASK:
 Regenerate the slide based on the correction above while preserving its logical intent, accuracy, and relevance to the pitch deck.
+**CRITICAL IMAGE EVALUATION**: Analyze the USER CORRECTION INSTRUCTION. If the instruction explicitly requests a **new image** (e.g., "add an image of X") or a **significant change to an existing image's 'prompt' or 'caption'** (e.g., "change the image to be a photo of Y"), set the **"generateImage"** field in the final JSON output to **true**.
+If the instruction only modifies text (title, bullets, notes) or layout without changing image content, set **"generateImage"** to **false**.
 Ensure the output remains concise, persuasive, and formatted as strict JSON according to the provided schema.
 `;
 };

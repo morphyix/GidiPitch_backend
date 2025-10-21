@@ -7,7 +7,7 @@ const { generateSlideContent, generateSlideImage } = require('../../services/get
 const slideCorrectionWorker = new Worker(
   'slideCorrectionQueue',
   async (job) => {
-    const { slideId, prompt, generateImage } = job.data;
+    const { slideId, prompt } = job.data;
     try {
       console.log(`Processing slide correction job: ${job.id}`);
 
@@ -16,12 +16,12 @@ const slideCorrectionWorker = new Worker(
       await updateSlideByIdService(slideId, { status: 'generating', progress: 10 });
 
       const slideContent = await generateSlideContent(prompt);
-      slideContent.status = generateImage ? 'image_gen' : 'ready';
-      slideContent.progress = generateImage ? 50 : 100;
+      slideContent.status = slideContent.generateImage ? 'image_gen' : 'ready';
+      slideContent.progress = slideContent.generateImage ? 50 : 100;
       await updateSlideByIdService(slideId, slideContent);
 
       // Image generation
-      if (generateImage && Array.isArray(slideContent.images) && slideContent.images.length > 0) {
+      if (slideContent.generateImage && Array.isArray(slideContent.images) && slideContent.images.length > 0) {
         let currentProgress = 50;
         const increment = Math.floor(50 / slideContent.images.length);
 

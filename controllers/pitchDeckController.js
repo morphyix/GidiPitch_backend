@@ -192,7 +192,7 @@ const correctSlideController = async (req, res, next) => {
             return next(new AppError('slideId parameter is required', 400));
         }
 
-        const { correction, generateImage } = req.body;
+        const { correction } = req.body;
         if (!correction || typeof correction !== 'string' || correction.trim().length === 0) {
             return next(new AppError('Correction text is required', 400));
         }
@@ -200,10 +200,6 @@ const correctSlideController = async (req, res, next) => {
         const slideData = await getSlideByIdService(slideId);
         if (!slideData) {
             return next(new AppError('Slide not found', 404));
-        }
-
-        if (typeof generateImage !== 'boolean') {
-            return next(new AppError('generateImage must be a boolean', 400));
         }
 
         // Ensure slide belongs to user
@@ -224,8 +220,7 @@ const correctSlideController = async (req, res, next) => {
         // Add slide correction job
         const jobData = {
             slideId,
-            prompt,
-            generateImage
+            prompt
         };
 
         await addSlideCorrectionJob(jobData);
