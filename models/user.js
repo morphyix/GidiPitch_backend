@@ -14,6 +14,7 @@ const UserSchema = new mongoose.Schema({
     target_audience: { type: String },
     goal: { type: String },
     goals: [{ type: String }],
+    tokens: { type: Number, default: 20 },
 }, { timestamps: true });
 
 // add index for email, authProvider, and socialId
