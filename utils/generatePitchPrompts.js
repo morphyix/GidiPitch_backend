@@ -105,7 +105,7 @@ const pitchDeckSlidePrompt = (startupData) => {
             `3 bullet points: Each must be a **specific, quantified problem statement** (e.g., "$500B wasted annually" or "80% of users drop off") (MAX 25 WORDS each) derived from the "CORE PROBLEM" context. The language must be aggressive, highlighting the **massive financial or efficiency impact** this problem creates.`,
             `The note must be a single, powerful sentence emphasizing the market's current pain and the **immediate urgency/opportunity window** for ${startupName} to capture it.`,
             "title-bullets",
-            `3 distinct, symbolic icons visualizing the quantified pain points/barriers related to "${problems}"`,
+            `1 **dramatic, symbolic, and high-quality** image prompt visualizing the **magnitude** of the challenge related to "${problems}" within ${scope || "target market"}`,
             startupData
         ),
 
@@ -116,7 +116,7 @@ const pitchDeckSlidePrompt = (startupData) => {
             `3 bullet points: (MAX 25 WORDS each) Explain how the "CORE SOLUTION / VALUE" directly addresses the quantified pain points, focusing on **measurable, highly-leveraged benefits** (e.g., "10x speed boost" or "Guaranteed $X ROI"). One bullet **MUST** explain the "magic" or core intellectual property/network effect that makes it proprietary. **MUST link back to the quantified pain points.**`,
             `The note must define the **core innovation/technology** that makes this solution possible or superior to current alternatives (e.g., "The only platform built on a proprietary LLM for B2B contracts").`,
             "image-text",
-            `3 distinct, symbolic icons visualizing the quantified benefits and proprietary edge of the solution: "${solutions}"`,
+            `1 **interactive product demonstration** image prompt showing the product/service "${solutions}" in action, showcasing its unique value in ${scope || "target market"}`,
             startupData
         ),
 
