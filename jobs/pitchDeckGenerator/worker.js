@@ -1,7 +1,7 @@
 const { Worker } = require('bullmq');
 const { redisClient } = require('../../config/redis');
 const { AppError } = require('../../utils/error');
-const { generateSlideContent, generateSlideImage } = require('../../services/getAIDeckContentService');
+const { generateSlideContent, generateSlideImage, generateBrandKit } = require('../../services/getAIDeckContentService');
 const { updateDeckByIdService } = require('../../services/deckService');
 const { updateSlideByIdService, getSlidesByDeckIdService, updateSlideImageService } = require('../../services/slideService');
 const { extractFileKey } = require('../../utils/helper');
@@ -23,13 +23,26 @@ const DEFAULT_IMAGES = {
 const pitchDeckWorker = new Worker('pitchDeckQueue', async (job) => {
     try {
         console.log("Processing pitch deck job:", job.id);
-        const { deckId, prompts, startupData, deckSlides, imageGenType } = job.data;
-        if (!deckId || !prompts || !startupData || !deckSlides || !imageGenType) {
+        const { deckId, prompts, startupData, deckSlides, imageGenType, tailwindPrompt } = job.data;
+        if (!deckId || !prompts || !startupData || !deckSlides || !imageGenType || !tailwindPrompt) {
             throw new AppError('Invalid job data for pitch deck generation', 400);
         }
 
+        // Generate brand kit using AI
+        console.log("Generating brand kit for deck:", deckId);
+        const brandKit = await generateBrandKit(tailwindPrompt);
+        console.log("Brand kit generated:", brandKit);
+
+        // Convert brand Kit keys that are object into string by concatenating their values
+        const brandKitObj = {
+            background: brandKit.background || '',
+            title: Object.values(brandKit.title || {}).join(' '),
+            bullets: Object.values(brandKit.bullets || {}).join(' '),
+            note: Object.values(brandKit.notes || {}).join(' ')
+        };
+
         // Update deck status to 'generating' and progress to 10%
-        await updateDeckByIdService(deckId, { status: 'generating', progress: 10 });
+        await updateDeckByIdService(deckId, { status: 'generating', progress: 10, brandKit: brandKitObj, activityStatus: 'Brand kit generated, starting slide content generation' });
 
         // Generate slide content for each slide in the prompt object
         for (const key of Object.keys(prompts)) {

@@ -23,6 +23,12 @@ const DeckSchema = new mongoose.Schema({
     PDFUrl: { type: String },
     pptxUrl: { type: String },
     progress: { type: Number, default: 0 },
+    brandKit: {
+        background: { type: String },
+        title: { type: String },
+        bullets: { type: String },
+        note: { type: String }
+    },
     error: { type: String },
     activityStatus: { type: String, default: 'All slides layout created, pending content generation' },
 }, { timestamps: true });
