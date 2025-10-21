@@ -16,7 +16,7 @@ const uploadPdfService = async (file) => {
             throw new AppError('Invalid file type. Only PDF files are allowed.', 400);
         }
 
-        const fileKey = `uploads/${Date.now()}-${file.originalname}`;
+        const fileKey = `gidiPitch/${Date.now()}-${file.originalname}`;
         
         // upload parameters
         const uploadParams = {
@@ -88,7 +88,7 @@ const uploadImageService = async (file) => {
             throw new AppError('Invalid file type. Only PNG, JPG, JPEG, and WEBP are allowed.', 400);
         }
 
-        const fileKey = `uploads/${Date.now()}-${file.originalname}`;
+        const fileKey = `gidiPitch/${Date.now()}-${file.originalname}`;
         const imageBuffer = await sharp(file.buffer)
             .jpeg({ quality: 80 }) // Convert to Web4 with 80% quality
             .toBuffer();

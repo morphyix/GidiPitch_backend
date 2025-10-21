@@ -23,7 +23,7 @@ const uploadImageController = async (req, res, next) => {
         }
 
         // Update slide with new image URL
-        const updatedSlide = await updateSlideImageService(slideId, caption, { key: fileKey });
+        const updatedSlide = await updateSlideImageService(slideId, caption, { key: fileKey, source: 'user-uploaded' });
         if (!updatedSlide) {
             return next(new AppError('Failed to update slide with image', 500));
         }

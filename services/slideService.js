@@ -145,7 +145,15 @@ const updateSlideImageService = async (slideId, caption, imageData) => {
             updateFields[`images.${imageIndex}.${key}`] = value;
         }
 
-        const updatedSlide = await slide.save();
+        const updatedSlide = await Slide.findByIdAndUpdate(
+            slideId,
+            { $set: updateFields },
+            { new: true }
+        );
+
+        if (!updatedSlide) {
+            throw new AppError('Slide not found or image update failed', 404);
+        }
         
         return updatedSlide;
     } catch (error) {
