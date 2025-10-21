@@ -4,7 +4,20 @@ const { AppError } = require('../../utils/error');
 const { generateSlideContent, generateSlideImage } = require('../../services/getAIDeckContentService');
 const { updateDeckByIdService } = require('../../services/deckService');
 const { updateSlideByIdService, getSlidesByDeckIdService, updateSlideImageService } = require('../../services/slideService');
+const { extractFileKey } = require('../../utils/helper');
 
+
+// Default images for slides that do not require AI generation
+const DEFAULT_IMAGES = {
+    "default": extractFileKey('https://files.thebigphotocontest.com/gidiPitch/cover.png'),
+    "problem": extractFileKey('https://files.thebigphotocontest.com/gidiPitch/1761041122058-problem.png'),
+    "solution": extractFileKey('https://files.thebigphotocontest.com/gidiPitch/1761041251157-solution.png'),
+    "market": extractFileKey('https://files.thebigphotocontest.com/gidiPitch/1761041353294-market.png'),
+    "businessModel": extractFileKey('https://files.thebigphotocontest.com/gidiPitch/1761041518778-businessModel.png'),
+    "competition": extractFileKey('https://files.thebigphotocontest.com/gidiPitch/1761041714345-competition.png'),
+    "goMarket": extractFileKey('https://files.thebigphotocontest.com/gidiPitch/1761041798821-goToMarket.png'),
+    "product": extractFileKey('https://files.thebigphotocontest.com/gidiPitch/1761041885557-product.png')
+}
 
 // Create a worker to process pitch deck generation jobs
 const pitchDeckWorker = new Worker('pitchDeckQueue', async (job) => {
@@ -82,6 +95,18 @@ const pitchDeckWorker = new Worker('pitchDeckQueue', async (job) => {
                         });
                         await updateDeckByIdService(deckId, { activityStatus: `Error generating image ${i + 1} for slide: ${key}` });
                     }
+                }
+            } else {
+                // For slides that do not require AI image generation, set default image keys
+                console.log(`Setting default images for slide: ${key}`);
+                for (let i = 0; i < slideContent.images.length; i++) {
+                    const defaultImageKey = DEFAULT_IMAGES[key] || DEFAULT_IMAGES['default'];
+                    const imageCaption = slideContent.images[i].caption;
+                    await updateSlideImageService(slideId, imageCaption, {
+                        key: defaultImageKey,
+                        status: 'completed'
+                    });
+                    console.log(`Default image set for slide: ${key}, image ${i + 1}`);
                 }
             }
         }
