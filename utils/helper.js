@@ -19,7 +19,7 @@ const sanitize = (input) => {
 const extractFileKey = (url) => {
   try {
     const urlParts = new URL(url);
-    const bucketPath = `/${process.env.S3_BUCKET}/`;
+    const bucketPath = `/gidiPitch/`;
     if (urlParts.pathname.startsWith(bucketPath)) {
       return urlParts.pathname.replace(bucketPath, '');
     }

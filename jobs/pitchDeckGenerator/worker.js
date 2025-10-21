@@ -17,7 +17,7 @@ const DEFAULT_IMAGES = {
     "competition": extractFileKey('https://files.thebigphotocontest.com/gidiPitch/1761041714345-competition.png'),
     "goMarket": extractFileKey('https://files.thebigphotocontest.com/gidiPitch/1761041798821-goToMarket.png'),
     "product": extractFileKey('https://files.thebigphotocontest.com/gidiPitch/1761041885557-product.png')
-}
+};
 
 // Create a worker to process pitch deck generation jobs
 const pitchDeckWorker = new Worker('pitchDeckQueue', async (job) => {
@@ -100,10 +100,10 @@ const pitchDeckWorker = new Worker('pitchDeckQueue', async (job) => {
                 // For slides that do not require AI image generation, set default image keys
                 console.log(`Setting default images for slide: ${key}`);
                 for (let i = 0; i < slideContent.images.length; i++) {
-                    const defaultImageKey = DEFAULT_IMAGES[key] || DEFAULT_IMAGES['default'];
+                    const defaultImageKey = DEFAULT_IMAGES[key] || DEFAULT_IMAGES['default'];   
                     const imageCaption = slideContent.images[i].caption;
                     await updateSlideImageService(slideId, imageCaption, {
-                        key: defaultImageKey,
+                        key: `gidiPitch/${defaultImageKey}`,
                         status: 'completed'
                     });
                     console.log(`Default image set for slide: ${key}, image ${i + 1}`);
