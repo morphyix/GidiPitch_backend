@@ -107,7 +107,7 @@ const generatePdf = async (exportUrl, startupName) => {
 
         // Measure total height of all slides dynamically
         const bodyHeight = await page.evaluate(() => {
-            const slides = document.querySelectorAll('.slide, [id^="slide-"]');
+            const slides = document.querySelectorAll('[id^="slide-"]');
             if (!slides.length) return document.body.scrollHeight;
             const lastSlide = slides[slides.length - 1];
             return lastSlide.offsetTop + lastSlide.offsetHeight + 100; // extra padding
@@ -154,7 +154,7 @@ const generatePptx = async (exportUrl, startupName) => {
     try {
         page = await browser.newPage();
         
-        // Crucial: Set and keep the standard slide viewport for clean screenshots
+        // --- CRITICAL IMPROVEMENT 1: STANDARD HIGH-RES VIEWPORT (KEEP AS IS) ---
         await page.setViewport({ width: 1600, height: 900, deviceScaleFactor: 2 });
         await page.emulateMediaType('screen');
 
@@ -170,36 +170,39 @@ const generatePptx = async (exportUrl, startupName) => {
         await waitForSlidesToRender(page);
         
         // --- CRITICAL FIX: FORCE SLIDES TO HIGH-RES WIDTH AND PREVENT STRETCHING ---
-        // We force the width to 1600px (high resolution) and set the height to 'auto' 
-        // to maintain the slide's original aspect ratio and prevent distortion.
+        // Ensuring the content size matches the 16:9 ratio (1600x900) before screenshot.
         await page.evaluate(() => {
-            const slides = document.querySelectorAll('.slide, [id^="slide-"]');
+            // Use the combined selector from waitForSlidesToRender for maximum compatibility
+            const slides = document.querySelectorAll('.slide, [id^="slide-"]'); 
             slides.forEach(slide => {
-                // 1. Force max desired width for high-res capture
                 slide.style.width = '1600px'; 
-                // 2. Set height to auto to preserve aspect ratio (prevents stretching)
-                slide.style.height = 'auto'; 
-                
-                // 3. Clear common styles that constrain or scale the content down
+                slide.style.height = '900px'; 
                 slide.style.margin = '0';
                 slide.style.padding = '0';
-                slide.style.transform = 'none'; // Clear any centering/scaling transforms
+                slide.style.transform = 'none';
                 
-                // 4. Force parent wrappers to allow content to expand fully
                 if (slide.parentElement) {
-                     slide.parentElement.style.width = '1600px'; 
-                     slide.parentElement.style.height = 'auto'; // Must be auto
-                     slide.parentElement.style.display = 'block'; 
+                    slide.parentElement.style.width = '1600px'; 
+                    slide.parentElement.style.height = '900px';
+                    slide.parentElement.style.display = 'block'; 
                 }
             });
         });
 
 
         // Fetch slide handles fresh just before the loop
-        let slides = await page.$$('.slide, [id^="slide-"]');
+        let slides = await page.$$('.slide, [id^="slide-"]'); // Refined selector
         if (!slides.length) throw new AppError('No slides found on export page', 404);
 
-        const pptxDoc = new PptxGenJS();
+        // --- EXPERT CORRECTION: USE LAYOUT_16X9 CONSTANT ---
+        // Using the built-in layout ensures the resulting PPTX metadata is correctly 
+        // tagged as a standard widescreen presentation, which Google Slides is more 
+        // likely to recognize and import at full size.
+        const pptxDoc = new PptxGenJS({
+            layout: 'LAYOUT_16X9', // This is the standard 16:9 layout
+            // NOTE: Do not define width and height if using a built-in layout constant
+        });
+
         const slideImages = [];
 
         for (let i = 0; i < slides.length; i++) {
@@ -207,7 +210,7 @@ const generatePptx = async (exportUrl, startupName) => {
             let imgBase64 = null;
             let success = false;
 
-            // --- Robust Screenshot & Retry Logic ---
+            // --- Robust Screenshot & Retry Logic (Keep as is) ---
             try {
                 // Attempt 1: Initial screenshot using existing handle
                 imgBase64 = await el.screenshot({ encoding: 'base64' });
@@ -219,7 +222,7 @@ const generatePptx = async (exportUrl, startupName) => {
                 try {
                     await new Promise(r => setTimeout(r, 1000));
                     // Re-fetch the slide collection and get the element at the current index
-                    const freshSlides = await page.$$('.slide, [id^="slide-"]');
+                    const freshSlides = await page.$$('.slide, [id^="slide-"]'); // Refined selector
                     const retryEl = freshSlides[i]; 
 
                     if (retryEl) {
@@ -234,14 +237,12 @@ const generatePptx = async (exportUrl, startupName) => {
             }
 
             if (!success || !imgBase64) {
-                // If the slide could not be captured after two attempts, skip it and continue the loop
                 console.error(`❌ Skipping slide ${i + 1} due to unrecoverable screenshot error.`);
                 continue; 
             }
             
-            // --- Image Processing and Data Collection ---
+            // --- Image Processing and Data Collection (Keep as is) ---
             try {
-                // Compress image to JPEG
                 const compressed = await sharp(Buffer.from(imgBase64, 'base64'))
                     .jpeg({ quality: 80 })
                     .toBuffer();
@@ -260,8 +261,7 @@ const generatePptx = async (exportUrl, startupName) => {
         // Add captured images to PPTX document
         for (const { data, type } of slideImages) {
             const slide = pptxDoc.addSlide();
-            // w: pptxDoc.width and h: pptxDoc.height ensure the image fills the slide,
-            // which is why the forced 1600px width is necessary for high-res source image.
+            // w: pptxDoc.width and h: pptxDoc.height ensures the image perfectly fills the 16:9 slide.
             slide.addImage({
                 data: `data:image/${type};base64,${data}`,
                 x: 0,
@@ -281,7 +281,6 @@ const generatePptx = async (exportUrl, startupName) => {
         return await uploadFileService(pptxFile);
 
     } finally {
-        // Crucial: Close the page on success or error
         if (page) {
             await page.close().catch(() => console.warn('⚠️ PPTX page cleanup failed'));
         }
