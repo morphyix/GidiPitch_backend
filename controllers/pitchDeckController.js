@@ -412,11 +412,17 @@ const exportPitchDeckFilesController = async (req, res, next) => {
             });
         }
 
+        // Extract old file url to delete after new export
+        const oldKeys = [];
+        if (deck.pdfKey) oldKeys.push(deck.pdfKey);
+        if (deck.pptxKey) oldKeys.push(deck.pptxKey);
+
         // Add export job to the queue
         const jobData = {
             deckId,
             startupName: deck.startupName,
-            formats
+            formats,
+            oldKeys
         }
         await addExportJob(jobData);
 
