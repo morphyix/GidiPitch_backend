@@ -35,10 +35,10 @@ const pitchDeckWorker = new Worker('pitchDeckQueue', async (job) => {
 
         // Convert brand Kit keys that are object into string by concatenating their values
         const brandKitObj = {
-            background: brandKit.background || '',
-            title: Object.values(brandKit.title || {}).join(' '),
-            bullets: Object.values(brandKit.bullets || {}).join(' '),
-            note: Object.values(brandKit.notes || {}).join(' ')
+            background: brandKit.background || 'bg-amber-950',
+            title: brandKit.title || 'text-yellow-400',
+            bullets: brandKit.bullets || 'text-gray-200',
+            note: brandKit.notes || 'text-gray-500'
         };
 
         // Update deck status to 'generating' and progress to 10%

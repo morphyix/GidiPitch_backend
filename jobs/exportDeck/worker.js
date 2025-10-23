@@ -3,12 +3,13 @@ const { redisClient } = require('../../config/redis');
 const { AppError } = require('../../utils/error');
 const { generateDeckFiles } = require('../../utils/exportDeck');
 const { updateDeckByIdService } = require('../../services/deckService');
+const { deleteFileService } = require('../../services/uploadService');
 
 
 const exportDeckWorker = new Worker('exportQueue', async (job) => {
     console.log('Processing export job:', job.id);
 
-    const { deckId, startupName, formats } = job.data;
+    const { deckId, startupName, formats, oldKeys } = job.data;
     if (!deckId || !startupName) {
         throw new AppError('Deck ID is required for export', 400);
     }
@@ -22,11 +23,23 @@ const exportDeckWorker = new Worker('exportQueue', async (job) => {
         await updateDeckByIdService(deckId, { status: 'exporting', activityStatus: 'Exporting deck to PPTX and PDF formats' });
 
         // Generate deck files (PPTX and PDF)
-        const { pptxKey, pdfKey } = await generateDeckFiles(deckId);
+        const { pptxKey, pdfKey } = await generateDeckFiles(deckId, startupName, formats);
         const updateData = { status: 'finalized', activityStatus: 'Deck export completed, you can download' };
         if (pptxKey) updateData.pptxKey = pptxKey;
         if (pdfKey) updateData.pdfKey = pdfKey;
         updateData.exportedAt = new Date();
+
+        // Delete old files if keys are provided
+        if (oldKeys) {
+            for (const key of oldKeys) {
+                try {
+                    await deleteFileService(key);
+                    console.log('Deleted old file with key:', key);
+                } catch (err) {
+                    console.error('Error deleting old file with key:', key, err);
+                }
+            }
+        }
 
         // Update deck with file keys and set status to 'finalized'
         await updateDeckByIdService(deckId, updateData);

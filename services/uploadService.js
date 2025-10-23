@@ -44,16 +44,12 @@ const uploadFileService = async (file) => {
 };
 
 // delete file service
-const deleteFileService = async (fileUrl) => {
+const deleteFileService = async (fileKey) => {
     try {
-        if (!fileUrl) {
+        if (!fileKey) {
             throw new AppError('Image URL is required', 400);
         }
 
-        const fileKey = extractFileKey(fileUrl);
-        if (!fileKey) {
-            throw new AppError('Invalid image URL', 400);
-        }
         const decodedKey = decodeURIComponent(fileKey);
 
         // delete parameters

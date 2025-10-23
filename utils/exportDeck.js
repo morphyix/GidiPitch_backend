@@ -7,154 +7,370 @@ const sharp = require('sharp');
 const { AppError } = require('../utils/error');
 const { uploadFileService } = require('../services/uploadService');
 
-let browserInstance; // Persistent Puppeteer browser for performance
+let browserInstance;
 
 /** Launch or reuse Puppeteer instance */
 const getBrowser = async () => {
-  if (browserInstance && browserInstance.isConnected()) return browserInstance;
+    // Check if instance exists and is connected
+    if (browserInstance && browserInstance.isConnected()) return browserInstance;
 
-  browserInstance = await puppeteer.launch({
-    headless: true,
-    args: [
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--disable-dev-shm-usage',
-      '--disable-gpu',
-      '--no-zygote',
-      '--disable-software-rasterizer',
-      '--single-process',
-    ],
-  });
-  return browserInstance;
+    console.log('🚀 Launching new Puppeteer browser instance...');
+    browserInstance = await puppeteer.launch({
+        headless: true,
+        args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-gpu',
+            '--no-zygote',
+            '--disable-software-rasterizer',
+            '--single-process',
+            // Added max-old-space-size to help prevent memory-related crashes
+            '--max-old-space-size=4096' 
+        ],
+    });
+    return browserInstance;
 };
 
-/** Generate both PDF and PPTX files from one render */
-const generateDeckFiles = async (deckId, startupName, { pdf = true, pptx = true } = {}) => {
-  if (!deckId) throw new AppError('Deck ID is required to generate files', 400);
+/** Helper: wait for all slides and assets to finish rendering */
+const waitForSlidesToRender = async (page, timeout = 45000) => {
+    console.log('🧭 Waiting for slides and assets to fully render...');
 
-  if (!pdf && !pptx) {
-    throw new AppError('At least one of PDF or PPTX generation must be requested', 400);
-  }
+    // Wait for slides to stabilize (count stops changing)
+    await page.waitForFunction(
+        () => {
+            if (!window.__slideCheck) {
+                window.__slideCheck = { count: 0, stableSince: Date.now() };
+            }
+            const slides = document.querySelectorAll('.slide, [id^="slide-"]');
+            const count = slides.length;
 
-  if (!startupName) {
-    startupName = 'Startup';
-  }
+            if (count !== window.__slideCheck.count) {
+                window.__slideCheck = { count, stableSince: Date.now() };
+            }
 
-  startupName = startupName
-    .replace(/[^a-z0-9-_ ]/gi, '')
-    .trim()
-    .replace(/\s+/g, '-')
-    .toLowerCase();
+            // Wait until count stable for 2 seconds
+            return count > 0 && Date.now() - window.__slideCheck.stableSince > 2000;
+        },
+        { timeout }
+    );
 
-  const exportUrl = `https://gidipitch.app/export-slide/${deckId}`;
-  let page;
+    // Wait for all images and fonts to decode
+    await page.evaluate(async () => {
+        const imgs = Array.from(document.images);
+        await Promise.all(imgs.map(img => img.decode().catch(() => {})));
+        if (document.fonts && document.fonts.ready) await document.fonts.ready;
+    });
 
-  try {
-    const browser = await getBrowser();
-    page = await browser.newPage();
-    await page.setViewport({ width: 1600, height: 900, deviceScaleFactor: 2 });
+    // Scroll through entire page to trigger lazy-load content
+    await page.evaluate(async () => {
+        for (let y = 0; y < document.body.scrollHeight; y += window.innerHeight) {
+            window.scrollTo(0, y);
+            await new Promise(r => setTimeout(r, 300));
+        }
+        window.scrollTo(0, 0);
+    });
 
-    // Retry load once if it fails
+    // Let animations finish rendering
+    await new Promise(r => setTimeout(r, 2000));
+
+    const count = await page.evaluate(
+        () => document.querySelectorAll('.slide, [id^="slide-"]').length
+    );
+    console.log(`✅ Found ${count} slides ready for export.`);
+};
+
+/**
+ * Dedicated function to generate the PDF file.
+ * Manages its own page lifecycle and cleanup.
+ */
+const generatePdf = async (exportUrl, startupName) => {
+    let page;
+    // CRITICAL FIX: Get the browser instance internally, ignoring the passed argument (which is now defunct)
+    const browser = await getBrowser(); 
     try {
-      await page.goto(exportUrl, { waitUntil: 'networkidle0', timeout: 40000 });
-    } catch {
-      console.warn('⚠️ First attempt failed — retrying deck export page...');
-      await new Promise((r) => setTimeout(r, 3000));
-      await page.goto(exportUrl, { waitUntil: 'networkidle0', timeout: 40000 });
-    }
+        page = await browser.newPage();
+        
+        // Use a standard slide viewport size initially
+        await page.setViewport({ width: 1600, height: 900, deviceScaleFactor: 2 });
 
-    await page.waitForSelector('.slide', { timeout: 15000 });
-    const results = {};
+        // Retry load if first attempt fails
+        try {
+            await page.goto(exportUrl, { waitUntil: 'networkidle0', timeout: 40000 });
+        } catch {
+            console.warn('⚠️ PDF load retry attempt failed — retrying page...');
+            await new Promise(r => setTimeout(r, 3000));
+            await page.goto(exportUrl, { waitUntil: 'networkidle0', timeout: 40000 });
+        }
+        
+        await waitForSlidesToRender(page);
 
-    /** -------- Generate PDF -------- **/
-    if (pdf) {
-      const pdfBuffer = await page.pdf({
-        format: 'A4',
-        printBackground: true,
-        landscape: true,
-        margin: { top: 0, right: 0, bottom: 0, left: 0 },
-        preferCSSPageSize: true,
-      });
-
-      const pdfFile = {
-        buffer: pdfBuffer,
-        mimetype: 'application/pdf',
-        originalname: `${startupName}-pitch-deck.pdf`,
-      };
-
-      results.pdfKey = await uploadFileService(pdfFile);
-    }
-
-    /** -------- Generate PPTX -------- **/
-    if (pptx) {
-      const slides = await page.$$('.slide');
-      if (!slides.length) throw new AppError('No slides found on export page', 404);
-
-      const pptxDoc = new PptxGenJS();
-
-      // Screenshot + compress in parallel
-      const slideImages = await Promise.all(
-        slides.map(async (el, index) => {
-          const imgBase64 = await el.screenshot({ encoding: 'base64' });
-
-          // Use JPEG for smaller file size; fallback to PNG if something breaks
-          try {
-            const compressed = await sharp(Buffer.from(imgBase64, 'base64'))
-              .jpeg({ quality: 80 })
-              .toBuffer();
-            return { data: compressed.toString('base64'), type: 'jpeg' };
-          } catch (err) {
-            console.warn(`⚠️ JPEG compression failed on slide ${index + 1}, falling back to PNG.`);
-            const fallback = await sharp(Buffer.from(imgBase64, 'base64'))
-              .png({ compressionLevel: 6 })
-              .toBuffer();
-            return { data: fallback.toString('base64'), type: 'png' };
-          }
-        })
-      );
-
-      slideImages.forEach(({ data, type }) => {
-        const slide = pptxDoc.addSlide();
-        slide.addImage({
-          data: `data:image/${type};base64,${data}`,
-          x: 0,
-          y: 0,
-          w: pptxDoc.width,
-          h: pptxDoc.height,
+        // Measure total height of all slides dynamically
+        const bodyHeight = await page.evaluate(() => {
+            const slides = document.querySelectorAll('[id^="slide-"]');
+            if (!slides.length) return document.body.scrollHeight;
+            const lastSlide = slides[slides.length - 1];
+            return lastSlide.offsetTop + lastSlide.offsetHeight + 100; // extra padding
         });
-      });
 
-      const pptxBuffer = await pptxDoc.write('arraybuffer');
-      const pptxFile = {
-        buffer: Buffer.from(pptxBuffer),
-        mimetype: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-        originalname: `${startupName}-pitch-deck.pptx`,
-      };
+        // Expand viewport to match full height for PDF printing
+        await page.setViewport({ width: 1600, height: Math.min(bodyHeight, 20000), deviceScaleFactor: 2 });
+        await page.emulateMediaType('screen');
 
-      results.pptxKey = await uploadFileService(pptxFile);
+        // Generate full-length PDF
+        const pdfBuffer = await page.pdf({
+            printBackground: true,
+            landscape: false,
+            width: '1600px',
+            height: `${bodyHeight}px`,
+            margin: { top: 0, right: 0, bottom: 0, left: 0 },
+            preferCSSPageSize: true,
+        });
+
+        const pdfFile = {
+            buffer: pdfBuffer,
+            mimetype: 'application/pdf',
+            originalname: `${startupName}-pitch-deck.pdf`,
+        };
+
+        return await uploadFileService(pdfFile);
+
+    } finally {
+        // Crucial: Close the page on success or error
+        if (page) {
+            await page.close().catch(() => console.warn('⚠️ PDF page cleanup failed'));
+        }
     }
+};
 
-    return results;
-  } catch (error) {
-    console.error('❌ Deck File Generation Error:', error);
-    throw new AppError('Failed to generate pitch deck files', 500);
-  } finally {
-    if (page) {
-      try {
-        await page.close();
-      } catch {
-        console.warn('⚠️ Page cleanup failed');
-      }
+/**
+ * Dedicated function to generate the PPTX file (screenshots).
+ * Manages its own page lifecycle and cleanup.
+ */
+const generatePptx = async (exportUrl, startupName) => {
+    let page;
+    // CRITICAL FIX: Get the browser instance internally, ignoring the passed argument
+    const browser = await getBrowser(); 
+    try {
+        page = await browser.newPage();
+        
+        // --- CRITICAL IMPROVEMENT 1: STANDARD HIGH-RES VIEWPORT (KEEP AS IS) ---
+        await page.setViewport({ width: 1600, height: 900, deviceScaleFactor: 2 });
+        await page.emulateMediaType('screen');
+
+        // Retry load if first attempt fails
+        try {
+            await page.goto(exportUrl, { waitUntil: 'networkidle0', timeout: 40000 });
+        } catch {
+            console.warn('⚠️ PPTX load retry attempt failed — retrying page...');
+            await new Promise(r => setTimeout(r, 3000));
+            await page.goto(exportUrl, { waitUntil: 'networkidle0', timeout: 40000 });
+        }
+
+        await waitForSlidesToRender(page);
+        
+        // --- CRITICAL FIX: FORCE SLIDES TO HIGH-RES WIDTH AND PREVENT STRETCHING ---
+        // Ensuring the content size matches the 16:9 ratio (1600x900) before screenshot.
+        await page.evaluate(() => {
+            // Use the combined selector from waitForSlidesToRender for maximum compatibility
+            const slides = document.querySelectorAll('[id^="slide-"]'); 
+            slides.forEach(slide => {
+                slide.style.width = '1600px'; 
+                slide.style.height = '900px'; 
+                slide.style.margin = '0';
+                slide.style.padding = '0';
+                slide.style.transform = 'none';
+                
+                if (slide.parentElement) {
+                    slide.parentElement.style.width = '1600px'; 
+                    slide.parentElement.style.height = '900px';
+                    slide.parentElement.style.display = 'block'; 
+                }
+            });
+        });
+
+
+        // Fetch slide handles fresh just before the loop
+        let slides = await page.$$('[id^="slide-"]'); // Refined selector
+        if (!slides.length) throw new AppError('No slides found on export page', 404);
+
+        // --- EXPERT CORRECTION: USE LAYOUT_16X9 CONSTANT ---
+        // Using the built-in layout ensures the resulting PPTX metadata is correctly 
+        // tagged as a standard widescreen presentation, which Google Slides is more 
+        // likely to recognize and import at full size.
+        const pptxDoc = new PptxGenJS({
+            layout: 'LAYOUT_16X9', // This is the standard 16:9 layout
+            // NOTE: Do not define width and height if using a built-in layout constant
+        });
+
+        const slideImages = [];
+
+        for (let i = 0; i < slides.length; i++) {
+            const el = slides[i];
+            let imgBase64 = null;
+            let success = false;
+
+            // --- Robust Screenshot & Retry Logic (Keep as is) ---
+            try {
+                // Attempt 1: Initial screenshot using existing handle
+                imgBase64 = await el.screenshot({ encoding: 'base64' });
+                success = true;
+            } catch (err) {
+                console.warn(`⚠️ Slide ${i + 1} initial screenshot failed: ${err.message}. Attempting retry with fresh element...`);
+                
+                // Attempt 2: Re-fetch all elements and try again to avoid 'detached element' error
+                try {
+                    await new Promise(r => setTimeout(r, 1000));
+                    // Re-fetch the slide collection and get the element at the current index
+                    const freshSlides = await page.$$('[id^="slide-"]'); // Refined selector
+                    const retryEl = freshSlides[i]; 
+
+                    if (retryEl) {
+                        imgBase64 = await retryEl.screenshot({ encoding: 'base64' });
+                        success = true;
+                    } else {
+                        console.error(`❌ Slide ${i + 1} not found during retry (index mismatch or element deleted).`);
+                    }
+                } catch (retryErr) {
+                    console.error(`❌ Slide ${i + 1} fatal retry screenshot failure: ${retryErr.message}.`);
+                }
+            }
+
+            if (!success || !imgBase64) {
+                console.error(`❌ Skipping slide ${i + 1} due to unrecoverable screenshot error.`);
+                continue; 
+            }
+            
+            // --- Image Processing and Data Collection (Keep as is) ---
+            try {
+                const compressed = await sharp(Buffer.from(imgBase64, 'base64'))
+                    .jpeg({ quality: 80 })
+                    .toBuffer();
+                slideImages.push({ data: compressed.toString('base64'), type: 'jpeg' });
+            } catch {
+                console.warn(`⚠️ JPEG compression failed on slide ${i + 1}, using PNG fallback.`);
+                const fallback = await sharp(Buffer.from(imgBase64, 'base64'))
+                    .png({ compressionLevel: 6 })
+                    .toBuffer();
+                slideImages.push({ data: fallback.toString('base64'), type: 'png' });
+            }
+
+            await new Promise(r => setTimeout(r, 100));
+        }
+
+        // Add captured images to PPTX document
+        for (const { data, type } of slideImages) {
+            const slide = pptxDoc.addSlide();
+            // w: pptxDoc.width and h: pptxDoc.height ensures the image perfectly fills the 16:9 slide.
+            slide.addImage({
+                data: `data:image/${type};base64,${data}`,
+                x: 0,
+                y: 0,
+                w: pptxDoc.width,
+                h: pptxDoc.height,
+            });
+        }
+
+        const pptxBuffer = await pptxDoc.write('arraybuffer');
+        const pptxFile = {
+            buffer: Buffer.from(pptxBuffer),
+            mimetype: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+            originalname: `${startupName}-pitch-deck.pptx`,
+        };
+
+        return await uploadFileService(pptxFile);
+
+    } finally {
+        if (page) {
+            await page.close().catch(() => console.warn('⚠️ PPTX page cleanup failed'));
+        }
     }
-  }
+};
+
+
+/** Generate both PDF and PPTX files from one render (Orchestrator) */
+const generateDeckFiles = async (deckId, startupName, { pdf = true, pptx = false } = {}) => {
+    if (!deckId) throw new AppError('Deck ID is required to generate files', 400);
+    if (!pdf && !pptx) throw new AppError('At least one of PDF or PPTX generation must be requested', 400);
+
+    startupName = (startupName || 'Startup')
+        .replace(/[^a-z0-9-_ ]/gi, '')
+        .trim()
+        .replace(/\s+/g, '-')
+        .toLowerCase();
+
+    const exportUrl = `https://gidipitch.app/export-slide/${deckId}`;
+    const results = {};
+    const errors = []; // Collect errors for better final error reporting
+
+    try {
+        // NOTE: We no longer call getBrowser() here. Each generator does it internally.
+
+        /** -------- Generate PDF -------- **/
+        if (pdf) {
+            console.log('--- Starting PDF Generation ---');
+            try {
+                // We call generatePdf without passing a browser argument
+                results.pdfKey = await generatePdf(exportUrl, startupName);
+            } catch (error) {
+                console.error('❌ Failed to generate PDF:', error.message || error);
+                errors.push('PDF generation failed.');
+            }
+            
+            /** --- CRITICAL FIX: FORCED BROWSER RESTART --- **/
+            // Close the browser instance after the memory-intensive PDF job.
+            // This guarantees a fresh, stable process for the PPTX job.
+            await closeBrowser();
+            console.log('✅ Browser instance closed for resource reset.');
+        }
+
+
+        /** -------- Generate PPTX -------- **/
+        if (pptx) {
+            console.log('--- Starting PPTX Generation ---');
+            try {
+                // The next call to getBrowser() inside generatePptx will launch a new process.
+                results.pptxKey = await generatePptx(exportUrl, startupName);
+            } catch (error) {
+                console.error('❌ Failed to generate PPTX:', error.message || error);
+                errors.push('PPTX generation failed.');
+            }
+            
+            // Close browser after the PPTX job as well.
+            await closeBrowser();
+        }
+
+        // Final Check: Determine success or total failure
+        const requestedCount = (pdf ? 1 : 0) + (pptx ? 1 : 0);
+        const succeededCount = (results.pdfKey ? 1 : 0) + (results.pptxKey ? 1 : 0);
+
+        if (succeededCount > 0) {
+            if (succeededCount < requestedCount) {
+                // Partial success: Log a warning about the failure, but return the successful results
+                console.warn(`⚠️ Export job partially succeeded. ${errors.join(' ')}`);
+            }
+            return results;
+        } else {
+            // Total failure: Throw a final error containing all collected errors
+            throw new AppError(`Failed to generate any requested files. Errors: ${errors.join('; ')}`, 500);
+        }
+
+    } catch (error) {
+        // This catch handles configuration errors or the final total failure check
+        console.error('❌ Deck File Generation Orchestration Error:', error);
+        throw new AppError('Failed to generate pitch deck files due to total failure or configuration error.', 500);
+    } 
 };
 
 /** Graceful shutdown handler */
 const closeBrowser = async () => {
-  if (browserInstance) {
-    await browserInstance.close().catch(() => {});
-    browserInstance = null;
-  }
+    if (browserInstance) {
+        console.log('🛑 Closing browser instance...');
+        await browserInstance.close().catch(() => {
+             console.warn('⚠️ Error during browser close, ignoring.');
+        });
+        browserInstance = null;
+    }
 };
 
 process.on('SIGINT', closeBrowser);
