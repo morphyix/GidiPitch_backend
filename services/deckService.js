@@ -93,10 +93,30 @@ const deleteDeckByIdService = async (deckId) => {
     }
 };
 
+
+// Get all users decks
+const getUserDecksService = async (userId) => {
+    try {
+        if (!userId) {
+            throw new AppError('User ID is required', 400);
+        }
+
+        const decks = await Deck.find({ ownerId: userId }).sort({ createdAt: -1 });
+        return decks;
+    } catch (error) {
+        if (error instanceof AppError) {
+            throw error; // Re-throw custom errors
+        }
+        console.error('Error fetching user decks:', error);
+        throw new AppError('Failed to fetch user decks', 500);
+    }
+};
+
 // export services
 module.exports = {
     createDeckService,
     getDeckByIdService,
     updateDeckByIdService,
     deleteDeckByIdService,
+    getUserDecksService
 };

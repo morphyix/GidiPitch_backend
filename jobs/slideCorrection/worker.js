@@ -3,6 +3,7 @@ const { redisClient } = require('../../config/redis');
 const { AppError } = require('../../utils/error');
 const { updateSlideByIdService, updateSlideImageService, getSlideByIdService } = require('../../services/slideService');
 const { generateSlideContent, generateSlideImage } = require('../../services/getAIDeckContentService');
+const { updateDeckByIdService } = require('../../services/deckService');
 
 const slideCorrectionWorker = new Worker(
   'slideCorrectionQueue',
@@ -13,7 +14,15 @@ const slideCorrectionWorker = new Worker(
 
       if (!slideId || !prompt) throw new AppError('Invalid job data for slide correction', 400);
 
-      await updateSlideByIdService(slideId, { status: 'generating', progress: 10 });
+      // Get deckId for activity status update
+      const slide = await getSlideByIdService(slideId);
+      if (!slide) throw new AppError('Slide not found for slide correction', 404);
+      const deckId = slide.deckId;
+
+      // Update deck activity status
+      await updateDeckByIdService(deckId, { activityStatus: `Correcting slide: ${slide.slideType}`, status: 'editing' });
+
+      await updateSlideByIdService(slideId, { status: 'generating', progress: 50 });
 
       const slideContent = await generateSlideContent(prompt);
       slideContent.status = slideContent.generateImage ? 'image_gen' : 'ready';
@@ -46,6 +55,9 @@ const slideCorrectionWorker = new Worker(
           progress: 100
         });
       }
+
+      // Update deck activity status to ready
+      await updateDeckByIdService(deckId, { activityStatus: `Slide correction completed for slide: ${slide.slideType}`, status: 'ready' });
 
       console.log(`Slide correction completed for slide: ${slideId}`);
     } catch (error) {
