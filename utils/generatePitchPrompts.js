@@ -348,7 +348,7 @@ const generatePromptsForSlides = (startupData, slides) => {
 
 
 /**
- * Correction Prompt Generator - *NO CHANGE REQUIRED*
+ * Correction Prompt Generator - MODIFIED to preserve all image metadata.
  */
 const generateCorrectionPrompt = (slideData, correctionPrompt) => {
     if (!slideData || typeof slideData !== 'object') {
@@ -361,29 +361,44 @@ const generateCorrectionPrompt = (slideData, correctionPrompt) => {
         bullets = [],
         notes = "",
         layout = "default",
-        images = [],
+        images = [], // This now holds all metadata (prompt, caption, key, url, etc.)
     } = slideData;
 
-    // Serialize image prompts for reference
-    const imagePrompts = images
-        ?.map((img, i) => ({
-            index: i + 1,
-            prompt: img.prompt || "",
-            caption: img.caption || "",
-            source: img.source || "ai-generated",
-        }))
-        ?.filter(img => img.prompt || img.caption)
-        ?.map(img => `Image ${img.index}: prompt="${img.prompt}", caption="${img.caption}", source="${img.source}"`)
-        ?.join("\n") || "No image prompts found.";
+    // --- 1. Prepare Image Context for AI reference ---
+    // Serialize ALL image details (including key, url, status) for the AI to preserve.
+    const imageContextForAI = images
+        ?.map((img, i) => {
+            // Include all essential metadata fields
+            return {
+                index: i + 1,
+                prompt: img.prompt || "",
+                caption: img.caption || "",
+                key: img.key || "N/A", // crucial for S3/CDN
+                url: img.url || "N/A", // crucial for frontend preview
+                source: img.source || "ai-generated",
+                status: img.status || "ready",
+                isSelected: img.isSelected || false
+            };
+        })
+        ?.map(img => `
+    Image ${img.index}:
+        - Prompt: "${img.prompt}"
+        - Caption: "${img.caption}"
+        - Key: "${img.key}"
+        - URL: "${img.url}"
+        - Source: "${img.source}"
+        - Status: "${img.status}"
+        - IsSelected: ${img.isSelected}
+        `)
+        ?.join("\n") || "No image data found.";
 
-    // RFC 8259 JSON compliance + formatting instruction
-    // NOTE: We rely on the calling function (the user's execution environment) to provide the full context
-    // when regenerating, but for the correction prompt itself, we only need to enforce schema.
+
+    // --- 2. Define the STRICT Output Schema for the AI ---
     const globalRulesSchema = `
 IMPORTANT:
 - Return ONLY valid RFC 8259 JSON
 - No markdown, no comments, no extra text
-- The final output must exactly match this schema:
+- The final output MUST strictly match this schema:
 {
   "generateImage": "boolean",
   "slideType": "string",
@@ -392,12 +407,23 @@ IMPORTANT:
   "notes": "string",
   "layout": "default|title-bullets|image-text|full-image",
   "images": [
-    { "prompt": "string", "caption": "string" }
+    // This array MUST contain ALL existing image objects from the CURRENT SLIDE DATA,
+    // including their 'key', 'url', 'status', etc. fields. Only 'prompt' and 'caption'
+    // should be modified if the USER CORRECTION demands it.
+    {
+      "prompt": "string",
+      "caption": "string",
+      "key": "string (PRESERVED)",
+      "url": "string (PRESERVED)",
+      "source": "string (PRESERVED)",
+      "status": "string (PRESERVED)",
+      "isSelected": "boolean (PRESERVED)"
+    }
   ]
 }
 `;
 
-    // The core correction prompt with full context
+    // --- 3. The Core Correction Prompt ---
     return `
 ${globalRulesSchema}
 
@@ -409,27 +435,31 @@ You will revise an existing pitch deck slide JSON object based on the user’s c
 - **Bullets**: Each bullet point (item in the "bullets" array) has a maximum of 25 words.
 - **Notes**: Maximum of 25 words for the actual notes text.
 
-Here is the CURRENT SLIDE DATA:
+Here is the CURRENT SLIDE DATA (Full Data Context for Preservation):
+${JSON.stringify({
+    "slideType": slideType,
+    "title": title,
+    "bullets": bullets,
+    "notes": notes,
+    "layout": layout,
+    // Serialize the 'images' array with ALL fields (key, url, status, etc.)
+    "images": images
+}, null, 2)}
 
-Here is the CURRENT SLIDE DATA:
-{
-  "slideType": "${slideType}",
-  "title": "${title}",
-  "bullets": ${JSON.stringify(bullets, null, 2)},
-  "notes": "${notes}",
-  "layout": "${layout}",
-  "images": ${JSON.stringify(images.map(i => ({ prompt: i.prompt, caption: i.caption })) || [], null, 2)}
-}
-
-IMAGE CONTEXT:
-${imagePrompts}
+IMAGE METADATA CONTEXT (For Reference):
+${imageContextForAI}
 
 USER CORRECTION INSTRUCTION:
 "${correctionPrompt}"
 
 TASK:
 Regenerate the slide based on the correction above while preserving its logical intent, accuracy, and relevance to the pitch deck.
-**CRITICAL IMAGE EVALUATION**: Analyze the USER CORRECTION INSTRUCTION. If the instruction explicitly requests a **new image** (e.g., "add an image of X") or a **significant change to an existing image's 'prompt' or 'caption'** (e.g., "change the image to be a photo of Y"), set the **"generateImage"** field in the final JSON output to **true**.
+
+**CRITICAL IMAGE PRESERVATION RULE**:
+1.  **PRESERVE ALL IMAGE FIELDS**: You **MUST** include **ALL** fields ('key', 'url, 'source', 'status', 'isSelected', etc.) for **EVERY** image object in the final 'images' array. Do not remove any field unless you are removing the entire image object.
+2.  **TARGETED CORRECTION ONLY**: Only change an image's 'prompt' or 'caption' if the USER CORRECTION INSTRUCTION explicitly references that image (e.g., "change the caption of image 1"). If the instruction is only about text (title, bullets, notes), the entire 'images' array must be returned unchanged, with all fields intact.
+
+**CRITICAL IMAGE EVALUATION**: Analyze the USER CORRECTION INSTRUCTION. If the instruction explicitly requests a **new image** (e.g., "add an image of X") or a **significant change to an existing image's 'prompt' or 'caption'**, set the **"generateImage"** field in the final JSON output to **true**.
 If the instruction only modifies text (title, bullets, notes) or layout without changing image content, set **"generateImage"** to **false**.
 Ensure the output remains concise, persuasive, and formatted as strict JSON according to the provided schema.
 `;
@@ -457,62 +487,60 @@ const getAllowedSlides = (industry) => {
 
 
 /**
- * Generate Brand guidlines for a startup pitch deck slides.
+ * Generate a strict Tailwind CSS Color Kit for a startup pitch deck slide.
+ * Focuses ONLY on color classes for background, title, bullets, and notes.
  */
-const createTailwindPrompt = (brandColor = 'orange', brandStyle = 'default') => {
+const createTailwindPrompt = (brandColor = 'orange') => {
+    // Determine if the brandColor is a hex code for better color matching instruction
     const isHex = /^#([0-9A-F]{3}){1,2}$/i.test(brandColor);
-  const colorHint = isHex
-    ? `The background color should use a Tailwind class that best matches the hex code ${brandColor}.`
-    : `The background color should be set using Tailwind's color palette for "${brandColor}".`;
 
-  const prompt = `
+    const colorHint = isHex
+        ? `The slide background MUST be set using the single Tailwind background color class that best matches the hex code ${brandColor}. The background class should be dark to ensure high contrast with the text.`
+        : `The slide background MUST be set using a single Tailwind background color class (e.g., 'bg-orange-800') from the "${brandColor}" palette. The background class should be dark to ensure high contrast with the text.`;
+
+    const prompt = `
 IMPORTANT:
-You are to generate a Tailwind CSS design kit for a startup pitch deck slide.
+You are to generate a Tailwind CSS Color Kit for a startup pitch deck slide.
 
 Requirements:
 - Return ONLY valid RFC 8259 JSON.
-- No markdown, no comments, no extra text.
-- The JSON should describe Tailwind CSS classes to style a slide.
+- No markdown, no comments, no extra text, no surrounding formatting.
+- The JSON MUST only contain color classes.
 
 Branding:
-- Brand color: ${brandColor}
-- Font style: ${brandStyle}
+- Primary Brand Color: ${brandColor}
 
 ${colorHint}
-Generate complementary Tailwind text colors for the title, bullets, and notes so that the design is:
-- Investor appealing
-- Professional and legible
-- Harmonious and interactive
 
-JSON structure:
+Generate the single, most appropriate **Tailwind text color class** (e.g., 'text-gray-100', 'text-yellow-400') for the title, bullets, and notes. The color choices must ensure the slide is:
+- Investor appealing and premium
+- Highly professional and easily legible (excellent contrast)
+- Harmonious and interactive in appearance
+
+The text colors should be intentionally suggested to create a visual hierarchy on the dark background:
+- **Title:** Dominant and primary focus color.
+- **Bullets:** Clean, bright, and highly readable secondary color.
+- **Notes:** Subtle but clear, low-contrast tertiary color.
+
+**STRICT JSON Structure (Color Classes Only):**
 {
-  "background": "tailwind-bg-class",
-  "title": {
-    "color": "tailwind-text-class",
-    "font": "tailwind-font-class",
-    "size": "tailwind-text-size-class",
-    "weight": "tailwind-font-weight-class",
-    "tracking": "tailwind-tracking-class"
-  },
-  "bullets": {
-    "color": "tailwind-text-class",
-    "font": "tailwind-font-class",
-    "size": "tailwind-text-size-class",
-    "spacing": "tailwind-leading-class"
-  },
-  "notes": {
-    "color": "tailwind-text-class",
-    "font": "tailwind-font-class",
-    "size": "tailwind-text-size-class",
-    "opacity": "tailwind-opacity-class"
-  }
+    "background": "tailwind-bg-class",
+    "title": "tailwind-text-class",
+    "bullets": "tailwind-text-class",
+    "notes": "tailwind-text-class"
 }
 
-The tone of the visual hierarchy should make the title dominant, the bullets clean and readable, and the notes subtle but clear.
+Example of expected output structure (DO NOT include this example in the final output):
+{
+    "background": "bg-indigo-950",
+    "title": "text-yellow-400",
+    "bullets": "text-gray-200",
+    "notes": "text-gray-500"
+}
 `;
 
-  return prompt;
-}
+    return prompt;
+};
 
 
 module.exports = { generatePromptsForSlides, getAllowedSlides, generateCorrectionPrompt, createTailwindPrompt };
