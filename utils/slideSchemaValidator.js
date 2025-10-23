@@ -20,7 +20,7 @@ const slideSchema = {
                     caption: { type: "string" }
                 },
                 required: ["prompt"],
-                additionalProperties: false
+                additionalProperties: true
             }
         }
     },
