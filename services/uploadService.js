@@ -5,15 +5,15 @@ const { AppError } = require('../utils/error');
 const { extractFileKey } = require('../utils/helper');
 
 
-// upload pdf file service
-const uploadPdfService = async (file) => {
+// upload pdf or pptx file service
+const uploadFileService = async (file) => {
     try {
         if (!file) {
             throw new AppError('Please upload a PDF file', 400);
         }
-
-        if (file.mimetype !== 'application/pdf') {
-            throw new AppError('Invalid file type. Only PDF files are allowed.', 400);
+        console.log('File mimetype:', file.mimetype);
+        if (file.mimetype !== 'application/pdf' && file.mimetype !==  'application/vnd.openxmlformats-officedocument.presentationml.presentation') {
+            throw new AppError('Invalid file type. Only PDF and pptx files are allowed.', 400);
         }
 
         const fileKey = `gidiPitch/${Date.now()}-${file.originalname}`;
@@ -23,7 +23,7 @@ const uploadPdfService = async (file) => {
             Bucket: process.env.S3_BUCKET,
             Key: fileKey,
             Body: file.buffer,
-            ContentType: 'application/pdf',
+            ContentType: file.mimetype,
             ACL: 'public-read',
         };
 
@@ -33,7 +33,7 @@ const uploadPdfService = async (file) => {
 
         // Return the minio URL of the uploaded PDF
         const pdfUrl = `${process.env.S3_ENDPOINT}/${process.env.S3_BUCKET}/${fileKey}`;
-        return pdfUrl;
+        return fileKey;
     } catch (error) {
         if (error instanceof AppError) {
             throw error; // Re-throw custom errors
@@ -119,7 +119,7 @@ const uploadImageService = async (file) => {
 
 // Export the services
 module.exports = {
-    uploadPdfService,
+    uploadFileService,
     deleteFileService,
     uploadImageService,
 };

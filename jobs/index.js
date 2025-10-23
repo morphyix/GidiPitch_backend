@@ -21,6 +21,9 @@ const startJobs = async () => {
         // import and initialize slide correction worker
         require('./slideCorrection/worker');
 
+        // Import and initialize export deck worker
+        require('./exportDeck/worker');
+
         console.log('All job queues and workers initialized successfully.');
     } catch (error) {
         console.error('Error starting jobs:', error);

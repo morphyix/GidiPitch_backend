@@ -32,21 +32,27 @@ const extractFileKey = (url) => {
 
 
 // Function to generate a PDF from HTML content
-const generatePdfFromHtml = async (htmlContent) => {
+const generatePdfFromHtml = async (deckId) => {
   try {
-    if (!htmlContent || typeof htmlContent !== 'string') {
-      throw new AppError('Invalid HTML content provided', 400);
+    if (!deckId) {
+      throw new AppError('Deck ID is required to generate PDF', 400);
     }
 
+    const exportUrl = `https://gidipitch.app/deck-export/${deckId}`;
     const browser = await puppeteer.launch({
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
       headless: true,
     });
     const page = await browser.newPage();
-    await page.setContent(htmlContent, { waitUntil: 'networkidle0', timeout: 10000 });
+    await page.goto(exportUrl, { waitUntil: 'networkidle0', timeout: 10000 });
+
+    await page.waitForTimeout(2000); // wait for 2 seconds to ensure all content is loaded
+
     const pdfBuffer = await page.pdf({
-      format: 'A4',
+      format: 'Letter',
       printBackground: true,
+      landscape: true,
+      margin: { top: '0px', right: '0px', bottom: '0px', left: '0px' }
     });
 
     await browser.close();

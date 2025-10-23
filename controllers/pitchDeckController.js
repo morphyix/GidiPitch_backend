@@ -1,10 +1,11 @@
-const { createDeckService, updateDeckByIdService, getDeckByIdService } = require('../services/deckService');
+const { createDeckService, updateDeckByIdService, getDeckByIdService, getUserDecksService } = require('../services/deckService');
 const { createSlideService, getSlidesByDeckIdService, getSlideByIdService } = require('../services/slideService');
 const { addPitchDeckJob } = require('../jobs/pitchDeckGenerator/queue');
 const { generatePromptsForSlides, getAllowedSlides, generateCorrectionPrompt, createTailwindPrompt } = require('../utils/generatePitchPrompts');
 const { AppError } = require('../utils/error');
 const { sanitize } = require('../utils/helper');
 const { addSlideCorrectionJob } = require('../jobs/slideCorrection/queue');
+const { addExportJob } = require('../jobs/exportDeck/queue');
 
 
 // Controller to handle pitch deck creation request
@@ -136,11 +137,6 @@ const createPitchDeckController = async (req, res, next) => {
 // Track pitch deck generation progress and return generated slides
 const getPitchDeckProgressController = async (req, res, next) => {
     try {
-        const userId = req.user._id;
-        if (!userId) {
-            return next(new AppError('User not authenticated', 401));
-        }
-
         const { deckId } = req.params;
         if (!deckId) {
             return next(new AppError('deckId parameter is required', 400));
@@ -150,9 +146,6 @@ const getPitchDeckProgressController = async (req, res, next) => {
         const deck = await getDeckByIdService(deckId);
         if (!deck) {
             return next(new AppError('Deck not found', 404));
-        }
-        if (deck.ownerId.toString() !== userId.toString()) {
-            return next(new AppError('Unauthorized access to this deck', 403));
         }
 
         // Set brand kit
@@ -378,8 +371,153 @@ const getAllIndustriesController = async (req, res, next) => {
         }
         next(new AppError(error.message, 500));
     }
-}
+};
 
+
+// Export pitch deck files controller
+const exportPitchDeckFilesController = async (req, res, next) => {
+    try {
+        const { deckId } = req.params;
+        if (!deckId) {
+            return next(new AppError('deckId parameter is required', 400));
+        }
+
+        const { formats } = req.body;
+        if (!formats || (formats.pdf !== true && formats.pptx !== true)) {
+            return next(new AppError('At least one format (PDF or PPTX) must be specified for export', 400));
+        }
+
+        const user = req.user;
+        if (!user) {
+            return next(new AppError('User not authenticated', 401));
+        }
+
+        // Get deck and verify ownership
+        const deck = await getDeckByIdService(deckId);
+        if (!deck) {
+            return next(new AppError('Deck not found', 404));
+        }
+        if (deck.ownerId.toString() !== user._id.toString()) {
+            return next(new AppError('Unauthorized access to this deck', 403));
+        }
+
+        // Check if deck has been exported already and has not been modified since last export
+        if (deck.status === 'finalized' && deck.exportedAt && deck.updatedAt <= deck.exportedAt) {
+            return res.status(200).json({
+                status: 'success',
+                message: 'Deck has already been exported, no changes detected since last export',
+                data: {
+                    deck: deck.toObject()
+                }
+            });
+        }
+
+        // Add export job to the queue
+        const jobData = {
+            deckId,
+            startupName: deck.startupName,
+            formats
+        }
+        await addExportJob(jobData);
+
+        return res.status(200).json({
+            status: 'success',
+            message: 'Deck export initiated',
+            data: {
+                deckId,
+                status: 'Export in queue'
+            }
+        });
+    } catch (error) {
+        if (error instanceof AppError) {
+            return next(error);
+        }
+        console.error('Error in exportPitchDeckFilesController:', error);
+        next(new AppError(error.message, 500));
+    }
+};
+
+
+// Get pitch deck file controller
+const getPitchDeckFileController = async (req, res, next) => {
+    try {
+        const { deckId } = req.params;
+        if (!deckId) {
+            return next(new AppError('deckId parameter is required', 400));
+        }
+
+        const user = req.user;
+        if (!user) {
+            return next(new AppError('User not authenticated', 401));
+        }
+
+        // Get deck and verify ownership
+        const deck = await getDeckByIdService(deckId);
+        if (!deck) {
+            return next(new AppError('Deck not found', 404));
+        }
+        if (deck.ownerId.toString() !== user._id.toString()) {
+            return next(new AppError('Unauthorized access to this deck', 403));
+        }
+
+        // Return message based on export status
+        let message = '';
+        if (deck.status === 'exporting') {
+            message = 'Deck export is in progress, please check back later';
+        } else if (deck.status === 'ready') {
+            message = 'Deck is ready for review, export can be initiated';
+        } else if (deck.status === 'finalized') {
+            message = 'Deck export completed, you can download the files';
+        } else if (deck.status === 'failed') {
+            message = `Deck export failed: ${deck.activityStatus || 'Unknown error during export'}`;
+        } else {
+            message = 'Deck is not ready for export yet';
+        }
+
+        return res.status(200).json({
+            status: 'success',
+            message,
+            data: {
+                status: deck.status,
+                deck: deck.toObject()
+            }
+        });
+    } catch (error) {
+        if (error instanceof AppError) {
+            return next(error);
+        }
+        console.error('Error in getPitchDeckFileController:', error);
+        next(new AppError(error.message, 500));
+    }
+};
+
+
+// Grt user's pitch decks controller
+const getUserPitchDecksController = async (req, res, next) => {
+    try {
+        const user = req.user;
+        if (!user || !user._id) {
+            return next(new AppError('User not authenticated', 401));
+        }
+
+        const decks = await getUserDecksService(user._id);
+
+        return res.status(200).json({
+            status: 'success',
+            message: 'User decks fetched successfully',
+            data: {
+                totalDecks: decks.length,
+                decks: decks.map(deck => deck.toObject()),
+            }
+        });
+    } catch (error) {
+        if (error instanceof AppError) {
+            return next(error);
+        }
+        console.error('Error in getUserPitchDecksController:', error);
+        next(new AppError(error.message, 500));
+    }
+};
 
 // Export the controller
 module.exports = {
@@ -389,4 +527,7 @@ module.exports = {
     getIndustrySlidesController,
     getAllIndustriesController,
     trackSlideCorrectionProgressController,
+    exportPitchDeckFilesController,
+    getPitchDeckFileController,
+    getUserPitchDecksController
 };
