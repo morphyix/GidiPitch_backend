@@ -173,7 +173,7 @@ const generatePptx = async (exportUrl, startupName) => {
         // Ensuring the content size matches the 16:9 ratio (1600x900) before screenshot.
         await page.evaluate(() => {
             // Use the combined selector from waitForSlidesToRender for maximum compatibility
-            const slides = document.querySelectorAll('.slide, [id^="slide-"]'); 
+            const slides = document.querySelectorAll('[id^="slide-"]'); 
             slides.forEach(slide => {
                 slide.style.width = '1600px'; 
                 slide.style.height = '900px'; 
@@ -191,7 +191,7 @@ const generatePptx = async (exportUrl, startupName) => {
 
 
         // Fetch slide handles fresh just before the loop
-        let slides = await page.$$('.slide, [id^="slide-"]'); // Refined selector
+        let slides = await page.$$('[id^="slide-"]'); // Refined selector
         if (!slides.length) throw new AppError('No slides found on export page', 404);
 
         // --- EXPERT CORRECTION: USE LAYOUT_16X9 CONSTANT ---
@@ -222,7 +222,7 @@ const generatePptx = async (exportUrl, startupName) => {
                 try {
                     await new Promise(r => setTimeout(r, 1000));
                     // Re-fetch the slide collection and get the element at the current index
-                    const freshSlides = await page.$$('.slide, [id^="slide-"]'); // Refined selector
+                    const freshSlides = await page.$$('[id^="slide-"]'); // Refined selector
                     const retryEl = freshSlides[i]; 
 
                     if (retryEl) {
