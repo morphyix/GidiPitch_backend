@@ -90,7 +90,7 @@ const pitchDeckWorker = new Worker('pitchDeckQueue', async (job) => {
                         const imgObj = await generateSlideImage(image.prompt, { caption: image.caption });
                         console.log(`Image generated for slide: ${key}, image ${i + 1}`);
                         // update slide image entry with generated image key and status
-                        await updateSlideImageService(slideId, i, {
+                        await updateSlideImageService(slideId, image.caption, {
                             key: imgObj.key,
                             status: 'completed'
                         });
@@ -102,7 +102,7 @@ const pitchDeckWorker = new Worker('pitchDeckQueue', async (job) => {
                     } catch (imgError) {
                         console.error(`Error generating image for slide: ${key}, image ${i + 1}:`, imgError);
                         // update slide image entry with error message and status
-                        await updateSlideImageService(slideId, i, {
+                        await updateSlideImageService(slideId, image.caption, {
                             status: 'failed',
                             error: imgError.message
                         });
