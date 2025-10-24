@@ -46,7 +46,7 @@ process.on('SIGINT', async () => {
 server.listen(PORT, async () => {
   try {
     await testBucket();
-    console.log('Background jobs started successfully.');
+    console.log('Server started successfully.');
   } catch (error) {
     console.error('S3 bucket test failed:', error);
     process.exit(1); // Exit if the S3 bucket test fails
