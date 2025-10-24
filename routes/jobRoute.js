@@ -1,16 +1,13 @@
 const express = require('express');
-const { startJobs } = require('../jobs/index'); // Import the job starting function
-
 const router = express.Router();
 
 
 router.get("/", async (req, res) => {
     try {
         // Start the background jobs
-        await startJobs();
         res.status(200).json({
             status: 'success',
-            message: 'Background jobs started successfully'
+            message: 'Welcome to GidiPitch API Service'
         });
     } catch (error) {
         console.error('Error starting background jobs:', error);
