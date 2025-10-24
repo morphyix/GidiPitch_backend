@@ -145,62 +145,52 @@ const generatePdf = async (exportUrl, startupName) => {
 
 /**
  * Dedicated function to generate the PPTX file (screenshots).
- * Manages its own page lifecycle and cleanup.
+ * Ensures full-height, full-width slide images in the PPTX export.
  */
 const generatePptx = async (exportUrl, startupName) => {
     let page;
-    // CRITICAL FIX: Get the browser instance internally, ignoring the passed argument
-    const browser = await getBrowser(); 
+    const PX_TO_INCH = 10 / 1600; // 1600px → 10in (16:9 PowerPoint layout)
+    const browser = await getBrowser();
+
     try {
         page = await browser.newPage();
-        
-        // --- CRITICAL IMPROVEMENT 1: STANDARD HIGH-RES VIEWPORT (KEEP AS IS) ---
         await page.setViewport({ width: 1600, height: 900, deviceScaleFactor: 2 });
         await page.emulateMediaType('screen');
 
-        // Retry load if first attempt fails
+        // Load export page (with retry)
         try {
             await page.goto(exportUrl, { waitUntil: 'networkidle0', timeout: 40000 });
         } catch {
-            console.warn('⚠️ PPTX load retry attempt failed — retrying page...');
+            console.warn('⚠️ PPTX load retry attempt failed — retrying...');
             await new Promise(r => setTimeout(r, 3000));
             await page.goto(exportUrl, { waitUntil: 'networkidle0', timeout: 40000 });
         }
 
         await waitForSlidesToRender(page);
-        
-        // --- CRITICAL FIX: FORCE SLIDES TO HIGH-RES WIDTH AND PREVENT STRETCHING ---
-        // Ensuring the content size matches the 16:9 ratio (1600x900) before screenshot.
+
+        // Normalize all slide DOMs to consistent 1600x900 size
         await page.evaluate(() => {
-            // Use the combined selector from waitForSlidesToRender for maximum compatibility
-            const slides = document.querySelectorAll('[id^="slide-"]'); 
+            const slides = document.querySelectorAll('[id^="slide-"]');
             slides.forEach(slide => {
-                slide.style.width = '1600px'; 
-                slide.style.height = '900px'; 
+                slide.style.width = '1600px';
+                slide.style.height = '900px';
                 slide.style.margin = '0';
                 slide.style.padding = '0';
                 slide.style.transform = 'none';
-                
+                slide.style.overflow = 'hidden';
                 if (slide.parentElement) {
-                    slide.parentElement.style.width = '1600px'; 
+                    slide.parentElement.style.width = '1600px';
                     slide.parentElement.style.height = '900px';
-                    slide.parentElement.style.display = 'block'; 
+                    slide.parentElement.style.display = 'block';
                 }
             });
         });
 
-
-        // Fetch slide handles fresh just before the loop
-        let slides = await page.$$('[id^="slide-"]'); // Refined selector
+        const slides = await page.$$('[id^="slide-"]');
         if (!slides.length) throw new AppError('No slides found on export page', 404);
 
-        // --- EXPERT CORRECTION: USE LAYOUT_16X9 CONSTANT ---
-        // Using the built-in layout ensures the resulting PPTX metadata is correctly 
-        // tagged as a standard widescreen presentation, which Google Slides is more 
-        // likely to recognize and import at full size.
         const pptxDoc = new PptxGenJS({
-            layout: 'LAYOUT_16X9', // This is the standard 16:9 layout
-            // NOTE: Do not define width and height if using a built-in layout constant
+            layout: 'LAYOUT_16X9', // 10x5.625 in layout
         });
 
         const slideImages = [];
@@ -208,40 +198,28 @@ const generatePptx = async (exportUrl, startupName) => {
         for (let i = 0; i < slides.length; i++) {
             const el = slides[i];
             let imgBase64 = null;
-            let success = false;
 
-            // --- Robust Screenshot & Retry Logic (Keep as is) ---
             try {
-                // Attempt 1: Initial screenshot using existing handle
                 imgBase64 = await el.screenshot({ encoding: 'base64' });
-                success = true;
             } catch (err) {
-                console.warn(`⚠️ Slide ${i + 1} initial screenshot failed: ${err.message}. Attempting retry with fresh element...`);
-                
-                // Attempt 2: Re-fetch all elements and try again to avoid 'detached element' error
-                try {
-                    await new Promise(r => setTimeout(r, 1000));
-                    // Re-fetch the slide collection and get the element at the current index
-                    const freshSlides = await page.$$('[id^="slide-"]'); // Refined selector
-                    const retryEl = freshSlides[i]; 
-
-                    if (retryEl) {
-                        imgBase64 = await retryEl.screenshot({ encoding: 'base64' });
-                        success = true;
-                    } else {
-                        console.error(`❌ Slide ${i + 1} not found during retry (index mismatch or element deleted).`);
-                    }
-                } catch (retryErr) {
-                    console.error(`❌ Slide ${i + 1} fatal retry screenshot failure: ${retryErr.message}.`);
+                console.warn(`⚠️ Slide ${i + 1} initial screenshot failed: ${err.message}. Retrying...`);
+                await new Promise(r => setTimeout(r, 1000));
+                const freshSlides = await page.$$('[id^="slide-"]');
+                const retryEl = freshSlides[i];
+                if (retryEl) {
+                    imgBase64 = await retryEl.screenshot({ encoding: 'base64' });
+                } else {
+                    console.error(`❌ Slide ${i + 1} not found during retry.`);
+                    continue;
                 }
             }
 
-            if (!success || !imgBase64) {
-                console.error(`❌ Skipping slide ${i + 1} due to unrecoverable screenshot error.`);
-                continue; 
+            if (!imgBase64) {
+                console.error(`❌ Skipping slide ${i + 1} due to screenshot failure.`);
+                continue;
             }
-            
-            // --- Image Processing and Data Collection (Keep as is) ---
+
+            // Compress image
             try {
                 const compressed = await sharp(Buffer.from(imgBase64, 'base64'))
                     .jpeg({ quality: 80 })
@@ -258,16 +236,15 @@ const generatePptx = async (exportUrl, startupName) => {
             await new Promise(r => setTimeout(r, 100));
         }
 
-        // Add captured images to PPTX document
+        // Add each screenshot as a full-bleed image (fills slide completely)
         for (const { data, type } of slideImages) {
             const slide = pptxDoc.addSlide();
-            // w: pptxDoc.width and h: pptxDoc.height ensures the image perfectly fills the 16:9 slide.
             slide.addImage({
                 data: `data:image/${type};base64,${data}`,
                 x: 0,
                 y: 0,
-                w: pptxDoc.width,
-                h: pptxDoc.height,
+                w: 10,        // fill full slide width
+                h: 5.625,     // fill full slide height
             });
         }
 
@@ -286,6 +263,8 @@ const generatePptx = async (exportUrl, startupName) => {
         }
     }
 };
+
+
 
 
 /** Generate both PDF and PPTX files from one render (Orchestrator) */
