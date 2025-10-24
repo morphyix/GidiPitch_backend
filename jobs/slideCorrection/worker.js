@@ -25,6 +25,7 @@ const slideCorrectionWorker = new Worker(
       await updateSlideByIdService(slideId, { status: 'generating', progress: 50 });
 
       const slideContent = await generateSlideContent(prompt);
+      console.log(`Generated corrected content for slide ${slideId}:`, slideContent);
       slideContent.status = slideContent.generateImage ? 'image_gen' : 'ready';
       slideContent.progress = slideContent.generateImage ? 50 : 100;
       await updateSlideByIdService(slideId, slideContent);

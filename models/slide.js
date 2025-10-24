@@ -26,7 +26,6 @@ ImageSchema.virtual('url').get(function() {
 ImageSchema.methods.toJSON = function() {
     const obj = this.toObject();
     obj.url = getImageUrl(this.key);
-    delete obj.key; // Remove the key from the output
     return obj;
 }
 
