@@ -490,57 +490,59 @@ const getAllowedSlides = (industry) => {
  * Generate a strict Tailwind CSS Color Kit for a startup pitch deck slide.
  * Focuses ONLY on color classes for background, title, bullets, and notes.
  */
-const createTailwindPrompt = (brandColor = 'orange') => {
+const createHexColorPrompt = (brandColor = 'orange') => {
     // Determine if the brandColor is a hex code for better color matching instruction
     const isHex = /^#([0-9A-F]{3}){1,2}$/i.test(brandColor);
 
     const colorHint = isHex
-        ? `The slide background MUST be set using the single Tailwind background color class that best matches the hex code ${brandColor}. The background class should be dark to ensure high contrast with the text.`
-        : `The slide background MUST be set using a single Tailwind background color class (e.g., 'bg-orange-800') from the "${brandColor}" palette. The background class should be dark to ensure high contrast with the text.`;
+        ? `The slide background MUST be set using a dark, premium background HEX color that best complements or matches the brand color ${brandColor}.`
+        : `The slide background MUST be set using a dark, premium background HEX color inspired by the brand color palette "${brandColor}".`;
 
     const prompt = `
 IMPORTANT:
-You are to generate a Tailwind CSS Color Kit for a startup pitch deck slide.
+You are to generate a **HEX Color Kit** for a startup pitch deck slide.
 
 Requirements:
 - Return ONLY valid RFC 8259 JSON.
 - No markdown, no comments, no extra text, no surrounding formatting.
-- The JSON MUST only contain color classes.
+- The JSON MUST only contain HEX color codes.
 
 Branding:
 - Primary Brand Color: ${brandColor}
 
 ${colorHint}
 
-Generate the single, most appropriate **Tailwind text color class** (e.g., 'text-gray-100', 'text-yellow-400') for the title, bullets, and notes. The color choices must ensure the slide is:
+Generate the single, most appropriate **HEX color codes** for the title, bullets, and notes. 
+The color choices must ensure the slide is:
 - Investor appealing and premium
 - Highly professional and easily legible (excellent contrast)
-- Harmonious and interactive in appearance
+- Harmonious and visually balanced
 
-The text colors should be intentionally suggested to create a visual hierarchy on the dark background:
+The text colors should be intentionally chosen to create a visual hierarchy on the dark background:
 - **Title:** Dominant and primary focus color.
 - **Bullets:** Clean, bright, and highly readable secondary color.
 - **Notes:** Subtle but clear, low-contrast tertiary color.
 
-**STRICT JSON Structure (Color Classes Only):**
+**STRICT JSON Structure (HEX Codes Only):**
 {
-    "background": "tailwind-bg-class",
-    "title": "tailwind-text-class",
-    "bullets": "tailwind-text-class",
-    "notes": "tailwind-text-class"
+    "background": "#000000",
+    "title": "#FFFFFF",
+    "bullets": "#DDDDDD",
+    "notes": "#999999"
 }
 
 Example of expected output structure (DO NOT include this example in the final output):
 {
-    "background": "bg-indigo-950",
-    "title": "text-yellow-400",
-    "bullets": "text-gray-200",
-    "notes": "text-gray-500"
+    "background": "#0a0a0a",
+    "title": "#f6c344",
+    "bullets": "#e5e5e5",
+    "notes": "#a1a1a1"
 }
 `;
 
     return prompt;
 };
+
 
 
 module.exports = { generatePromptsForSlides, getAllowedSlides, generateCorrectionPrompt, createTailwindPrompt };
