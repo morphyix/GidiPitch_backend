@@ -490,7 +490,7 @@ const getAllowedSlides = (industry) => {
  * Generate a strict Tailwind CSS Color Kit for a startup pitch deck slide.
  * Focuses ONLY on color classes for background, title, bullets, and notes.
  */
-const createHexColorPrompt = (brandColor = 'orange') => {
+const createTailwindPrompt = (brandColor = 'orange') => {
     // Determine if the brandColor is a hex code for better color matching instruction
     const isHex = /^#([0-9A-F]{3}){1,2}$/i.test(brandColor);
 
