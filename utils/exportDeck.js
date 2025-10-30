@@ -7,6 +7,7 @@ const sharp = require('sharp');
 const { AppError } = require('../utils/error');
 const { uploadFileService } = require('../services/uploadService');
 
+
 let browserInstance;
 
 /** Launch or reuse Puppeteer instance */
@@ -81,20 +82,24 @@ const waitForSlidesToRender = async (page, timeout = 45000) => {
 };
 
 /**
- * Dedicated function to generate the PDF file.
- * Manages its own page lifecycle and cleanup.
+ * Generate PDF from HTML template with built-in print styles
+ * This function works with the template's existing @page and @media print CSS
  */
 const generatePdf = async (exportUrl, startupName) => {
     let page;
-    // CRITICAL FIX: Get the browser instance internally, ignoring the passed argument (which is now defunct)
-    const browser = await getBrowser(); 
+    const browser = await getBrowser();
+
     try {
         page = await browser.newPage();
         
-        // Use a standard slide viewport size initially
-        await page.setViewport({ width: 1600, height: 900, deviceScaleFactor: 2 });
+        // Set viewport to exact template dimensions (1600px x 900px)
+        await page.setViewport({ 
+            width: 1600, 
+            height: 900, 
+            deviceScaleFactor: 1
+        });
 
-        // Retry load if first attempt fails
+        // Load the page with retry logic
         try {
             await page.goto(exportUrl, { waitUntil: 'networkidle0', timeout: 40000 });
         } catch {
@@ -102,30 +107,35 @@ const generatePdf = async (exportUrl, startupName) => {
             await new Promise(r => setTimeout(r, 3000));
             await page.goto(exportUrl, { waitUntil: 'networkidle0', timeout: 40000 });
         }
-        
+
         await waitForSlidesToRender(page);
 
-        // Measure total height of all slides dynamically
-        const bodyHeight = await page.evaluate(() => {
-            const slides = document.querySelectorAll('[id^="slide-"]');
-            if (!slides.length) return document.body.scrollHeight;
-            const lastSlide = slides[slides.length - 1];
-            return lastSlide.offsetTop + lastSlide.offsetHeight + 100; // extra padding
+        // Get slide count for verification
+        const slideCount = await page.evaluate(() => {
+            return document.querySelectorAll('section[id^="slide-"]').length;
         });
+        
+        console.log(`📄 Generating PDF with ${slideCount} slides...`);
 
-        // Expand viewport to match full height for PDF printing
-        await page.setViewport({ width: 1600, height: Math.min(bodyHeight, 20000), deviceScaleFactor: 2 });
-        await page.emulateMediaType('screen');
+        // Switch to print media mode (activates @media print styles in template)
+        await page.emulateMediaType('print');
 
-        // Generate full-length PDF
+        // Generate PDF using template's @page dimensions (1600px x 900px)
         const pdfBuffer = await page.pdf({
-            printBackground: true,
-            landscape: false,
             width: '1600px',
-            height: `${bodyHeight}px`,
-            margin: { top: 0, right: 0, bottom: 0, left: 0 },
+            height: '900px',
+            printBackground: true,
+            margin: {
+                top: '0',
+                right: '0',
+                bottom: '0',
+                left: '0'
+            },
             preferCSSPageSize: true,
+            displayHeaderFooter: false,
         });
+
+        console.log(`✅ PDF generated successfully with ${slideCount} pages`);
 
         const pdfFile = {
             buffer: pdfBuffer,
@@ -134,14 +144,13 @@ const generatePdf = async (exportUrl, startupName) => {
         };
 
         return await uploadFileService(pdfFile);
-
     } finally {
-        // Crucial: Close the page on success or error
         if (page) {
             await page.close().catch(() => console.warn('⚠️ PDF page cleanup failed'));
         }
     }
 };
+
 
 /**
  * Dedicated function to generate the PPTX file (screenshots).
