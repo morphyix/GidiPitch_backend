@@ -8,6 +8,7 @@ const addPurchaseTokensController = async (req, res, next) => {
     try {
         const user = req.user; // Assuming user is attached to req by auth middleware
         const { amount } = req.body;
+        const paymentMethod = req.paymentMethod || 'paystack';
 
         if (!amount || amount <= 0) {
             throw new AppError('Amount must be greater than zero', 400);
@@ -19,7 +20,7 @@ const addPurchaseTokensController = async (req, res, next) => {
         const updatedUser = await modifyUserTokensService(user._id, 'add', tokensToAdd);
 
         // Record the token transaction
-        await createTokenTransactionService(user._id, 'add', amount, tokensToAdd, updatedUser.tokens);
+        await createTokenTransactionService(user._id, 'add', amount, tokensToAdd, updatedUser.tokens, paymentMethod);
 
         updatedUser.password = undefined; // Remove password from response
 

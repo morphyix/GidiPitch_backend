@@ -4,11 +4,12 @@ const { AppError } = require('../../utils/error');
 const { updateSlideByIdService, updateSlideImageService, getSlideByIdService } = require('../../services/slideService');
 const { generateSlideContent, generateSlideImage } = require('../../services/getAIDeckContentService');
 const { updateDeckByIdService } = require('../../services/deckService');
+const { modifyUserTokensService } = require('../../services/authService');
 
 const slideCorrectionWorker = new Worker(
   'slideCorrectionQueue',
   async (job) => {
-    const { slideId, prompt } = job.data;
+    const { slideId, prompt, userId } = job.data;
     try {
       console.log(`Processing slide correction job: ${job.id}`);
 
@@ -29,6 +30,7 @@ const slideCorrectionWorker = new Worker(
       slideContent.status = slideContent.generateImage ? 'image_gen' : 'ready';
       slideContent.progress = slideContent.generateImage ? 50 : 100;
       await updateSlideByIdService(slideId, slideContent);
+      await modifyUserTokensService(userId, 'deduct', 4); // Deduct 4 tokens for slide correction
 
       // Image generation
       if (slideContent.generateImage && Array.isArray(slideContent.images) && slideContent.images.length > 0) {
@@ -39,7 +41,8 @@ const slideCorrectionWorker = new Worker(
           const image = slideContent.images[i];
           try {
             const imgObj = await generateSlideImage(image.prompt, { caption: image.caption });
-            await updateSlideImageService(slideId, i, { key: imgObj.key, status: 'completed' });
+            await updateSlideImageService(slideId, image.caption, { key: imgObj.key, status: 'completed' });
+            await modifyUserTokensService(userId, 'deduct', 6); // Deduct 6 tokens per image generation
           } catch (err) {
             console.error(`Error generating image ${i + 1}:`, err);
             await updateSlideImageService(slideId, i, { status: 'failed', error: err.message });
@@ -68,7 +71,7 @@ const slideCorrectionWorker = new Worker(
       throw new AppError(error.message || 'Failed to process slide correction job', 500);
     }
   },
-  { connection: redisClient }
+  { connection: redisClient, concurrency: 3 }
 );
 
 module.exports = { slideCorrectionWorker };

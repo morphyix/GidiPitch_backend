@@ -46,6 +46,7 @@ const verifyPaymentMiddleware = async (req, res, next) => {
         if (!response?.status) {
             throw new AppError("An error occured while verifying payment", 400);
         }
+        req.paymentMethod = 'paystack';
 
         next();
     } catch (error) {
