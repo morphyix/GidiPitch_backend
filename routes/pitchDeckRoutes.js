@@ -2,7 +2,7 @@ const express = require('express');
 const { authMiddleware } = require('../middleware/authMiddleware');
 const { createPitchDeckController, getPitchDeckProgressController, getIndustrySlidesController,
     getAllIndustriesController, correctSlideController, trackSlideCorrectionProgressController,
-    exportPitchDeckFilesController, getPitchDeckFileController, getUserPitchDecksController
+    exportPitchDeckFilesController, getPitchDeckFileController, getUserPitchDecksController, deletePitchDeckController
  } = require('../controllers/pitchDeckController');
 
 const router = express.Router();
@@ -16,6 +16,7 @@ router.get('/correction/progress/:slideId', authMiddleware, trackSlideCorrection
 router.get('/slides/:industry', getIndustrySlidesController);
 router.get('/progress/:deckId', getPitchDeckProgressController);
 router.get('/file/:deckId', authMiddleware, getPitchDeckFileController);
+router.delete('/delete/:deckId', authMiddleware, deletePitchDeckController);
 
 // export the router
 module.exports = router;

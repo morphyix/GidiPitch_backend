@@ -41,13 +41,9 @@ app.use(querySanitizeMiddleware); // Middleware to sanitize query parameters
 app.use(passport.initialize()); // Initialize Passport.js for authentication
 
 
-// Import routes
-const resumeRoutes = require("./routes/resumeRoutes");
-
 
 
 // use the routes
-app.use("/api/resumes", resumeRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/jobs', jobsRoutes);
 app.use('/api/waitlist', waitListRoutes);

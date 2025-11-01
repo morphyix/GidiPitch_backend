@@ -1,5 +1,5 @@
 const Resume = require("../models/Resume");
-const PDFDocument = require("pdfkit");
+const { PDFDocument } = require("pdf-lib");
 
 // Create Resume
 const createResume = async (req, res) => {
