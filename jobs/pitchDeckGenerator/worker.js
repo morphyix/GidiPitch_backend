@@ -27,6 +27,7 @@ const DEFAULT_IMAGES = {
   competition: extractFileKey('https://files.thebigphotocontest.com/gidiPitch/1761041714345-competition.png'),
   goMarket: extractFileKey('https://files.thebigphotocontest.com/gidiPitch/1761041798821-goToMarket.png'),
   product: extractFileKey('https://files.thebigphotocontest.com/gidiPitch/1761041885557-product.png'),
+  team: extractFileKey('https://files.thebigphotocontest.com/gidiPitch/profile.png'),
 };
 
 // Limit concurrency to 2 slides at once
@@ -63,8 +64,20 @@ async function processSlide({
     await updateSlideByIdService(slideId, slideContent);
     await updateDeckProgress(deckId);
 
-    // Generate images (parallel inside a single slide)
-    if (imageGenType === 'ai' && slideContent.images?.length > 0) {
+    // Generate images (parallel inside a single slide) except team slide
+    if (key === 'team') {
+        const teamDefaultKey = DEFAULT_IMAGES.team || DEFAULT_IMAGES.default;
+        await Promise.all(
+            (slideContent.images || []).map((img) =>
+            updateSlideImageService(slideId, img.caption, {
+                key: `gidiPitch/${teamDefaultKey}`,
+                status: 'completed',
+            }),
+            ),
+        );
+        await updateSlideByIdService(slideId, { progress: 100, status: 'ready' });
+        await updateDeckProgress(deckId);
+    } else if (imageGenType === 'ai' && slideContent.images?.length > 0) {
       const imageProgressIncrement = Math.floor(50 / slideContent.images.length);
 
       await Promise.allSettled(
