@@ -135,9 +135,9 @@ async function processSlide({
 const pitchDeckWorker = new Worker(
   'pitchDeckQueue',
   async (job) => {
-    const { deckId, prompts, startupData, deckSlides, imageGenType, tailwindPrompt } = job.data;
+    const { deckId, prompts, startupData, deckSlides, imageGenType, tailwindPrompt, userId } = job.data;
 
-    if (!deckId || !prompts || !deckSlides) {
+    if (!deckId || !prompts || !deckSlides || !userId) {
       throw new AppError('Invalid job data for pitch deck generation', 400);
     }
 
@@ -170,7 +170,7 @@ const pitchDeckWorker = new Worker(
             slideId: deckSlides[key],
             deckId,
             imageGenType,
-            brandKit: brandKitObj,
+            userId,
           }),
         ),
       ),
