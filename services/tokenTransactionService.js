@@ -5,7 +5,7 @@ const { AppError } = require('../utils/error');
 const TRANSACTION_TYPES = ['add', 'deduct'];
 
 // Service to create a new token transaction
-const createTokenTransactionService = async (userId, type, amount, quantity, balanceAfter) => {
+const createTokenTransactionService = async (userId, type, amount, quantity, balanceAfter, paymentMethod) => {
   try {
     if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
       throw new AppError('Invalid or missing user ID', 400);
@@ -29,6 +29,7 @@ const createTokenTransactionService = async (userId, type, amount, quantity, bal
       amount,
       quantity,
       balanceAfter,
+      paymentMethod
     });
 
     return newTransaction;

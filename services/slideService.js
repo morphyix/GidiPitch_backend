@@ -72,9 +72,14 @@ const updateSlideByIdService = async (slideId, updateData) => {
             throw new AppError('Invalid update data provided', 400);
         }
         
-        // fields not allowed to be updated
-        const forbiddenFields = ['_id', 'createdAt', 'deckId'];
-        forbiddenFields.forEach(field => delete updateData[field]);
+        // detect operator-based updates ($inc, $set, etc.)
+        const hasMongoOperator = Object.keys(updateData).some(key => key.startsWith('$'));
+
+        if (!hasMongoOperator) {
+            // sanitize forbidden fields only for direct updates
+            const forbiddenFields = ['_id', 'createdAt', 'deckId'];
+            forbiddenFields.forEach(field => delete updateData[field]);
+        }
 
         const updatedSlide = await Slide.findByIdAndUpdate(slideId, updateData, { new: true });
         if (!updatedSlide) {

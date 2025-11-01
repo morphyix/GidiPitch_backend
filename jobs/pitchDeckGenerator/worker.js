@@ -16,6 +16,7 @@ const {
   updateSlideImageService,
 } = require('../../services/slideService');
 const { extractFileKey } = require('../../utils/helper');
+const { modifyUserTokensService } = require('../../services/authService');
 
 // Default images
 const DEFAULT_IMAGES = {
@@ -52,7 +53,7 @@ async function processSlide({
   slideId,
   deckId,
   imageGenType,
-  brandKit,
+  userId,
 }) {
   try {
     await updateDeckByIdService(deckId, { activityStatus: `Generating content for ${key}` });
@@ -61,6 +62,8 @@ async function processSlide({
     const slideContent = await generateSlideContent(slidePrompt, { model: 'gemini-2.5-pro'});
     slideContent.status = imageGenType === 'ai' ? 'image_gen' : 'ready';
     slideContent.progress = imageGenType === 'ai' ? 50 : 100;
+    const user = await modifyUserTokensService(userId, 'deduct', 4); // Deduct 4 tokens per slide generation
+
     await updateSlideByIdService(slideId, slideContent);
     await updateDeckProgress(deckId);
 
@@ -88,6 +91,7 @@ async function processSlide({
               key: imgObj.key,
               status: 'completed',
             });
+            await modifyUserTokensService(userId, 'deduct', 6); // Deduct 6 tokens per image generation
 
             // Increment slide progress gradually
             const slide = await updateSlideByIdService(slideId, { $inc: { progress: imageProgressIncrement } });
@@ -188,7 +192,7 @@ const pitchDeckWorker = new Worker(
 
     console.log(`Deck ${deckId} completed with progress ${finalProgress}%`);
   },
-  { connection: redisClient },
+  { connection: redisClient, concurrency: 2 },
 );
 
 // Handle job failure

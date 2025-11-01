@@ -4,12 +4,13 @@ const { AppError } = require('../../utils/error');
 const { generateDeckFiles } = require('../../utils/exportDeck');
 const { updateDeckByIdService } = require('../../services/deckService');
 const { deleteFileService } = require('../../services/uploadService');
+const { modifyUserTokensService } = require('../../services/authService');
 
 
 const exportDeckWorker = new Worker('exportQueue', async (job) => {
     console.log('Processing export job:', job.id);
 
-    const { deckId, startupName, formats, oldKeys } = job.data;
+    const { deckId, startupName, formats, oldKeys, userId } = job.data;
     if (!deckId || !startupName) {
         throw new AppError('Deck ID is required for export', 400);
     }
@@ -25,8 +26,16 @@ const exportDeckWorker = new Worker('exportQueue', async (job) => {
         // Generate deck files (PPTX and PDF)
         const { pptxKey, pdfKey } = await generateDeckFiles(deckId, startupName, formats);
         const updateData = { status: 'finalized', activityStatus: 'Deck export completed, you can download' };
-        if (pptxKey) updateData.pptxKey = pptxKey;
-        if (pdfKey) updateData.pdfKey = pdfKey;
+        if (pptxKey) {
+            updateData.pptxKey = pptxKey;
+            // Deduct tokens for PPTX export
+            await modifyUserTokensService(userId, 'deduct', 5); // Deduct 5 tokens for PPTX export
+        }
+        if (pdfKey) {
+            updateData.pdfKey = pdfKey;
+            // Deduct tokens for PDF export
+            await modifyUserTokensService(userId, 'deduct', 5); // Deduct 5 tokens for PDF export
+        }
         updateData.exportedAt = new Date();
 
         // Delete old files if keys are provided

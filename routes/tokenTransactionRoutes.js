@@ -9,6 +9,7 @@ const router = express.Router();
 // Route to purchase tokens with crypto
 router.post('/purchase/crypto', (req, res, next) => {
     req.x402 = { price: `${Number(req.body.amount).toFixed(2)}` };
+    req.paymentMethod = 'crypto';
     next();
 }, x402, authMiddleware, addPurchaseTokensController);
 

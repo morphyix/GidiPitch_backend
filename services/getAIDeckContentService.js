@@ -88,9 +88,14 @@ const generateSlideImage = async (
 
       const buffer = Buffer.from(imagePart.inlineData.data, "base64");
 
+      const mimeType = imagePart.inlineData.mimeType || "image/png";
+      if (!mimeType.startsWith("image/")) {
+        throw new AppError(`Invalid MIME type for image: ${mimeType}`, 500);
+      }
+
       const imageFile = {
         buffer,
-        mimeType: imagePart.inlineData.mimeType || "image/png",
+        mimeType: mimeType,
         originalname: `slide-image-${Date.now()}.png`,
       };
 

@@ -111,7 +111,8 @@ const createPitchDeckController = async (req, res, next) => {
             startupData,
             deckSlides,
             imageGenType,
-            tailwindPrompt
+            tailwindPrompt,
+            userId
         };
 
         await addPitchDeckJob(jobData);
@@ -225,7 +226,8 @@ const correctSlideController = async (req, res, next) => {
         // Add slide correction job
         const jobData = {
             slideId,
-            prompt
+            prompt,
+            userId: user._id
         };
 
         await addSlideCorrectionJob(jobData);
@@ -415,15 +417,16 @@ const exportPitchDeckFilesController = async (req, res, next) => {
 
         // Extract old file url to delete after new export
         const oldKeys = [];
-        if (deck.pdfKey) oldKeys.push(deck.pdfKey);
-        if (deck.pptxKey) oldKeys.push(deck.pptxKey);
+        if (formats.pdf && deck.pdfKey) oldKeys.push(deck.pdfKey);
+        if (formats.pptx && deck.pptxKey) oldKeys.push(deck.pptxKey);
 
         // Add export job to the queue
         const jobData = {
             deckId,
             startupName: deck.startupName,
             formats,
-            oldKeys
+            oldKeys,
+            userId: user._id
         }
         await addExportJob(jobData);
 
