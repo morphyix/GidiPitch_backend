@@ -58,7 +58,7 @@ const createPitchDeckController = async (req, res, next) => {
             team: team.map(member => ({
                 name: sanitize(member.name),
                 role: sanitize(member.role),
-                asset: member.expertise ? sanitize(member.expertise) : '',
+                expertise: member.expertise ? sanitize(member.expertise) : '',
             })),
             imageGenType: sanitize(imageGenType),
             brandColor: brandColor ? sanitize(brandColor) : '',
