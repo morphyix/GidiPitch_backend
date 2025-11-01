@@ -1,11 +1,12 @@
-const { createDeckService, updateDeckByIdService, getDeckByIdService, getUserDecksService } = require('../services/deckService');
-const { createSlideService, getSlidesByDeckIdService, getSlideByIdService } = require('../services/slideService');
+const { createDeckService, updateDeckByIdService, getDeckByIdService, getUserDecksService, deleteDeckByIdService } = require('../services/deckService');
+const { createSlideService, getSlidesByDeckIdService, getSlideByIdService, deleteSlideByIdService } = require('../services/slideService');
 const { addPitchDeckJob } = require('../jobs/pitchDeckGenerator/queue');
 const { generatePromptsForSlides, getAllowedSlides, generateCorrectionPrompt, createTailwindPrompt } = require('../utils/generatePitchPrompts');
 const { AppError } = require('../utils/error');
 const { sanitize } = require('../utils/helper');
 const { addSlideCorrectionJob } = require('../jobs/slideCorrection/queue');
 const { addExportJob } = require('../jobs/exportDeck/queue');
+const { deleteFileService } = require('../services/uploadService');
 
 
 // Controller to handle pitch deck creation request
@@ -525,6 +526,67 @@ const getUserPitchDecksController = async (req, res, next) => {
     }
 };
 
+
+const deletePitchDeckController = async (req, res, next) => {
+    try {
+        const { deckId } = req.params;
+        if (!deckId) {
+            return next(new AppError('deckId parameter is required', 400));
+        }
+
+        const user = req.user;
+        if (!user) {
+            return next(new AppError('User not authenticated', 401));
+        }
+
+        // Get deck and verify ownership
+        const deck = await getDeckByIdService(deckId);
+        if (!deck) {
+            return next(new AppError('Deck not found', 404));
+        }
+        if (deck.ownerId.toString() !== user._id.toString()) {
+            return next(new AppError('Unauthorized access to this deck', 403));
+        }
+
+        // Get all deck slides
+        const slides = await getSlidesByDeckIdService(deckId);
+        // Delete all slides and their associated files
+        for (const slide of slides) {
+            // Delete all slide images if any
+            if (slide.images && Array.isArray(slide.images)) {
+                for (const img of slide.images) {
+                    if (img.key) {
+                        await deleteFileService(img.key);
+                    }
+                }
+            }
+            // Delete slide entry
+            await deleteSlideByIdService(slide._id);
+        }
+        // Delete deck files if any
+        if (deck.pdfKey) {
+            await deleteFileService(deck.pdfKey);
+        }
+        if (deck.pptxKey) {
+            await deleteFileService(deck.pptxKey);
+        }
+        // Delete deck entry
+        await deleteDeckByIdService(deckId);
+
+        return res.status(200).json({
+            status: 'success',
+            message: `${deck.title} Deck and associated slides deleted successfully`,
+        });
+
+    } catch (error) {
+        if (error instanceof AppError) {
+            return next(error);
+        }
+        console.error('Error in deletePitchDeckController:', error);
+        next(new AppError(error.message, 500));
+    }
+}
+
 // Export the controller
 module.exports = {
     createPitchDeckController,
@@ -535,5 +597,6 @@ module.exports = {
     trackSlideCorrectionProgressController,
     exportPitchDeckFilesController,
     getPitchDeckFileController,
-    getUserPitchDecksController
+    getUserPitchDecksController,
+    deletePitchDeckController,
 };
