@@ -1,4 +1,5 @@
 // Verify Paystack Payment Middleware
+const { AppError } = require('../utils/error');
 
 /**
  * Verify Paystack payment before granting access
