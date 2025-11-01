@@ -14,8 +14,8 @@ const addPurchaseTokensController = async (req, res, next) => {
             throw new AppError('Amount must be greater than zero', 400);
         }
 
-        // Convert amount to tokens (0.10 USD = 10 tokens)
-        const tokensToAdd = Math.floor((amount / 0.10) * 10);
+        // Convert amount to tokens (0.15 USD = 10 tokens)
+        const tokensToAdd = Math.floor((amount / 0.15) * 10);
 
         const updatedUser = await modifyUserTokensService(user._id, 'add', tokensToAdd);
 
