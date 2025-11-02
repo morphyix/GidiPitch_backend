@@ -95,7 +95,7 @@ const generateSlideImage = async (
 
       const imageFile = {
         buffer,
-        mimeType: mimeType,
+        mimetype: mimeType,
         originalname: `slide-image-${Date.now()}.png`,
       };
 
