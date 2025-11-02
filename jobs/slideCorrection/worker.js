@@ -24,13 +24,14 @@ const slideCorrectionWorker = new Worker(
       await updateDeckByIdService(deckId, { activityStatus: `Correcting slide: ${slide.slideType}`, status: 'editing' });
 
       await updateSlideByIdService(slideId, { status: 'generating', progress: 50 });
+      await modifyUserTokensService(userId, 'deduct', 4); // Deduct 4 tokens for slide correction
+
 
       const slideContent = await generateSlideContent(prompt);
       console.log(`Generated corrected content for slide ${slideId}:`, slideContent);
       slideContent.status = slideContent.generateImage ? 'image_gen' : 'ready';
       slideContent.progress = slideContent.generateImage ? 50 : 100;
       await updateSlideByIdService(slideId, slideContent);
-      await modifyUserTokensService(userId, 'deduct', 4); // Deduct 4 tokens for slide correction
 
       // Image generation
       if (slideContent.generateImage && Array.isArray(slideContent.images) && slideContent.images.length > 0) {
@@ -40,9 +41,9 @@ const slideCorrectionWorker = new Worker(
         for (let i = 0; i < slideContent.images.length; i++) {
           const image = slideContent.images[i];
           try {
+            await modifyUserTokensService(userId, 'deduct', 6); // Deduct 6 tokens per image generation
             const imgObj = await generateSlideImage(image.prompt, { caption: image.caption });
             await updateSlideImageService(slideId, image.caption, { key: imgObj.key, status: 'completed' });
-            await modifyUserTokensService(userId, 'deduct', 6); // Deduct 6 tokens per image generation
           } catch (err) {
             console.error(`Error generating image ${i + 1}:`, err);
             await updateSlideImageService(slideId, i, { status: 'failed', error: err.message });

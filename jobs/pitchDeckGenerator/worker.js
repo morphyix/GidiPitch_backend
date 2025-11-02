@@ -58,11 +58,11 @@ async function processSlide({
   try {
     await updateDeckByIdService(deckId, { activityStatus: `Generating content for ${key}` });
     await updateSlideByIdService(slideId, { status: 'generating', progress: 20 });
+    await modifyUserTokensService(userId, 'deduct', 4); // Deduct 4 tokens per slide generation
 
     const slideContent = await generateSlideContent(slidePrompt, { model: 'gemini-2.5-pro'});
     slideContent.status = imageGenType === 'ai' ? 'image_gen' : 'ready';
     slideContent.progress = imageGenType === 'ai' ? 50 : 100;
-    const user = await modifyUserTokensService(userId, 'deduct', 4); // Deduct 4 tokens per slide generation
 
     await updateSlideByIdService(slideId, slideContent);
     await updateDeckProgress(deckId);
@@ -86,12 +86,12 @@ async function processSlide({
       await Promise.allSettled(
         slideContent.images.map(async (image) => {
           try {
+            await modifyUserTokensService(userId, 'deduct', 6); // Deduct 6 tokens per image generation
             const imgObj = await generateSlideImage(image.prompt, { caption: image.caption });
             await updateSlideImageService(slideId, image.caption, {
               key: imgObj.key,
               status: 'completed',
             });
-            await modifyUserTokensService(userId, 'deduct', 6); // Deduct 6 tokens per image generation
 
             // Increment slide progress gradually
             const slide = await updateSlideByIdService(slideId, { $inc: { progress: imageProgressIncrement } });
