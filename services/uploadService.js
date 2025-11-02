@@ -80,8 +80,7 @@ const uploadImageService = async (file) => {
         }
 
         const allowedTypes = [ 'image/png', 'image/jpg', 'image/jpeg', 'image/webp'];
-        console.log('Uploading image with mimetype:', file.mimeType);
-        if (!allowedTypes.includes(file.mimeType)) {
+        if (!allowedTypes.includes(file.mimetype)) {
             throw new AppError('Invalid file type. Only PNG, JPG, JPEG, and WEBP are allowed.', 400);
         }
 
