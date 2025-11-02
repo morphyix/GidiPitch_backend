@@ -20,14 +20,14 @@ const { modifyUserTokensService } = require('../../services/authService');
 
 // Default images
 const DEFAULT_IMAGES = {
-  default: extractFileKey('https://files.thebigphotocontest.com/gidiPitch/cover.png'),
-  problem: extractFileKey('https://files.thebigphotocontest.com/gidiPitch/1761041122058-problem.png'),
-  solution: extractFileKey('https://files.thebigphotocontest.com/gidiPitch/1761041251157-solution.png'),
-  market: extractFileKey('https://files.thebigphotocontest.com/gidiPitch/1761041353294-market.png'),
-  businessModel: extractFileKey('https://files.thebigphotocontest.com/gidiPitch/1761041518778-businessModel.png'),
-  competition: extractFileKey('https://files.thebigphotocontest.com/gidiPitch/1761041714345-competition.png'),
-  goMarket: extractFileKey('https://files.thebigphotocontest.com/gidiPitch/1761041798821-goToMarket.png'),
-  product: extractFileKey('https://files.thebigphotocontest.com/gidiPitch/1761041885557-product.png'),
+  default: extractFileKey('https://files.thebigphotocontest.com/gidiPitch/1762068679238-cover.png'),
+  problem: extractFileKey('https://files.thebigphotocontest.com/gidiPitch/1762057087566-problem.png'),
+  solution: extractFileKey('https://files.thebigphotocontest.com/gidiPitch/1762057643136-solution.png'),
+  market: extractFileKey('https://files.thebigphotocontest.com/gidiPitch/1762068512348-market.png'),
+  businessModel: extractFileKey('https://files.thebigphotocontest.com/gidiPitch/1762057891739-businessModel.png'),
+  competition: extractFileKey('https://files.thebigphotocontest.com/gidiPitch/1762068600596-competition.png'),
+  goMarket: extractFileKey('https://files.thebigphotocontest.com/gidiPitch/1762068531695-goToMarket.png'),
+  product: extractFileKey('https://files.thebigphotocontest.com/gidiPitch/1762068373700-product.png'),
   team: extractFileKey('https://files.thebigphotocontest.com/gidiPitch/profile.png'),
 };
 
@@ -75,6 +75,7 @@ async function processSlide({
             updateSlideImageService(slideId, img.caption, {
                 key: `gidiPitch/${teamDefaultKey}`,
                 status: 'completed',
+                source: 'default',
             }),
             ),
         );
@@ -115,6 +116,7 @@ async function processSlide({
           updateSlideImageService(slideId, img.caption, {
             key: `gidiPitch/${defaultKey}`,
             status: 'completed',
+            source: 'default',
           }),
         ),
       );

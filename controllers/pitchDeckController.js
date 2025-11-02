@@ -558,7 +558,7 @@ const deletePitchDeckController = async (req, res, next) => {
             // Delete all slide images if any
             if (slide.images && Array.isArray(slide.images)) {
                 for (const img of slide.images) {
-                    if (img.key) {
+                    if (img.key && img.source !== 'default') {
                         await deleteFileService(img.key);
                     }
                 }

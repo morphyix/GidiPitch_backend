@@ -6,7 +6,7 @@ const ImageSchema = new mongoose.Schema({
     prompt: { type: String },
     key: { type: String },
     caption: { type: String },
-    source: { type: String, enum: [ 'ai-generated', 'user-uploaded' ], default: 'ai-generated' },
+    source: { type: String, enum: [ 'ai-generated', 'user-uploaded', 'default' ], default: 'ai-generated' },
     status: { type: String, enum: [ 'pending', 'completed', 'failed' ], default: 'pending' },
     error: { type: String },
     isSelected: { type: Boolean, default: false }
