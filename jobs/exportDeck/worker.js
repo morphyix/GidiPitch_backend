@@ -20,6 +20,13 @@ const exportDeckWorker = new Worker('exportQueue', async (job) => {
     }
 
     try {
+        // Deduct tokens for export
+        if (formats.pdf) {
+            await modifyUserTokensService(userId, 'deduct', 5); // Deduct 5 tokens for PDF export
+        }
+        if (formats.pptx) {
+            await modifyUserTokensService(userId, 'deduct', 5); // Deduct 5 tokens for PPTX export
+        }
         // Update deck status to 'exporting'
         await updateDeckByIdService(deckId, { status: 'exporting', activityStatus: 'Exporting deck to PPTX and PDF formats' });
 
@@ -28,14 +35,8 @@ const exportDeckWorker = new Worker('exportQueue', async (job) => {
         const updateData = { status: 'finalized', activityStatus: 'Deck export completed, you can download' };
         if (pptxKey) {
             updateData.pptxKey = pptxKey;
-            // Deduct tokens for PPTX export
-            await modifyUserTokensService(userId, 'deduct', 5); // Deduct 5 tokens for PPTX export
         }
-        if (pdfKey) {
-            updateData.pdfKey = pdfKey;
-            // Deduct tokens for PDF export
-            await modifyUserTokensService(userId, 'deduct', 5); // Deduct 5 tokens for PDF export
-        }
+        if (pdfKey) updateData.pdfKey = pdfKey;
         updateData.exportedAt = new Date();
 
         // Delete old files if keys are provided
