@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Deck = require('../models/deck');
 const { AppError } = require('../utils/error');
 
@@ -112,11 +113,42 @@ const getUserDecksService = async (userId) => {
     }
 };
 
+
+// Search user's deck service
+const searchUserDecksService = async (userId, searchTerm) => {
+    try {
+        if (!userId) {
+            throw new AppError('User ID is required', 400);
+        }
+        // verify id is valid ObjectId
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+            throw new AppError('Invalid User ID', 400);
+        }
+
+        const escapeRegex = (str = '') => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const safeTerm = escapeRegex(searchTerm.trim());
+
+        const query = { ownerId: userId };
+        if (safeTerm) query.startupName = { $regex: safeTerm, $options: 'i' };
+
+        const decks = await Deck.find(query).sort({ createdAt: -1 });
+        
+        return decks;
+    } catch (error) {
+        if (error instanceof AppError) {
+            throw error; // Re-throw custom errors
+        }
+        console.error('Error searching user decks:', error);
+        throw new AppError('Failed to search user decks', 500);
+    }
+};
+
 // export services
 module.exports = {
     createDeckService,
     getDeckByIdService,
     updateDeckByIdService,
     deleteDeckByIdService,
-    getUserDecksService
+    getUserDecksService,
+    searchUserDecksService
 };

@@ -1,4 +1,6 @@
-const { createDeckService, updateDeckByIdService, getDeckByIdService, getUserDecksService, deleteDeckByIdService } = require('../services/deckService');
+const { createDeckService, updateDeckByIdService, getDeckByIdService, getUserDecksService, deleteDeckByIdService,
+    searchUserDecksService,
+ } = require('../services/deckService');
 const { createSlideService, getSlidesByDeckIdService, getSlideByIdService, deleteSlideByIdService } = require('../services/slideService');
 const { addPitchDeckJob } = require('../jobs/pitchDeckGenerator/queue');
 const { generatePromptsForSlides, getAllowedSlides, generateCorrectionPrompt, createTailwindPrompt } = require('../utils/generatePitchPrompts');
@@ -162,6 +164,7 @@ const getPitchDeckProgressController = async (req, res, next) => {
         const completedSlides = deckSlides.filter(slide => slide.progress === 100 && slide.status === 'ready');
 
         const currentStatus = deck.activityStatus;
+        // Return error if deck generation failed:
         return res.status(200).json({
             status: 'success',
             message: 'Deck progress fetched successfully',
@@ -170,6 +173,7 @@ const getPitchDeckProgressController = async (req, res, next) => {
                 status: deck.status,
                 brandKit: brandKit,
                 activityStatus: currentStatus || 'In Queue',
+                error: currentStatus === 'failed' ? deck.error || 'Unknown error during deck generation' : null,
                 progress: deck.progress || 0,
                 totalSlides: deck.slideCount || deckSlides.length,
                 completedSlides: completedSlides.length,
@@ -293,14 +297,7 @@ const trackSlideCorrectionProgressController = async (req, res, next) => {
                 }
             });
         } else if (status === 'failed') {
-            return res.status(200).json({
-                status: 'failed',
-                message: 'Slide correction failed',
-                data: {
-                    error: slide.error || 'Unknown error during slide correction',
-                    slide: slide.toObject(),
-                }
-            });
+            throw new AppError(`Slide correction failed: ${slide.error || 'Unknown error during slide correction'}`, 500);
         } else {
             return res.status(200).json({
                 status: 'in_progress',
@@ -590,6 +587,41 @@ const deletePitchDeckController = async (req, res, next) => {
     }
 }
 
+
+// Search user's pitch decks controller
+const searchPitchDecksController = async (req, res, next) => {
+    try {
+        const user = req.user;
+        if (!user || !user._id) {
+            return next(new AppError('User not authenticated', 401));
+        }
+
+        const { q } = req.query;
+        if (!q || typeof q !== 'string') {
+            return next(new AppError('Search query parameter "q" is required', 400));
+        }
+        const query = q.trim();
+
+        // Search user's decks
+        const decks = await searchUserDecksService(user._id, query);
+
+        return res.status(200).json({
+            status: 'success',
+            message: 'Search completed successfully',
+            data: {
+                totalDecks: decks.length,
+                decks: decks.map(deck => deck.toObject()),
+            }
+        });
+    } catch (error) {
+        if (error instanceof AppError) {
+            return next(error);
+        }
+        console.error('Error in searchPitchDecksController:', error);
+        next(new AppError(error.message, 500));
+    }
+}
+
 // Export the controller
 module.exports = {
     createPitchDeckController,
@@ -602,4 +634,5 @@ module.exports = {
     getPitchDeckFileController,
     getUserPitchDecksController,
     deletePitchDeckController,
+    searchPitchDecksController,
 };
