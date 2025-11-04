@@ -488,19 +488,19 @@ const getAllowedSlides = (industry) => {
 
 /**
  * Generate a strict Tailwind CSS Color Kit for a startup pitch deck slide.
- * Focuses ONLY on color classes for background, title, bullets, and notes.
+ * Creates a sophisticated brand-forward design with proper color hierarchy.
  */
 const createTailwindPrompt = (brandColor = 'orange') => {
     // Determine if the brandColor is a hex code for better color matching instruction
     const isHex = /^#([0-9A-F]{3}){1,2}$/i.test(brandColor);
 
     const colorHint = isHex
-        ? `The slide background MUST be set using a dark, premium background HEX color that best complements or matches the brand color ${brandColor}.`
-        : `The slide background MUST be set using a dark, premium background HEX color inspired by the brand color palette "${brandColor}".`;
+        ? `The brand color is ${brandColor}. Use this color strategically to create visual impact.`
+        : `The brand identity is inspired by "${brandColor}". Interpret this as a color palette direction.`;
 
     const prompt = `
 IMPORTANT:
-You are to generate a **HEX Color Kit** for a startup pitch deck slide.
+You are to generate a **HEX Color Kit** for a premium startup pitch deck slide that showcases the brand color prominently.
 
 Requirements:
 - Return ONLY valid RFC 8259 JSON.
@@ -512,32 +512,62 @@ Branding:
 
 ${colorHint}
 
-Generate the single, most appropriate **HEX color codes** for the title, bullets, and notes. 
-The color choices must ensure the slide is:
-- Investor appealing and premium
-- Highly professional and easily legible (excellent contrast)
-- Harmonious and visually balanced
+**CRITICAL COLOR STRATEGY:**
 
-The text colors should be intentionally chosen to create a visual hierarchy on the dark background:
-- **Title:** Dominant and primary focus color.
-- **Bullets:** Clean, bright, and highly readable secondary color.
-- **Notes:** Subtle but clear, low-contrast tertiary color.
+1. **Background Color Guidelines:**
+   - Use a SUBTLE, MUTED version of the brand color (20-30% saturation, 10-15% lightness for dark themes)
+   - OR use a complementary neutral (deep navy, charcoal, slate) that lets the brand color shine
+   - AVOID pure black (#000000) or extremely dark shades that hide the brand color
+   - The background should create depth WITHOUT overpowering the brand identity
+   - Think: "sophisticated backdrop that makes the brand color pop"
+
+2. **Title Color (Primary Focus):**
+   - Use the BRAND COLOR at full vibrancy OR a bright tinted variation
+   - This is where the brand identity MUST be most visible
+   - Should be the dominant visual element (highest contrast against background)
+   - Examples: If brand is orange → use vibrant orange/gold for title
+
+3. **Bullets Color (Secondary Hierarchy):**
+   - Use a bright, clean neutral (off-white, light gray, or subtle brand tint)
+   - Must be highly readable with excellent contrast
+   - Should NOT compete with title but remain prominent
+   - Consider: #F5F5F5, #E8E8E8, or a 10% tinted version of brand color
+
+4. **Notes Color (Tertiary/Subtle):**
+   - Use a softer, muted tone for secondary information
+   - Should recede visually but remain legible
+   - Light gray, warm gray, or desaturated brand color
+   - Consider: #A0A0A0, #B8B8B8, or 30% opacity brand color
+
+**COLOR PSYCHOLOGY:**
+- For warm brands (red, orange, yellow): Use deep navy/charcoal backgrounds, let brand color dominate title
+- For cool brands (blue, green, purple): Use slate/deep gray backgrounds, use brand color prominently
+- For neutral brands (gray, black, white): Add a sophisticated accent color for visual interest
+
+**INVESTOR APPEAL CHECKLIST:**
+✓ High contrast for readability (WCAG AAA preferred)
+✓ Brand color is VISIBLE and intentional (not hidden by dark background)
+✓ Professional color harmony (not garish or amateur)
+✓ Visual hierarchy is clear (title > bullets > notes)
+✓ Background supports content, doesn't dominate it
 
 **STRICT JSON Structure (HEX Codes Only):**
 {
-    "background": "#000000",
-    "title": "#FFFFFF",
-    "bullets": "#DDDDDD",
-    "notes": "#999999"
+    "background": "#1a2332",
+    "title": "#ff6b35",
+    "bullets": "#f0f0f0",
+    "notes": "#a8b2c1"
 }
 
-Example of expected output structure (DO NOT include this example in the final output):
-{
-    "background": "#0a0a0a",
-    "title": "#f6c344",
-    "bullets": "#e5e5e5",
-    "notes": "#a1a1a1"
-}
+**DO NOT RETURN:**
+- Pure black backgrounds (#000000) unless brand is explicitly black
+- Backgrounds darker than #0f0f0f (too dark to show brand color influence)
+- Text colors with insufficient contrast (<4.5:1 ratio)
+- Multiple shades of the same color without clear hierarchy
+
+**RETURN FORMAT:**
+Pure RFC 8259 compliant JSON object with exactly 4 HEX color properties: background, title, bullets, notes.
+No explanations, no comments, no additional text outside the JSON structure.
 `;
 
     return prompt;
