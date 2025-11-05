@@ -1,10 +1,11 @@
 const mongoose = require('mongoose');
 const { AppError } = require('../utils/error');
 const User = require('../models/user');
+const TokenTransaction = require('../models/tokenTransaction');
 const { verifyJwtToken } = require('../utils/jwtAuth');
 const { hashString } = require('../utils/hashString');
 const { setRedisCache } = require('../config/redis');
-const { Operations } = require('@google/genai');
+const { createTokenTransactionService } = require('./tokenTransactionService');
 
 
 // This service checks for duplicate users and creates a new user if no duplicates are found.
@@ -175,17 +176,41 @@ const deleteUserService = async (userId) => {
 
 
 // Add or deduct tokens from user account
-const modifyUserTokensService = async (userId, operation, amount) => {
+const modifyUserTokensService = async (userId, operation, amount, reason, jobId) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
     try {
         if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
             throw new AppError('Invalid user ID', 400);
         }
-        if (!['add', 'deduct'].includes(operation)) {
-            throw new AppError('Invalid operation type, must be "add" or "deduct"', 400);
+        if (!['add', 'deduct', 'refund'].includes(operation)) {
+            throw new AppError('Invalid operation type, must be "add", "deduct" or "refund"', 400);
         }
 
         if (amount <= 0) {
             throw new AppError('Amount must be greater than zero', 400);
+        }
+
+        // Check if deduct or refund operation with jobId already exists to prevent duplicates
+        let effectiveJobId = jobId;
+        if ((operation === 'deduct' || operation === 'refund') && jobId) {
+            const existingDeduct = await TokenTransaction.findOne({ userId, type: 'deduct', jobId }).session(session);
+            const existingRefund = await TokenTransaction.findOne({ userId, type: 'refund', jobId }).session(session);
+            if (operation === 'deduct' && existingDeduct) {
+                if (!existingRefund) {
+                    console.error(`Deduct operation for jobId ${jobId} already exists, skipping duplicate deduction. Aborting job`);
+                    await session.abortTransaction();
+                    return;
+                } else {
+                    const retryCount = await TokenTransaction.countDocuments({ userId, jobId: new RegExp(`^${jobId}`)});
+                    effectiveJobId = `${jobId}-${retryCount + 1}`;
+                    console.log(`Retry detected for job ${jobId}, new jobId: ${effectiveJobId}`);
+                }
+            } else if (operation === 'refund' && existingRefund) {
+                console.log(`Refund already processed for ${jobId}`);
+                await session.abortTransaction();
+                return;
+            }
         }
 
         const delta = operation === 'deduct' ? -Math.abs(amount) : Math.abs(amount);
@@ -194,18 +219,28 @@ const modifyUserTokensService = async (userId, operation, amount) => {
         const updatedUser = await User.findOneAndUpdate(
             { _id: userId, ...(operation === 'deduct' ? { tokens: { $gte: amount } } : {}) },
             { $inc: { tokens: delta } },
-            { new: true, runValidators: true }
+            { new: true, runValidators: true, session }
         );
 
         if (!updatedUser) {
             throw new AppError(operation === 'deduct' ? 'Insufficient tokens' : 'User not found', 400);
         }
 
-        return updatedUser;
+        // Create token transaction record if operation is deduct or refund
+        if (operation === 'deduct' || operation === 'refund') {
+            await createTokenTransactionService(userId, operation, 0, amount, updatedUser.tokens, 'none', reason, session, effectiveJobId);
+        }
+
+        await session.commitTransaction();
+
+        return { updatedUser, jobId: effectiveJobId };
     } catch (error) {
-        if (error instanceof AppError) throw error; // Re-throw AppError for handling in the controller
         console.error('Error modifying user tokens:', error);
+        await session.abortTransaction();
+        if (error instanceof AppError) throw error; // Re-throw AppError for handling in the controller
         throw new AppError('An error occurred while modifying user tokens', 500);
+    } finally {
+        session.endSession();
     }
 };
 

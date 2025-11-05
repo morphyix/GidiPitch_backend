@@ -10,6 +10,8 @@ const slideCorrectionWorker = new Worker(
   'slideCorrectionQueue',
   async (job) => {
     const { slideId, prompt, userId } = job.data;
+    let textTx;
+    let imageTx;
     try {
       console.log(`Processing slide correction job: ${job.id}`);
 
@@ -24,7 +26,7 @@ const slideCorrectionWorker = new Worker(
       await updateDeckByIdService(deckId, { activityStatus: `Correcting slide: ${slide.slideType}`, status: 'editing' });
 
       await updateSlideByIdService(slideId, { status: 'generating', progress: 50 });
-      await modifyUserTokensService(userId, 'deduct', 4); // Deduct 4 tokens for slide correction
+      textTx = await modifyUserTokensService(userId, 'deduct', 4, `Generating text content for slide ${slideId}`, `${job.id}-text`); // Deduct 4 tokens for slide correction
 
 
       const slideContent = await generateSlideContent(prompt);
@@ -41,12 +43,15 @@ const slideCorrectionWorker = new Worker(
         for (let i = 0; i < slideContent.images.length; i++) {
           const image = slideContent.images[i];
           try {
-            await modifyUserTokensService(userId, 'deduct', 6); // Deduct 6 tokens per image generation
+            imageTx = await modifyUserTokensService(userId, 'deduct', 6, `Generating image for slide ${slideId}`, `${job.id}-image-${i + 1}`); // Deduct 6 tokens per image generation
             const imgObj = await generateSlideImage(image.prompt, { caption: image.caption });
             await updateSlideImageService(slideId, image.caption, { key: imgObj.key, status: 'completed' });
           } catch (err) {
             console.error(`Error generating image ${i + 1}:`, err);
-            await updateSlideImageService(slideId, i, { status: 'failed', error: err.message });
+            await updateSlideImageService(slideId, image.caption, { status: 'failed', error: err.message });
+            if (imageTx?.jobId) {
+              await modifyUserTokensService(userId, 'refund', 6, `Refund for failed image generation in slide correction ${slide.slideType}`, imageTx.jobId); // Refund 6 tokens for failed image generation
+            }
           }
 
           currentProgress = Math.min(currentProgress + increment, 100);
@@ -69,6 +74,10 @@ const slideCorrectionWorker = new Worker(
       console.error(`Error processing slide correction job for ${slideId}:`, error);
       if (slideId)
         await updateSlideByIdService(slideId, { status: 'failed', error: error.message });
+      // Refund tokens for failed slide correction
+      if (textTx?.jobId) {
+        await modifyUserTokensService(userId, 'refund', 4, `Refund for failed slide correction for slide ${slideId}`, textTx.jobId); // Refund 4 tokens for failed slide correction
+      }
       throw new AppError(error.message || 'Failed to process slide correction job', 500);
     }
   },

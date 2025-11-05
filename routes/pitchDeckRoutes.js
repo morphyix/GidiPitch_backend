@@ -3,7 +3,7 @@ const { authMiddleware } = require('../middleware/authMiddleware');
 const { createPitchDeckController, getPitchDeckProgressController, getIndustrySlidesController,
     getAllIndustriesController, correctSlideController, trackSlideCorrectionProgressController,
     exportPitchDeckFilesController, getPitchDeckFileController, getUserPitchDecksController, deletePitchDeckController,
-    searchPitchDecksController
+    searchPitchDecksController, calculateDeckGenerationCostController
  } = require('../controllers/pitchDeckController');
 
 const router = express.Router();
@@ -12,6 +12,7 @@ router.post('/create', authMiddleware, createPitchDeckController);
 router.get('/industries', getAllIndustriesController);
 router.get('/user', authMiddleware, getUserPitchDecksController);
 router.get('/search', authMiddleware, searchPitchDecksController);
+router.post('/cost', authMiddleware, calculateDeckGenerationCostController);
 router.post('/export/:deckId', authMiddleware, exportPitchDeckFilesController);
 router.put('/correct/:slideId', authMiddleware, correctSlideController);
 router.get('/correction/progress/:slideId', authMiddleware, trackSlideCorrectionProgressController);

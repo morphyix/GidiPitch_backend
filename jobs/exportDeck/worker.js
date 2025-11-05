@@ -9,6 +9,8 @@ const { modifyUserTokensService } = require('../../services/authService');
 
 const exportDeckWorker = new Worker('exportQueue', async (job) => {
     console.log('Processing export job:', job.id);
+    let pdfTx;
+    let pptxTx;
 
     const { deckId, startupName, formats, oldKeys, userId } = job.data;
     if (!deckId || !startupName) {
@@ -20,12 +22,12 @@ const exportDeckWorker = new Worker('exportQueue', async (job) => {
     }
 
     try {
-        // Deduct tokens for export
-        if (formats.pdf) {
-            await modifyUserTokensService(userId, 'deduct', 5); // Deduct 5 tokens for PDF export
+        // Deduct tokens for pptx export
+        if (formats?.pptx) {
+            pptxTx = await modifyUserTokensService(userId, 'deduct', 5, `Exporting pitch deck ${startupName} to PPTX`, `${job.id}-pptx`); // Deduct 5 tokens for PPTX export
         }
-        if (formats.pptx) {
-            await modifyUserTokensService(userId, 'deduct', 5); // Deduct 5 tokens for PPTX export
+        if (formats?.pdf) {
+            pdfTx = await modifyUserTokensService(userId, 'deduct', 5, `Exporting pitch deck ${startupName} to PDF`, `${job.id}-pdf`); // Deduct 5 tokens for PDF export
         }
         // Update deck status to 'exporting'
         await updateDeckByIdService(deckId, { status: 'exporting', activityStatus: 'Exporting deck to PPTX and PDF formats' });
@@ -58,6 +60,14 @@ const exportDeckWorker = new Worker('exportQueue', async (job) => {
         console.error('Error during deck export for deck:', deckId, error);
         // Update deck status to 'error' in case of failure
         await updateDeckByIdService(deckId, { status: 'failed', activityStatus: `Error during deck export: ${error.message}` });
+        if (formats?.pptx) {
+            // Refund tokens for failed pptx export
+            await modifyUserTokensService(userId, 'refund', 5, `Refund for failed PPTX export of ${startupName}`, pptxTx.jobId); // Refund 5 tokens for failed PPTX export
+        }
+        if (formats?.pdf) {
+            // Refund tokens for failed pdf export
+            await modifyUserTokensService(userId, 'refund', 5, `Refund for failed PDF export of ${startupName}`, pdfTx.jobId); // Refund 5 tokens for failed PDF export
+        }
         throw error;
     }
 }, {
