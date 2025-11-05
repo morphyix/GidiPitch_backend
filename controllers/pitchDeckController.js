@@ -620,7 +620,89 @@ const searchPitchDecksController = async (req, res, next) => {
         console.error('Error in searchPitchDecksController:', error);
         next(new AppError(error.message, 500));
     }
-}
+};
+
+
+// Calucluate deck generation amount controller
+const calculateDeckGenerationCostController = async (req, res, next) => {
+    try {
+        const { slides, imageGenType } = req.body;
+        if (!slides || !Array.isArray(slides) || slides.length === 0) {
+            return next(new AppError('Slides array is required to calculate cost', 400));
+        }
+
+        if (!imageGenType || (imageGenType !== 'manual' && imageGenType !== 'ai')) {
+            return next(new AppError('Startup data is required to calculate cost', 400));
+        }
+
+        const user = req.user;
+        if (!user || !user._id) {
+            return next(new AppError('User not authenticated', 401));
+        }
+
+        // Calculate cost based on number of slides
+        let baseCostPerSlide = 4; // Base 4 tokens per slide
+        if (imageGenType && imageGenType === 'ai') {
+            baseCostPerSlide += 6; // Additional 6 tokens per slide for AI images
+        }
+        const teamSlideCost = 4; // Additional 4 tokens for team slide
+        let totalCost = 0;
+
+        for (const slide of slides) {
+            if (slide === 'team') {
+                totalCost += teamSlideCost;
+            } else {
+                totalCost += baseCostPerSlide;
+            }
+        }
+
+        // Add cost for export
+        totalCost += 10; // 10 tokens for export
+
+        let balanceToPurchase = 0;
+
+        // Check if user has sufficient tokens and if not return balance token to be purchased for the transaction
+        if (user.tokens < totalCost) {
+            balanceToPurchase = totalCost - user.tokens;
+        } else {
+            balanceToPurchase = 0;
+        }
+
+        // Calculate equivalent in dollars and naira
+        const dollarCost = (balanceToPurchase / 10) * 0.15; // Since 10 tokens = 0.15 USD
+
+        const exchangeRate = process.env.NAIRA_EXCHANGE_RATE ? parseFloat(process.env.NAIRA_EXCHANGE_RATE) : 1500; // Default to 1500 if not set
+        const nairaCost = dollarCost * exchangeRate;
+
+        const message = balanceToPurchase > 0 ?
+            `You need to purchase at least ${balanceToPurchase} more tokens to proceed with deck generation.` :
+            'You have sufficient tokens to proceed with deck generation.';
+        
+        const toPay = balanceToPurchase > 0 ? true : false;
+
+        return res.status(200).json({
+            status: 'success',
+            message,
+            data: {
+                toPay,
+                totalCostInTokens: totalCost,
+                userCurrentTokens: user.tokens,
+                balanceToPurchase,
+                equivalentCost: {
+                    usd: dollarCost.toFixed(2),
+                    naira: nairaCost.toFixed(2),
+                }
+            }
+        })
+
+    } catch (error) {
+        if (error instanceof AppError) {
+            return next(error);
+        }
+        console.error('Error in calculateDeckGenerationCostController:', error);
+        next(new AppError(error.message, 500));
+    }
+};
 
 // Export the controller
 module.exports = {
@@ -635,4 +717,5 @@ module.exports = {
     getUserPitchDecksController,
     deletePitchDeckController,
     searchPitchDecksController,
+    calculateDeckGenerationCostController
 };

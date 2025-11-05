@@ -31,8 +31,8 @@ const DEFAULT_IMAGES = {
   team: extractFileKey('https://files.thebigphotocontest.com/gidiPitch/profile.png'),
 };
 
-// Limit concurrency to 2 slides at once
-const limit = pLimit(2);
+// Limit concurrency to 4 slides at once
+const limit = pLimit(4);
 
 // --- Helper function to calculate and update overall deck progress ---
 async function updateDeckProgress(deckId) {
@@ -54,11 +54,14 @@ async function processSlide({
   deckId,
   imageGenType,
   userId,
+  jobId
 }) {
+    let textTx;
+    let imageTx;
   try {
     await updateDeckByIdService(deckId, { activityStatus: `Generating content for ${key}` });
     await updateSlideByIdService(slideId, { status: 'generating', progress: 20 });
-    await modifyUserTokensService(userId, 'deduct', 4); // Deduct 4 tokens per slide generation
+    textTx = await modifyUserTokensService(userId, 'deduct', 4, `Generating text content for slide ${key}`, `${jobId}-text`); // Deduct 4 tokens per slide generation
 
     const slideContent = await generateSlideContent(slidePrompt, { model: 'gemini-2.5-pro'});
     slideContent.status = imageGenType === 'ai' ? 'image_gen' : 'ready';
@@ -85,9 +88,10 @@ async function processSlide({
       const imageProgressIncrement = Math.floor(50 / slideContent.images.length);
 
       await Promise.allSettled(
-        slideContent.images.map(async (image) => {
+        slideContent.images.map(async (image, i) => {
           try {
-            await modifyUserTokensService(userId, 'deduct', 6); // Deduct 6 tokens per image generation
+            imageTx = await modifyUserTokensService(userId, 'deduct', 6, `Generating image for slide ${key}`, `${jobId}-image-${i + 1}`); // Deduct 6 tokens per image generation
+
             const imgObj = await generateSlideImage(image.prompt, { caption: image.caption });
             await updateSlideImageService(slideId, image.caption, {
               key: imgObj.key,
@@ -102,6 +106,11 @@ async function processSlide({
               status: 'failed',
               error: err.message,
             });
+            // Refund tokens for failed image generation
+            if (imageTx?.jobId) {
+                await modifyUserTokensService(userId, 'refund', 6, `Refund for failed image generation on slide ${key}`, imageTx.jobId); // Refund 6 tokens for failed image generation
+            }
+            console.error(`Error generating image for slide ${key}:`, err);
           }
         }),
       );
@@ -128,6 +137,10 @@ async function processSlide({
   } catch (err) {
     console.error(`Slide ${key} failed:`, err);
     await updateSlideByIdService(slideId, { status: 'failed', error: err.message });
+    // Refund tokens for failed slide generation
+    if (textTx?.jobId) {
+        await modifyUserTokensService(userId, 'refund', 4, `Refund for failed slide ${key} text content generation`, textTx.jobId); // Refund 4 tokens for failed slide generation
+    }
     await updateDeckProgress(deckId);
     return { key, success: false, error: err.message };
   }
@@ -137,6 +150,7 @@ async function processSlide({
 const pitchDeckWorker = new Worker(
   'pitchDeckQueue',
   async (job) => {
+    let brandTx;
     const { deckId, prompts, startupData, deckSlides, imageGenType, tailwindPrompt, userId } = job.data;
 
     if (!deckId || !prompts || !deckSlides || !userId) {
@@ -144,6 +158,10 @@ const pitchDeckWorker = new Worker(
     }
 
     console.log(`Processing pitch deck job ${job.id} for deck ${deckId}`);
+
+    // Deduct token for brandKit
+    brandTx = await modifyUserTokensService(userId, 'deduct', 3, `Generating brand kit for deck ${deckId}`, `${job.id}-brandkit`); // Deduct 3 tokens for brand kit generation
+    job.data.brandTx = brandTx
 
     // Step 1: Generate brand kit once
     const brandKit = await generateBrandKit(tailwindPrompt);
@@ -173,6 +191,7 @@ const pitchDeckWorker = new Worker(
             deckId,
             imageGenType,
             userId,
+            jobId: job.id,
           }),
         ),
       ),
@@ -202,6 +221,10 @@ pitchDeckWorker.on('failed', async (job, err) => {
   console.error(`Pitch deck job failed: ${job.id}, Error: ${err.message}`);
   if (job.data?.deckId) {
     await updateDeckByIdService(job.data.deckId, { status: 'failed', error: err.message });
+    // Refund brandKit
+    if (job.data?.brandTx?.jobId) {
+        await modifyUserTokensService(job.data.userId, 'refund', 3, `Refund for failed brand kit generation for deck ${job.data.deckId}`, job.data.brandTx.jobId); // Refund 3 tokens for failed brand kit generation
+    }
   }
 });
 

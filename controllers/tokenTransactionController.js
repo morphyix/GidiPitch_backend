@@ -17,7 +17,9 @@ const addPurchaseTokensController = async (req, res, next) => {
         // Convert amount to tokens (0.15 USD = 10 tokens)
         const tokensToAdd = Math.floor((amount / 0.15) * 10);
 
-        const updatedUser = await modifyUserTokensService(user._id, 'add', tokensToAdd);
+        const result = await modifyUserTokensService(user._id, 'add', tokensToAdd);
+
+        const updatedUser = result.updatedUser;
 
         // Record the token transaction
         await createTokenTransactionService(user._id, 'add', amount, tokensToAdd, updatedUser.tokens, paymentMethod);

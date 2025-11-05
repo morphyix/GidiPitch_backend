@@ -2,10 +2,10 @@ const mongoose = require('mongoose');
 const TokenTransaction = require('../models/tokenTransaction');
 const { AppError } = require('../utils/error');
 
-const TRANSACTION_TYPES = ['add', 'deduct'];
+const TRANSACTION_TYPES = ['add', 'deduct', 'refund'];
 
 // Service to create a new token transaction
-const createTokenTransactionService = async (userId, type, amount, quantity, balanceAfter, paymentMethod) => {
+const createTokenTransactionService = async (userId, type, amount, quantity, balanceAfter, paymentMethod, operation, session=null, jobId) => {
   try {
     if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
       throw new AppError('Invalid or missing user ID', 400);
@@ -13,24 +13,39 @@ const createTokenTransactionService = async (userId, type, amount, quantity, bal
     if (!TRANSACTION_TYPES.includes(type)) {
       throw new AppError('Invalid transaction type', 400);
     }
-    if (amount <= 0) {
+    if (amount <= 0 && type === 'add') {
       throw new AppError('Invalid transaction amount', 400);
     }
-    if (balanceAfter < 0) {
+    if (balanceAfter < 0 && type === 'add') {
       throw new AppError('Invalid balance after transaction', 400);
     }
     if (quantity <= 0) {
       throw new AppError('Invalid transaction quantity', 400);
     }
 
-    const newTransaction = await TokenTransaction.create({
+    const transactionLog = {
       userId,
       type,
-      amount,
       quantity,
-      balanceAfter,
-      paymentMethod
-    });
+    }
+
+    if (operation) {
+      transactionLog.operation = operation;
+    }
+
+    if (type === 'add') {
+      transactionLog.amount = amount;
+      transactionLog.balanceAfter = balanceAfter;
+      transactionLog.paymentMethod = paymentMethod;
+    }
+
+    if ((type === 'deduct' || type === 'refund') && jobId) {
+      transactionLog.jobId = jobId;
+    }
+
+    const options = session ? { session } : {};
+
+    const newTransaction = await TokenTransaction.create(transactionLog, options);
 
     return newTransaction;
   } catch (error) {
