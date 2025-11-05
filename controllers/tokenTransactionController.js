@@ -23,7 +23,6 @@ const addPurchaseTokensController = async (req, res, next) => {
         const result = await modifyUserTokensService(user._id, 'add', tokensToAdd);
 
         const updatedUser = result.updatedUser;
-        console.log(user._id, `added ${tokensToAdd} tokens via ${paymentMethod} purchase.`);
 
         // Record the token transaction
         await createTokenTransactionService(user._id, 'add', amount, tokensToAdd, updatedUser.tokens, paymentMethod);
