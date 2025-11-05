@@ -7,6 +7,9 @@ const { AppError } = require('../utils/error');
 const addPurchaseTokensController = async (req, res, next) => {
     try {
         const user = req.user; // Assuming user is attached to req by auth middleware
+        if (!user || !user._id) {
+            throw new AppError('User not authenticated', 401);
+        }
         const { amount } = req.body;
         const paymentMethod = req.paymentMethod || 'paystack';
 
