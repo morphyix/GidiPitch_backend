@@ -24,9 +24,9 @@ const createTokenTransactionService = async (userId, type, amount, quantity, bal
     }
 
     const transactionLog = {
-      userId,
-      type,
-      quantity,
+      userId: userId,
+      type: type,
+      quantity: quantity,
     }
 
     if (operation) {
@@ -43,9 +43,12 @@ const createTokenTransactionService = async (userId, type, amount, quantity, bal
       transactionLog.jobId = jobId;
     }
 
-    const options = session ? { session } : {};
-
-    const newTransaction = await TokenTransaction.create(transactionLog, options);
+    let newTransaction;
+    if (session) {
+      newTransaction = (await TokenTransaction.create([transactionLog], { session }))[0];
+    } else {
+      newTransaction = await TokenTransaction.create(transactionLog);
+    }
 
     return newTransaction;
   } catch (error) {
