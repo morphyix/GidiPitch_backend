@@ -166,6 +166,10 @@ const getPitchDeckProgressController = async (req, res, next) => {
 
         const currentStatus = deck.activityStatus;
         // Return error if deck generation failed:
+        if (deck.status === 'failed') {
+            return next(new AppError('An error occured when generating deck, please try again later', 500))
+        }
+
         return res.status(200).json({
             status: 'success',
             message: 'Deck progress fetched successfully',
