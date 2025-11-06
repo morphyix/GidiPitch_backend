@@ -75,7 +75,7 @@ async function processSlide({
       amount: 4,
     });
 
-    const slideContent = await generateSlideContent(slidePrompt, { model: 'gemini-2.5-flash' });
+    const slideContent = await generateSlideContent(slidePrompt, { model: 'gemini-2.5-pro' });
     slideContent.status = imageGenType === 'ai' ? 'image_gen' : 'ready';
     slideContent.progress = imageGenType === 'ai' ? 50 : 100;
 
@@ -224,7 +224,7 @@ const pitchDeckWorker = new Worker(
       const brandTx = await modifyUserTokensService(
         userId,
         'deduct',
-        3,
+        4,
         `Generating brand kit for deck ${deckId}`,
         `${job.id}-brandkit`,
       );
@@ -235,7 +235,7 @@ const pitchDeckWorker = new Worker(
       // ✅ Store in job data for failed handler access
       await job.updateData({ ...job.data, brandTx, trackingData });
 
-      const brandKit = await generateBrandKit(tailwindPrompt);
+      const brandKit = await generateBrandKit(tailwindPrompt, { model: 'gemini-2.5-pro' });
       const brandKitObj = {
         background: brandKit.background || 'bg-amber-950',
         title: brandKit.title || 'text-yellow-400',
@@ -324,7 +324,7 @@ pitchDeckWorker.on('failed', async (job, err) => {
         await modifyUserTokensService(
           job.data.userId,
           'refund',
-          3,
+          4,
           `Refund for failed brand kit generation for deck ${job.data.deckId}`,
           job.data.brandTx.jobId,
         );

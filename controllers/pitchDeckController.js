@@ -660,6 +660,9 @@ const calculateDeckGenerationCostController = async (req, res, next) => {
         // Add cost for export
         totalCost += 10; // 10 tokens for export
 
+        // Add cost for brandkit
+        totalCost += 4
+
         let balanceToPurchase = 0;
 
         // Check if user has sufficient tokens and if not return balance token to be purchased for the transaction
