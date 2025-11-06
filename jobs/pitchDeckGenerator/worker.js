@@ -224,7 +224,7 @@ const pitchDeckWorker = new Worker(
       const brandTx = await modifyUserTokensService(
         userId,
         'deduct',
-        3,
+        4,
         `Generating brand kit for deck ${deckId}`,
         `${job.id}-brandkit`,
       );
@@ -324,7 +324,7 @@ pitchDeckWorker.on('failed', async (job, err) => {
         await modifyUserTokensService(
           job.data.userId,
           'refund',
-          3,
+          4,
           `Refund for failed brand kit generation for deck ${job.data.deckId}`,
           job.data.brandTx.jobId,
         );
