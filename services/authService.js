@@ -176,72 +176,175 @@ const deleteUserService = async (userId) => {
 
 
 // Add or deduct tokens from user account
-const modifyUserTokensService = async (userId, operation, amount, reason, jobId) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
-    try {
-        if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
-            throw new AppError('Invalid user ID', 400);
-        }
-        if (!['add', 'deduct', 'refund'].includes(operation)) {
-            throw new AppError('Invalid operation type, must be "add", "deduct" or "refund"', 400);
-        }
+const modifyUserTokensService = async (userId, operation, amount, reason, jobId, maxRetries = 5) => {
+    let attempt = 0;
 
-        if (amount <= 0) {
-            throw new AppError('Amount must be greater than zero', 400);
-        }
+    // ✅ Retry loop for transaction conflicts
+    while (attempt < maxRetries) {
+        const session = await mongoose.startSession();
+        
+        try {
+            // ✅ Set transaction options HERE (not on individual operations)
+            session.startTransaction({
+                readConcern: { level: 'snapshot' },
+                writeConcern: { w: 'majority' },
+                readPreference: 'primary',
+                maxTimeMS: 1000
+            });
+            
+            attempt++;
 
-        // Check if deduct or refund operation with jobId already exists to prevent duplicates
-        let effectiveJobId = jobId;
-        if ((operation === 'deduct' || operation === 'refund') && jobId) {
-            const existingDeduct = await TokenTransaction.findOne({ userId, type: 'deduct', jobId }).session(session);
-            const existingRefund = await TokenTransaction.findOne({ userId, type: 'refund', jobId }).session(session);
-            if (operation === 'deduct' && existingDeduct) {
-                if (!existingRefund) {
-                    console.error(`Deduct operation for jobId ${jobId} already exists, skipping duplicate deduction. Aborting job`);
-                    await session.abortTransaction();
-                    return;
-                } else {
-                    const retryCount = await TokenTransaction.countDocuments({ userId, jobId: new RegExp(`^${jobId}`)});
-                    effectiveJobId = `${jobId}-${retryCount + 1}`;
-                    console.log(`Retry detected for job ${jobId}, new jobId: ${effectiveJobId}`);
-                }
-            } else if (operation === 'refund' && existingRefund) {
-                console.log(`Refund already processed for ${jobId}`);
-                await session.abortTransaction();
-                return;
+            // Validation
+            if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+                throw new AppError('Invalid user ID', 400);
             }
+            if (!['add', 'deduct', 'refund'].includes(operation)) {
+                throw new AppError('Invalid operation type, must be "add", "deduct" or "refund"', 400);
+            }
+            if (amount <= 0) {
+                throw new AppError('Amount must be greater than zero', 400);
+            }
+
+            console.log(`Token ${operation} attempt ${attempt}/${maxRetries} for user ${userId}`);
+
+            // Check for duplicate operations
+            let effectiveJobId = jobId;
+            if ((operation === 'deduct' || operation === 'refund') && jobId) {
+                const existingDeduct = await TokenTransaction.findOne({ 
+                    userId, 
+                    type: 'deduct', 
+                    jobId 
+                }).session(session);
+                
+                const existingRefund = await TokenTransaction.findOne({ 
+                    userId, 
+                    type: 'refund', 
+                    jobId 
+                }).session(session);
+
+                if (operation === 'deduct' && existingDeduct) {
+                    if (!existingRefund) {
+                        console.log(`Deduct operation for jobId ${jobId} already exists, skipping duplicate.`);
+                        await session.abortTransaction();
+                        session.endSession();
+                        return { 
+                            updatedUser: await User.findById(userId), 
+                            jobId: effectiveJobId,
+                            skipped: true 
+                        };
+                    } else {
+                        // Retry scenario
+                        const retryCount = await TokenTransaction.countDocuments({ 
+                            userId, 
+                            jobId: new RegExp(`^${jobId}`) 
+                        }).session(session);
+                        effectiveJobId = `${jobId}-${retryCount + 1}`;
+                        console.log(`Retry detected for job ${jobId}, new jobId: ${effectiveJobId}`);
+                    }
+                } else if (operation === 'refund' && existingRefund) {
+                    console.log(`Refund already processed for ${jobId}`);
+                    await session.abortTransaction();
+                    session.endSession();
+                    return { 
+                        updatedUser: await User.findById(userId), 
+                        jobId: effectiveJobId,
+                        skipped: true 
+                    };
+                }
+            }
+
+            const delta = operation === 'deduct' ? -Math.abs(amount) : Math.abs(amount);
+
+            // ✅ REMOVE writeConcern from individual operation
+            const updatedUser = await User.findOneAndUpdate(
+                { 
+                    _id: userId, 
+                    ...(operation === 'deduct' ? { tokens: { $gte: amount } } : {}) 
+                },
+                { $inc: { tokens: delta } },
+                { 
+                    new: true, 
+                    session
+                    // ❌ REMOVED: writeConcern (it's set on the transaction)
+                }
+            );
+
+            if (!updatedUser) {
+                throw new AppError(
+                    operation === 'deduct' ? 'Insufficient tokens' : 'User not found', 
+                    400
+                );
+            }
+
+            // Create token transaction record
+            if (operation === 'deduct' || operation === 'refund') {
+                await createTokenTransactionService(
+                    userId, 
+                    operation, 
+                    0, 
+                    amount, 
+                    updatedUser.tokens, 
+                    'none', 
+                    reason, 
+                    session, 
+                    effectiveJobId
+                );
+            }
+
+            // ✅ Commit transaction
+            await session.commitTransaction();
+            session.endSession();
+
+            console.log(`✓ Token ${operation} successful, new balance: ${updatedUser.tokens}`);
+            
+            return { 
+                updatedUser, 
+                jobId: effectiveJobId,
+                retriedAttempts: attempt - 1 
+            };
+
+        } catch (error) {
+            // ✅ Abort transaction on error
+            await session.abortTransaction();
+            session.endSession();
+
+            // ✅ Check if it's a transient transaction error (write conflict)
+            const isTransientError = 
+                error.errorLabels?.includes('TransientTransactionError') ||
+                error.code === 112 || 
+                error.codeName === 'WriteConflict' ||
+                (error.name === 'MongoServerError' && error.message.includes('Write conflict'));
+
+            if (isTransientError && attempt < maxRetries) {
+                // Calculate exponential backoff with jitter
+                const baseDelay = 100; // 100ms base for transactions
+                const exponentialDelay = Math.min(baseDelay * Math.pow(2, attempt - 1), 3000);
+                const jitter = Math.random() * 100;
+                const delay = exponentialDelay + jitter;
+
+                console.warn(
+                    `⚠️  Transaction conflict on attempt ${attempt}/${maxRetries}, ` +
+                    `retrying in ${Math.round(delay)}ms... (${error.codeName || error.code})`
+                );
+
+                await new Promise(resolve => setTimeout(resolve, delay));
+                continue; // ✅ Retry
+            }
+
+            // ✅ For non-transient errors, throw immediately
+            console.error('Error modifying user tokens:', error);
+            
+            if (error instanceof AppError) throw error;
+            
+            throw new AppError('An error occurred while modifying user tokens', 500);
         }
-
-        const delta = operation === 'deduct' ? -Math.abs(amount) : Math.abs(amount);
-
-        // Update user's token atomically with condition
-        const updatedUser = await User.findOneAndUpdate(
-            { _id: userId, ...(operation === 'deduct' ? { tokens: { $gte: amount } } : {}) },
-            { $inc: { tokens: delta } },
-            { new: true, runValidators: true, session }
-        );
-
-        if (!updatedUser) {
-            throw new AppError(operation === 'deduct' ? 'Insufficient tokens' : 'User not found', 400);
-        }
-
-        // Create token transaction record if operation is deduct or refund
-        if (operation === 'deduct' || operation === 'refund') {
-            await createTokenTransactionService(userId, operation, 0, amount, updatedUser.tokens, 'none', reason, session, effectiveJobId);
-        }
-
-        await session.commitTransaction();
-
-        return { updatedUser, jobId: effectiveJobId };
-    } catch (error) {
-        console.error('Error modifying user tokens:', error);
-        await session.abortTransaction();
-        if (error instanceof AppError) throw error; // Re-throw AppError for handling in the controller
-        throw new AppError('An error occurred while modifying user tokens', 500);
-    } finally {
-        session.endSession();
     }
+
+    // ✅ Failed after all retries
+    throw new AppError(
+        `Failed to modify user tokens after ${maxRetries} attempts due to transaction conflicts`, 
+        500
+    );
 };
 
 

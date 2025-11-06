@@ -9,6 +9,7 @@ const { sanitize } = require('../utils/helper');
 const { addSlideCorrectionJob } = require('../jobs/slideCorrection/queue');
 const { addExportJob } = require('../jobs/exportDeck/queue');
 const { deleteFileService } = require('../services/uploadService');
+const { getFailedDeckJobByIdService, deleteFailedDeckJobService } = require('../services/failedDeckJobService');
 
 
 // Controller to handle pitch deck creation request
@@ -704,6 +705,88 @@ const calculateDeckGenerationCostController = async (req, res, next) => {
     }
 };
 
+
+// Resume failed deck job controller
+const resumeFailedDeckJobController = async (req, res, next) => {
+    try {
+        const user = req.user;
+        if (!user || !user._id) {
+            return next(new AppError('User not authenticated', 401));
+        }
+
+        const { deckId } = req.params;
+        if (!deckId) {
+            return next(new AppError('deckId parameter is required', 400));
+        }
+
+        // Check for failed deck job
+        const failedJob = await getFailedDeckJobByIdService(deckId);
+        if (!failedJob) {
+            return next(new AppError('No failed deck job found to resume', 404));
+        }
+
+        // creat a slide array by extracting from deck slides object array
+        const slideTypes = failedJob.slides.map(slide => Object.keys(slide)[0]);
+        
+        // Get pitch deck startup data
+        const startupData = await getDeckByIdService(deckId);
+        if (!startupData) {
+            return next(new AppError('Associated deck not found', 404));
+        }
+
+        // Create the deck slides object
+        const deckSlides = {};
+        for (const slide of failedJob.slides) {
+            const slideType = Object.keys(slide)[0];
+            deckSlides[slideType] = slide[slideType];
+        }
+        console.log('Deck Slides to resume:', deckSlides);
+
+        // Generate prompts for each slide
+        const prompts = generatePromptsForSlides(startupData, slideTypes);
+        if (!prompts || Object.keys(prompts).length === 0) {
+            return next(new AppError('Failed to generate prompts for the selected slides', 500));
+        }
+
+        // Create BrandKit prompt
+        const tailwindPrompt = createTailwindPrompt(startupData.brandColor, startupData.brandStyle);
+        if (!tailwindPrompt) {
+            return next(new AppError('Failed to generate Tailwind CSS prompt for brand kit', 500));
+        }
+
+        // Add a job to the pitch deck generation queue
+        const jobData = {
+            deckId: failedJob.deckId,
+            prompts,
+            startupData: startupData.toObject(),
+            deckSlides,
+            imageGenType: startupData.imageGenType,
+            tailwindPrompt,
+            userId: user._id
+        }
+
+        await addPitchDeckJob(jobData);
+
+        // Delete the failed deck job entry
+        await deleteFailedDeckJobService(failedJob.deckId);
+
+        res.status(200).json({
+            status: 'success',
+            message: 'Failed deck job resumed successfully',
+            data: {
+                deckId: failedJob.deckId,
+                slides: failedJob.slides,
+            }
+        });
+    } catch (error) {
+        if (error instanceof AppError) {
+            return next(error);
+        }
+        console.error('Error in resumeFailedDeckJobController:', error);
+        next(new AppError(error.message, 500));
+    }
+}
+
 // Export the controller
 module.exports = {
     createPitchDeckController,
@@ -717,5 +800,6 @@ module.exports = {
     getUserPitchDecksController,
     deletePitchDeckController,
     searchPitchDecksController,
-    calculateDeckGenerationCostController
+    calculateDeckGenerationCostController,
+    resumeFailedDeckJobController,
 };
