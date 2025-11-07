@@ -75,7 +75,7 @@ const deleteFailedDeckJobService = async (deckId) => {
         }
 
         // Delete failed deck job
-        const deletedJob = await FailedDeckJob.findOneAndDelete({ deckId });
+        const deletedJob = await FailedDeckJob.deleteMany({ deckId });
         if (!deletedJob) {
             throw new AppError('Failed deck job not found or already deleted', 404);
         }

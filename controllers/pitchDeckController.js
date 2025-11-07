@@ -10,6 +10,7 @@ const { addSlideCorrectionJob } = require('../jobs/slideCorrection/queue');
 const { addExportJob } = require('../jobs/exportDeck/queue');
 const { deleteFileService } = require('../services/uploadService');
 const { getFailedDeckJobByIdService, deleteFailedDeckJobService } = require('../services/failedDeckJobService');
+const { getFailedSlideJobBySlideIdService, deleteFailedSlideJobBySlideIdService} = require('../services/failedSlideJobService');
 
 
 // Controller to handle pitch deck creation request
@@ -792,7 +793,77 @@ const resumeFailedDeckJobController = async (req, res, next) => {
         console.error('Error in resumeFailedDeckJobController:', error);
         next(new AppError(error.message, 500));
     }
-}
+};
+
+
+// Resume failed slide correction job controller
+const resumeFailedSlideJobController = async (req, res, next) => {
+    try {
+        const user = req.user;
+        if (!user || !user._id) {
+            return next(new AppError('User not authenticated', 401));
+        }
+
+        const { slideId } = req.params;
+        if (!slideId) {
+            return next(new AppError('slideId parameter is required', 400));
+        }
+
+        // Check for failed slide job
+        const failedJob = await getFailedSlideJobBySlideIdService(slideId);
+        if (!failedJob) {
+            return next(new AppError('No failed slide correction job found to resume', 404));
+        }
+
+        // Retrieve slide data from database
+        const slideData = await getSlideByIdService(slideId);
+        if (!slideData) {
+            return next(new AppError('Associated slide not found', 404));
+        }
+
+        // User correction text to regenerate slide correction prompt
+        const prompt = failedJob.prompt;
+        if (!prompt) {
+            return next(new AppError('No correction prompt found for the failed slide job', 500));
+        }
+
+        // Ensure slide belongs to user
+        const deck = await getDeckByIdService(slideData.deckId);
+        if (!deck) {
+            return next(new AppError('Associated deck not found', 404));
+        }
+        if (deck.ownerId.toString() !== user._id.toString()) {
+            return next(new AppError('Unauthorized access to this slide', 403));
+        }
+
+        // Add slide correction job
+        const jobData = {
+            slideId,
+            prompt,
+            userId: user._id
+        };
+
+        await addSlideCorrectionJob(jobData);
+
+        // Delete the failed slide job entry
+        await deleteFailedSlideBySlideIdService(failedJob.slideId);
+
+        return res.status(200).json({
+            status: 'success',
+            message: 'Retrying slide correction initiated',
+            data: {
+                slideId,
+                status: 'correction_queued'
+            }
+        });
+    } catch (error) {
+        if (error instanceof AppError) {
+            return next(error);
+        }
+        console.error('Error in resumeFailedSlideJobController:', error);
+        next(new AppError(error.message, 500));
+    }
+};
 
 // Export the controller
 module.exports = {
@@ -809,4 +880,5 @@ module.exports = {
     searchPitchDecksController,
     calculateDeckGenerationCostController,
     resumeFailedDeckJobController,
+    resumeFailedSlideJobController,
 };
