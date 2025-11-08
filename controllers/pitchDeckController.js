@@ -647,11 +647,11 @@ const calculateDeckGenerationCostController = async (req, res, next) => {
         }
 
         // Calculate cost based on number of slides
-        let baseCostPerSlide = 4; // Base 4 tokens per slide
+        let baseCostPerSlide = 7; // Base 7 tokens per slide
         if (imageGenType && imageGenType === 'ai') {
-            baseCostPerSlide += 6; // Additional 6 tokens per slide for AI images
+            baseCostPerSlide += 9; // Additional 9 tokens per slide for AI images
         }
-        const teamSlideCost = 4; // Additional 4 tokens for team slide
+        const teamSlideCost = 7; // Additional 7 tokens for team slide
         let totalCost = 0;
 
         for (const slide of slides) {
@@ -666,7 +666,7 @@ const calculateDeckGenerationCostController = async (req, res, next) => {
         totalCost += 10; // 10 tokens for export
 
         // Add cost for brandkit
-        totalCost += 4
+        totalCost += 5
 
         let balanceToPurchase = 0;
 
