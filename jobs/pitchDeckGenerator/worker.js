@@ -65,7 +65,7 @@ async function processSlide({
     await updateDeckByIdService(deckId, { activityStatus: `Generating content for ${key}` });
     await updateSlideByIdService(slideId, { status: 'generating', progress: 20 });
     
-    textTx = await modifyUserTokensService(userId, 'deduct', 4, `Generating text content for slide ${key}`, `${jobId}-text-${key}`);
+    textTx = await modifyUserTokensService(userId, 'deduct', 7, `Generating text content for slide ${key}`, `${jobId}-text-${key}`);
     
     // ✅ Track this transaction
     trackingData.transactions.push({
@@ -105,7 +105,7 @@ async function processSlide({
           const imageTx = await modifyUserTokensService(
             userId,
             'deduct',
-            6,
+            9,
             `Generating image for slide ${key}`,
             `${jobId}-image-${key}-${i + 1}`,
           );
@@ -170,7 +170,7 @@ async function processSlide({
         await modifyUserTokensService(
           userId,
           'refund',
-          4,
+          7,
           `Refund for failed slide ${key} text content generation`,
           textTx.jobId,
         );
@@ -185,7 +185,7 @@ async function processSlide({
         await modifyUserTokensService(
           userId,
           'refund',
-          6,
+          9,
           `Refund for failed image generation on slide ${key}`,
           imgTx.jobId,
         );
@@ -224,7 +224,7 @@ const pitchDeckWorker = new Worker(
       const brandTx = await modifyUserTokensService(
         userId,
         'deduct',
-        4,
+        5,
         `Generating brand kit for deck ${deckId}`,
         `${job.id}-brandkit`,
       );
@@ -324,7 +324,7 @@ pitchDeckWorker.on('failed', async (job, err) => {
         await modifyUserTokensService(
           job.data.userId,
           'refund',
-          4,
+          5,
           `Refund for failed brand kit generation for deck ${job.data.deckId}`,
           job.data.brandTx.jobId,
         );

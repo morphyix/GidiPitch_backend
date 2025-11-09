@@ -47,7 +47,7 @@ const slideCorrectionWorker = new Worker(
       const textTx = await modifyUserTokensService(
         userId, 
         'deduct', 
-        4, 
+        7, 
         `Generating text content for slide ${slide.slideType}`, 
         `${job.id}-text`
       );
@@ -77,7 +77,7 @@ const slideCorrectionWorker = new Worker(
             imageTx = await modifyUserTokensService(
               userId, 
               'deduct', 
-              6, 
+              9, 
               `Generating image ${i + 1} for slide ${slide.slideType}`, 
               `${job.id}-image-${i + 1}`
             );
@@ -116,11 +116,11 @@ const slideCorrectionWorker = new Worker(
                 await modifyUserTokensService(
                   userId, 
                   'refund', 
-                  6, 
+                  9, 
                   `Refund for failed image ${i + 1} in slide correction`, 
                   imageTx.jobId
                 );
-                console.log(`Refunded 6 tokens for failed image ${i + 1}`);
+                console.log(`Refunded 9 tokens for failed image ${i + 1}`);
                 
                 // ✅ Remove from tracking since we already refunded
                 transactions.images = transactions.images.filter(
@@ -185,7 +185,7 @@ const slideCorrectionWorker = new Worker(
           await modifyUserTokensService(
             userId, 
             'refund', 
-            4, 
+            7, 
             `Refund for failed slide correction`, 
             transactions.text.jobId
           );
@@ -204,7 +204,7 @@ const slideCorrectionWorker = new Worker(
             await modifyUserTokensService(
               userId, 
               'refund', 
-              6, 
+              9, 
               `Refund for image ${imgTx.imageIndex + 1} in failed job`, 
               imgTx.jobId
             );
