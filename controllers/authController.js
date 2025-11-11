@@ -181,14 +181,23 @@ const handleSocialLoginUser = async (req, res, next) => {
 
         // set response cookie with the token
         const loginToken = createJwtToken(user.toObject(), '7d'); // create JWT token with 7 days expiry
+
         // set token in redis with 24hr expiry
         const tokenHash = hashString(loginToken);
         await setRedisCache(tokenHash, 'active', 24 * 60 * 60); // 24 hours expiry
 
+        // set response cookie with the token
+        res.cookie('token', loginToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production', // use secure cookies in production
+            sameSite: 'none', // prevent CSRF attacks
+            maxAge: 7* 24 * 60 * 60 * 1000 // 7 days expiry
+        });
+
         if (isNew) {
-            res.redirect(`${process.env.LIVE_URL}/onboarding?token=${loginToken}`);
+            res.redirect(`${process.env.LIVE_URL}/onboarding`);
         } else {
-            res.redirect(`${process.env.LIVE_URL}/dashboard?token=${loginToken}`);
+            res.redirect(`${process.env.LIVE_URL}/dashboard`);
         }
     } catch (error) {
         next(error);

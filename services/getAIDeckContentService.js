@@ -14,12 +14,25 @@ const DEFAULT_MODEL = "gemini-2.5-flash";
  * @param {Object} options - { retries: number, model: string, generationConfig: Object }
  */
 
+// Slides  Requiring Google Search
+const SEARCH_CRITICAL_SLIDES = new Set([
+    'problem', 'market', 'businessModel', 'competitions', 
+    'vision', 'industrySpecific', 'compliance', 'validation', 
+    'regulation', 'outcomes'
+]);
+
 const generateSlideContent = async (
-    prompt, { retries = 2, model = DEFAULT_MODEL, generationConfig = {} } = {}) => {
+    prompt, { retries = 2, model = DEFAULT_MODEL, generationConfig = {}, key } = {}) => {
         if (!prompt || typeof prompt !== 'string') {
             throw new AppError('Prompt must be a non empty string', 400);
         }
         let lastError = null;
+        const useSearch = key && SEARCH_CRITICAL_SLIDES.has(key);
+        const tools = useSearch ? [{ googleSearch: {} }] : [];
+        if (useSearch) {
+          console.log(`Google Search tool enabled for slide key: ${key}`);
+        }
+        generationConfig.tools = tools;
         for (let attempt = 0; attempt <= retries; attempt++) {
             try {
                 const response = await ai.models.generateContent({
