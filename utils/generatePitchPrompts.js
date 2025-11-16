@@ -167,22 +167,50 @@ const pitchDeckSlidePrompt = (startupData) => {
         cover: baseSlidePrompt(
             "cover",
             `${startupName}`,
-            `Analyze: What does ${startupName} actually do? What value does it create? For whom?
-Look at: solutions, features, businessModel, industry context.`,
-            `Generate ONE compelling tagline (max 12 words) that clearly communicates what ${startupName} does and why it matters.
+            `Analyze: What does ${startupName} actually do? What value does it create? For whom? What's the key differentiator?
+Look at: solutions, features, businessModel (especially pricing), industry context.
+Extract: The ONE thing that makes this startup memorable and fundable.`,
+            `Generate ONE compelling tagline (max 10 words) that makes an investor stop and pay attention.
 
-Think: "What would I tell an investor in an elevator?"
-Style: Direct, memorable, jargon-free.
-Examples of great taglines:
-- "Stripe: Payments infrastructure for the internet"
-- "Notion: One workspace for your team"  
-- "Figma: Where teams design together"
+WINNING FORMULA OPTIONS:
+1. **Value + Price Anchoring**: "[What you do] for [dramatic price point]"
+   Example: "Investor-ready pitch decks for $1.35"
+   Example: "Bank-grade security for $10/month"
 
-Analyze the solution ("${solutions}"), features ("${features}"), and industry context to craft something similar.
-(RETURN EXACTLY ONE BULLET POINT)`,
-            `Generate one sentence capturing the core value proposition, drawing from solutions, features, and businessModel context.`,
+2. **Category + Audience**: "[Category leader] for [specific market]"
+   Example: "Stripe for African founders"
+   Example: "Notion for Nigerian SMEs"
+
+3. **Transformation Statement**: "[Specific outcome] in [time/cost]"
+   Example: "Series A-ready decks in 5 minutes"
+   Example: "Verified riders in under 2 minutes"
+
+CRITICAL ANALYSIS STEPS:
+1. Look at businessModel - is there disruptive pricing? (e.g., $1.35 vs. $100/month) → USE IT
+2. Look at solutions + features - what's the core transformation? (e.g., "weeks to minutes")
+3. Look at industry + scope - is there geographic specificity? (e.g., "African," "Nigerian")
+4. Combine the MOST COMPELLING element into 7-10 words
+
+EXAMPLES FROM REAL SUCCESSFUL STARTUPS:
+- "Stripe: Payments infrastructure for the internet" (7 words)
+- "Notion: One workspace for your team" (6 words)
+- "Figma: Where teams design together" (5 words)
+- "Airbnb: Belong anywhere" (2 words + context)
+
+BAD EXAMPLES TO AVOID:
+❌ "The AI pitch deck generator for emerging market startups" (too long, too generic)
+❌ "Revolutionizing fundraising with cutting-edge AI" (hyperbole, vague)
+❌ "Affordable, pay-as-you-go AI platform for professional pitch decks" (feature list, not hook)
+
+YOUR TASK:
+Analyze "${solutions}", "${features}", and especially "${businessModel}" (look for pricing).
+Create a 7-10 word tagline using one of the formulas above.
+If there's a dramatic price point ($1-5 range), LEAD WITH IT.
+
+(RETURN EXACTLY ONE BULLET POINT - THE TAGLINE ONLY)`,
+            `Generate one sentence (max 15 words) that expands on the tagline by stating WHO benefits and HOW. Use solutions, features, and businessModel to make this concrete and specific.`,
             "full-image",
-            `1 clean, professional hero image representing ${industry} in ${scopeContext}. Style: ${brandStyle}. Show real-world application, not abstract concepts.`,
+            `1 clean, professional hero image representing ${industry} in ${scopeContext}. Style: ${brandStyle}. Show the CUSTOMER using the product in a real scenario, not abstract concepts or technology. Example: For pitch deck tool, show a founder presenting to investors. For logistics, show a delivery in progress.`,
             startupData
         ),
 
@@ -331,27 +359,33 @@ Make the market real, sized, and urgent.`,
         businessModel: baseSlidePrompt(
             "businessModel",
             "Business Model",
-            `Analyze: How does this startup make money? What are the unit economics?
-Look at: businessModel, features, moreInfo (may contain pricing, LTV, CAC, margin data).
-Calculate: What's realistic for LTV/CAC at this stage? What's the path to positive unit economics?`,
-            `Generate 3 bullets (max 20 words each) showing how money flows:
+            `Analyze: How does this startup make money? What's the revenue model? What are the unit economics? How does it scale?
+Look at: businessModel (PRIMARY SOURCE - should contain pricing model, revenue streams), features (what's monetized), moreInfo (may contain LTV, CAC, margin data, pricing tiers).
+Critical: If pricing is dramatically different from competitors (e.g., $1 vs. $100), this is your differentiation story.`,
+            `Generate 3 bullets (max 20 words each) showing the business model clarity:
 
-BULLET 1: Primary revenue model with specific pricing
-Example: "$10/month SaaS subscription + $2 per document export for premium features"
-(Extract from businessModel and features)
+BULLET 1: Revenue model with SPECIFIC pricing architecture
+Example: "Pay-as-you-go: $1.35 average per deck vs. competitor subscriptions at $100+/month (98% cost reduction)"
+Example: "Freemium SaaS: $10/month premium + $2 per export; targeting 20% conversion rate"
+Example: "Transaction fee: 3% of delivery value + $0.50 flat fee per completed ride"
+(Extract from businessModel - be SPECIFIC about pricing, tiers, transaction mechanics)
 
-BULLET 2: Target unit economics
-Example: "Targeting $90 LTV / $20 CAC = 4.5:1 ratio at scale"
-(Look in moreInfo for targets, or calculate based on pricing and typical SaaS benchmarks)
+BULLET 2: Unit economics with clear path to profitability
+Example: "Targeting $90 LTV / $20 CAC = 4.5:1 ratio; 80%+ gross margins from automated infrastructure"
+Example: "Current: $45 LTV, $15 CAC = 3:1 ratio; improving to 5:1 at scale via network effects"
+(Look in moreInfo for LTV/CAC data, or calculate realistic targets based on pricing and industry benchmarks)
 
-BULLET 3: Path to margin improvement
-Example: "Near-zero marginal cost after initial AI training; 80%+ gross margins at 10K users"
-(Explain the economic leverage from businessModel)
+BULLET 3: Scaling mechanism and margin expansion story
+Example: "Near-zero marginal cost per user after AI training; 85%+ gross margins at 10K+ users"
+Example: "Network effects: Each new rider increases driver earnings 8%, reducing churn and acquisition costs"
+Example: "Watermarked free exports drive viral growth; paid conversion funds 18-month customer payback"
+(Explain what creates economic leverage - automation, network effects, viral growth, decreasing CAC)
 
-Show the math works and scales favorably.`,
-            `One sentence explaining what creates economic leverage as you scale (network effects, zero marginal cost, pricing power, etc.).`,
+CRITICAL: If your pricing is 10x cheaper than competitors, LEAD WITH THAT. It's your moat.
+Show investors the math works AND gets better over time.`,
+            `One sentence explaining the primary driver of profitability and scalability (e.g., "Zero marginal cost structure enables 85%+ margins at scale" or "Network effects reduce CAC 40% for every 10% increase in supply-side density").`,
             "image-text",
-            `1 simple business model diagram showing revenue streams and key partnerships. Clean, professional visualization.`,
+            `1 business model diagram showing: (1) Revenue streams with pricing, (2) Cost structure, (3) Key value exchanges between customer/platform/supply side. Use clean flowchart style appropriate for investor presentation. Show NUMBERS where possible (e.g., "$1.35 avg" on revenue stream arrow).`,
             startupData
         ),
 

@@ -48,6 +48,8 @@ const createPitchDeckController = async (req, res, next) => {
             }
         }
 
+        console.log('more Info:', moreInfo);
+
         // Create startup data object
         const startupData = {
             startupName: sanitize(startupName),
@@ -228,7 +230,7 @@ const correctSlideController = async (req, res, next) => {
         }
 
         // Create prompt for slide correction
-        const prompt = generateCorrectionPrompt(slideData, correction);
+        const prompt = generateCorrectionPrompt(slideData, correction, deck);
         if (!prompt) {
             return next(new AppError('Failed to generate correction prompt', 500));
         }
