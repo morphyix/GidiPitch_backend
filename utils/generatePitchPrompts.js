@@ -821,7 +821,7 @@ const generatePromptsForSlides = (startupData, slides) => {
     return selectedPrompts;
 };
 
-// Correction Prompt with full context preservation
+// Correction Prompt with full context preservation - SURGICAL EDITS ONLY
 const generateCorrectionPrompt = (slideData, correctionPrompt, startupData) => {
     if (!slideData || typeof slideData !== 'object') {
         throw new Error("Invalid slideData provided to correction prompt generator.");
@@ -878,14 +878,12 @@ CRITICAL OUTPUT REQUIREMENTS:
 - No markdown, no comments, no extra text
 
 YOUR ROLE:
-You are an expert pitch deck consultant revising a slide based on user feedback.
-You have full context about the startup and must make intelligent corrections.
+You are an expert pitch deck consultant making TARGETED corrections based on user feedback.
+Make SURGICAL EDITS - only change what the user explicitly requests.
 
-TONE & STYLE (MAINTAIN):
-- Professional, confident, data-driven
-- Action-oriented verbs, not marketing hyperbole
-- Specific metrics with context
-- Appropriate nuance and measured uncertainty
+CORE PRINCIPLE:
+If the user asks to change bullet 2, ONLY modify bullet 2. Keep everything else EXACTLY as-is (word-for-word).
+DO NOT "improve" or "enhance" content the user didn't mention.
 
 WORD LIMITS (STRICT):
 - Title: Maximum 12 words
@@ -898,7 +896,7 @@ ${JSON.stringify({ slideType, title, bullets, notes, layout, images }, null, 2)}
 IMAGE METADATA (PRESERVE ALL FIELDS UNLESS EXPLICITLY CHANGING):
 ${imageContextForAI}
 
-FULL STARTUP CONTEXT FOR INTELLIGENT REVISION:
+STARTUP CONTEXT (USE ONLY IF NEEDED FOR THE SPECIFIC CORRECTION):
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 COMPANY: ${contextBlocks.startup}
 PROBLEM: ${contextBlocks.problem}
@@ -912,116 +910,160 @@ ADDITIONAL INFO: ${contextBlocks.additionalInfo}
 USER CORRECTION REQUEST:
 "${correctionPrompt}"
 
-CORRECTION INSTRUCTIONS:
+INSTRUCTIONS:
 
-1. ANALYZE THE REQUEST:
-   - What specifically does the user want changed?
-   - Does it require new information from startup context?
-   - Does it require web_search for new data?
-   - Is it text-only or does it involve images?
+1. IDENTIFY WHAT TO CHANGE:
+   Parse the correction request to determine EXACTLY which element(s) need modification.
+   - Is it the title, a specific bullet, notes, layout, or image?
+   - Are they asking to add, remove, rephrase, shorten, expand, or replace content?
 
-2. APPLY INTELLIGENT REVISION:
-   - If the request is vague (e.g., "make it better"), interpret based on best practices
-   - If it requests more specificity, pull relevant data from startup context
-   - If it requests tone changes, apply while maintaining professionalism
-   - Use web_search if you need external data to fulfill the request
+2. MAKE SURGICAL EDIT:
+   - Change ONLY the requested element(s)
+   - Copy all other content EXACTLY as-is (preserve exact wording)
+   - If user says "change bullet 2", bullets[0] and bullets[2] must remain identical to input
 
-3. IMAGE HANDLING:
-   - PRESERVE ALL IMAGE FIELDS (key, url, status, source, isSelected) unless explicitly changing
-   - Only modify 'prompt' or 'caption' if user specifically mentions images
-   - Set "generateImage": true ONLY if new images needed or major prompt changes required
-   - Set "generateImage": false if only text is being modified
+3. IMAGE INTENT DETECTION:
+   Set "generateImage": true ONLY if the user's request indicates they want visual/graphical changes:
+   
+   **Indicates NEW/CHANGED image needed:**
+   - Mentions image-related words: "image", "picture", "photo", "visual", "graphic", "chart", "diagram", "screenshot", "illustration"
+   - Requests visual action: "show", "display", "visualize", "depict", "create", "generate", "add", "replace" + visual element
+   - Wants to see something: "I want to see X", "display the Y", "show me Z"
+   
+   **Does NOT need new image (text-only changes):**
+   - Only mentions text elements: "bullet", "title", "wording", "text", "phrasing"
+   - Requests text modifications: "make shorter", "add detail", "rephrase", "fix grammar"
+   - Caption-only changes: "fix the caption", "update caption text" (change caption field only, preserve image)
 
-4. MAINTAIN QUALITY:
-   - Apply same credibility standards as original prompts
+4. PRESERVE IMAGE METADATA:
+   - If generateImage: false → Keep ALL image fields unchanged (prompt, caption, key, url, status, source, isSelected)
+   - If caption-only change → Modify caption field only, preserve all other image fields
+   - If new image needed → Create new image object with updated prompt, set key/url to null
+
+5. MAINTAIN QUALITY:
    - Keep professional tone, avoid hyperbole
    - Ensure metrics are realistic and grounded
    - Stay within word limits
+   - Use web_search if you need external data for the correction
 
 STRICT JSON OUTPUT SCHEMA:
 {
   "generateImage": boolean,
   "slideType": "string",
-  "title": "string (max 12 words)",
-  "bullets": ["string (max 20 words)", "string (max 20 words)", "string (max 20 words)"],
-  "notes": "string (max 25 words)",
-  "layout": "default|title-bullets|image-text|full-image",
+  "title": "string (max 12 words) - PRESERVE exactly unless user requested title change",
+  "bullets": [
+    "string (max 20 words) - PRESERVE exactly unless user requested this bullet change",
+    "string (max 20 words) - PRESERVE exactly unless user requested this bullet change",
+    "string (max 20 words) - PRESERVE exactly unless user requested this bullet change"
+  ],
+  "notes": "string (max 25 words) - PRESERVE exactly unless user requested notes change",
+  "layout": "default|title-bullets|image-text|full-image - PRESERVE exactly unless user requested layout change",
   "images": [
     {
-      "prompt": "string",
-      "caption": "string",
-      "key": "string (PRESERVE)",
-      "url": "string (PRESERVE)",
-      "source": "string (PRESERVE)",
-      "status": "string (PRESERVE)",
-      "isSelected": "boolean (PRESERVE)"
+      "prompt": "string - PRESERVE unless new image requested",
+      "caption": "string - PRESERVE unless caption/image change requested",
+      "key": "string (MUST PRESERVE)",
+      "url": "string (MUST PRESERVE)",
+      "source": "string (MUST PRESERVE)",
+      "status": "string (MUST PRESERVE)",
+      "isSelected": "boolean (MUST PRESERVE)"
     }
   ]
 }
 
-Make the correction intelligently using all available context.
+Remember: SURGICAL EDITS ONLY. Change what was requested. Preserve everything else exactly.
 `;
 };
 
-// Color Kit Generator - Professional Brand Palette
+// Professional Pitch Deck Color Kit Generator - Hex Only Output
 const createTailwindPrompt = (brandColor = 'orange') => {
     const isHex = /^#([0-9A-F]{3}){1,2}$/i.test(brandColor);
     const colorHint = isHex
-        ? `The brand color is ${brandColor}. Use this exact HEX as the foundation.`
-        : `The brand identity is "${brandColor}". Interpret this professionally.`;
+        ? `Brand HEX: ${brandColor}. Analyze this color and create a pitch deck palette where this brand color DOMINATES.`
+        : `Brand identity: "${brandColor}". Interpret as a professional HEX and create a pitch deck palette where this brand color DOMINATES.`;
 
     return `
-TASK: Generate a professional HEX color palette for a startup pitch deck.
+MISSION: You are a professional pitch deck designer. Analyze the provided brand color and autonomously create a color palette that makes the brand color DOMINANT while following research-backed best practices.
 
-Brand Color: ${brandColor}
 ${colorHint}
 
-PROFESSIONAL COLOR STRATEGY:
+STEP 1: ANALYZE THE BRAND COLOR
+Extract these properties:
+- Hue family (red/orange/yellow/green/blue/purple/neutral)
+- Saturation level (vibrant vs muted)
+- Lightness (dark vs light)
+- Warmth (warm vs cool)
 
-1. BACKGROUND (Sophisticated Foundation):
-   - Deep neutral: charcoal (#1a1a1a to #2d2d2d), navy (#0f1419 to #1a2332), slate
-   - OR very subtle brand tint (5-10% saturation)
-   - Creates depth without overwhelming
-   - Think: "Boardroom presentation"
+STEP 2: INFER STRATEGY BASED ON COLOR PSYCHOLOGY
 
-2. TITLE (Brand Visibility + Maximum Impact):
-   - Full-strength brand color OR vibrant variation
-   - Minimum 7:1 contrast ratio with background (WCAG AAA)
-   - Primary visual anchor
-   - This is where brand identity shines
+RED (#D0021B to #FF6B6B): Energy, urgency, passion
+→ Strategy: Dark background OR rich red background with white text
 
-3. BULLETS (High Readability):
-   - Clean bright neutral: #F5F5F5, #E8E8E8
-   - OR subtle brand tint at high lightness
-   - Minimum 4.5:1 contrast ratio
-   - Supports title, doesn't compete
+ORANGE (#FF6B35 to #FFA500): Innovation, creativity, approachability
+→ Strategy: Dark background (navy/charcoal) with vibrant orange titles
 
-4. NOTES (Subtle Hierarchy):
-   - Muted secondary: #A0A0A0, #B8B8B8
-   - Recedes visually but remains legible
-   - Creates clear information hierarchy
+YELLOW (#FFD700 to #F4E04D): Optimism, clarity, creativity
+→ Strategy: Light background with bold yellow accents
 
-COLOR PSYCHOLOGY BY BRAND:
-- Warm (red/orange/yellow): Deep navy/charcoal backgrounds
-- Cool (blue/green/purple): Slate/gunmetal backgrounds
-- Neutral: Add sophisticated accent
+GREEN (#00B894 to #6FCF97): Growth, health, sustainability
+→ Strategy: Rich green background OR dark background with vibrant green
 
-REQUIREMENTS:
-✓ WCAG AAA contrast (7:1 titles, 4.5:1 body)
-✓ Brand color prominent and intentional
-✓ Professional harmony
-✓ Clear hierarchy: title > bullets > notes
-✓ Background supports, doesn't dominate
+BLUE (#0066CC to #3498DB): Trust, professionalism, stability
+→ Strategy: Dark blue background OR vibrant blue on dark neutral
 
-STRICT JSON OUTPUT (HEX ONLY):
+PURPLE (#9B59B6 to #A855F7): Innovation, luxury, creativity
+→ Strategy: Deep purple background OR dark background with vibrant purple
+
+NEUTRAL (Gray/Beige/Black): Sophistication, minimalism
+→ Strategy: Elegant neutrals with strategic accent
+
+STEP 3: SELECT BACKGROUND APPROACH
+
+APPROACH A - BRAND-DOMINANT BACKGROUND (Best for vibrant colors):
+- Background: Brand color at 70-85% saturation
+- Title: White (#FFFFFF) or cream (#FEFEFE)
+- Bullets: White at 90-95% opacity (#EBEBEB, #F0F0F0)
+- Notes: White at 65-70% opacity (#A8A8A8, #B5B5B5)
+
+APPROACH B - DARK + VIBRANT BRAND (Best for professional/tech):
+- Background: Deep neutral (#0f1419, #1a1a1a, #1a2332)
+- Title: Full-strength brand color (95-100% saturation)
+- Bullets: Bright neutral (#F0F0F0, #E8E8E8)
+- Notes: Muted neutral (#A0A0A0, #B8B8B8)
+
+APPROACH C - LIGHT + BOLD BRAND (Best for healthcare/education):
+- Background: Off-white (#FAFAFA, #F8F9FA) or 5-8% brand tint
+- Title: Bold brand color at 85-100% saturation
+- Bullets: Dark gray (#2D2D2D, #333333)
+- Notes: Medium gray (#6B6B6B, #999999)
+
+SELECTION LOGIC:
+- Dark brand color (lightness <40%): Use Approach B or A
+- Vibrant brand color (saturation >70%): Use Approach A or B
+- Muted/pastel brand color: Use Approach C with darker variant
+- Warm colors (red/orange/yellow): Prefer Approach B
+- Cool colors (blue/green/purple): Any approach works
+
+STEP 4: ENSURE ACCESSIBILITY
+- Title to background: Minimum 4.5:1 contrast (or 3:1 if ≥18pt)
+- Bullets to background: Minimum 4.5:1 contrast
+- Adjust lightness if contrast fails
+
+CRITICAL RULES:
+✓ Brand color MUST be prominent and dominant
+✓ Never make brand color subtle or timid
+✓ Maintain WCAG AA contrast ratios
+✓ Create clear hierarchy: title > bullets > notes
+
+STRICT OUTPUT (JSON only, no markdown, no explanations):
 {
-    "background": "#1a2332",
-    "title": "#ff6b35",
-    "bullets": "#f0f0f0",
-    "notes": "#a8b2c1"
+    "background": "#[HEX]",
+    "title": "#[HEX]",
+    "bullets": "#[HEX]",
+    "notes": "#[HEX]"
 }
 
-Return pure JSON only. No explanations.
+Return ONLY valid JSON with hex codes. Nothing else.
 `;
 };
 
