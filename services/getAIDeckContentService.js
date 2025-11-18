@@ -1,5 +1,6 @@
 // Module to generate AI content and images using google gemini and other AI models
 const { GoogleGenAI, Modality } = require("@google/genai");
+const Together = require("together-ai");
 const { validateSlideSchema } = require("../utils/slideSchemaValidator");
 const { AppError } = require("../utils/error");
 const { sanitizeGeminiResponse } = require("../utils/helper");
@@ -135,6 +136,72 @@ const generateSlideImage = async (
 };
 
 
+const DEFAULT_AI_MODEL = "black-forest-labs/FLUX.1-schnell";
+const togetherAI = new Together({ apiKey: process.env.TOGETHER_API_KEY });
+
+/**
+ * Generate Icons Using Together AI
+ * @param {string} prompt - The prompt to send to the AI model
+ * @param {Object} options - { retries: number, model: string, generationConfig: Object }
+ */
+
+const generateIconImage = async (
+    prompt, { retries = 2, model = DEFAULT_AI_MODEL, width = 512, height = 512, steps = 4, seed = null, n = 1, negative_prompt = null } = {}
+) => {
+  if (!prompt || typeof prompt !== 'string') {
+      throw new AppError('Prompt must be a non empty string', 400);
+  }
+  let lastError = null;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const response = await togetherAI.images.create({
+        model,
+        prompt,
+        width,
+        height,
+        steps,
+        n,
+        response_format: 'base64',
+        ...(seed && { seed }),
+        ...(negative_prompt && { negative_prompt }),
+      });
+
+      const imageData = response.data?.[0];
+      if (!imageData) {
+        throw new AppError('No image data returned from Together AI', 500);
+      }
+
+      const base64Image = imageData.b64_json;
+      if (!base64Image) {
+        throw new AppError('No base64 image data found in response', 500);
+      }
+
+      // Convert base64 to buffer
+      const buffer = Buffer.from(base64Image, 'base64');
+
+      // Create image file object
+      const imageFile = {
+        buffer,
+        mimetype: 'image/png',
+        originalname: `icon-image-${Date.now()}.png`,
+      }
+
+      const key = await uploadImageService(imageFile);
+
+      return { prompt, key, status: 'completed' };
+    } catch (error) {
+      lastError = error;
+      if (attempt < retries) {
+        console.warn(`Attempt ${attempt + 1} failed. Retrying...`, error);
+        await new Promise(res => setTimeout(res, 500 * Math.pow(2, attempt))); // Exponential backoff
+        continue;
+      }
+      console.error('All attempts to generate Icon image failed:', lastError);
+      throw new AppError(`Failed to generate Icon image after ${retries + 1} attempts: ${lastError.message}`, 500);
+    }
+  }
+};
+
 // Generate Brand Kit
 const generateBrandKit = async (
     prompt, { retries = 2, model = DEFAULT_MODEL, generationConfig = {} } = {}) => {
@@ -170,4 +237,4 @@ const generateBrandKit = async (
 
 
 // Export function
-module.exports = { generateSlideContent, generateSlideImage, generateBrandKit };
+module.exports = { generateSlideContent, generateSlideImage, generateBrandKit, generateIconImage };
