@@ -25,7 +25,7 @@ configurePassport();
 
 app.use(cookieParser());
 app.use(cors({
-    origin: [process.env.FRONTEND_URL, 'https://gidi-pitch-glow-up.vercel.app', 'https://www.gidipitch.app'],
+    origin: [process.env.FRONTEND_URL, 'https://gidi-pitch-glow-up.vercel.app', 'https://www.gidipitch.app', 'https://decklo.xyz'],
     credentials: true, // Allow cookies to be sent with requests
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
