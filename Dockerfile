@@ -1,6 +1,6 @@
 # Use the official Puppeteer-specific base image, which includes a stable
 # version of Node.js and all required dependencies for headless Chrome.
-FROM ghcr.io/puppeteer/puppeteer:latest
+FROM ghcr.io/puppeteer/puppeteer:23.10.0
 
 # Set working directory inside the container
 WORKDIR /app
