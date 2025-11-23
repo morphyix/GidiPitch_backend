@@ -15,6 +15,7 @@
     "@aws-sdk/client-s3": "^3.846.0",
     "@coinbase/x402": "^0.7.1",
     "@google/genai": "^1.9.0",
+    "@runware/sdk-js": "^1.2.2",
     "ajv": "^8.17.1",
     "axios": "^1.12.2",
     "bcrypt": "^6.0.0",

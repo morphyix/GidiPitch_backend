@@ -4,6 +4,26 @@ const app = require('./app');
 const PORT = process.env.PORT || 3000;
 const { redisClient } = require('./config/redis');
 const { testBucket } = require('./config/s3Config');
+const { shutdownRunware } = require('./services/getAIDeckContentService');
+
+// ensure Runware shutdown on exit
+process.on('exit', async () => {
+  await shutdownRunware();
+});
+
+// shut down Runware on uncaught exceptions
+process.on('uncaughtException', async (err) => {
+  console.error('Uncaught Exception:', err);
+  await shutdownRunware();
+  process.exit(1);
+});
+
+// shutdown runware on termination signals
+process.on('SIGTERM', async () => {
+  console.log('Received SIGTERM, shutting down Runware...');
+  await shutdownRunware();
+  process.exit(0);
+});
 
 
 const server = http.createServer(app);
@@ -31,6 +51,9 @@ process.on('SIGINT', async () => {
     console.log('Redis connection closed.');
     await redisClient.disconnect();
   }
+
+  // Shutdown Runware
+  await shutdownRunware();
 
   // close mongoDB connection
   try {
