@@ -5,6 +5,7 @@ const { AppError } = require('../../utils/error');
 const {
   generateSlideContent,
   generateSlideImage,
+  generateRunwareImage,
   generateBrandKit,
 } = require('../../services/getAIDeckContentService');
 const {
@@ -126,8 +127,12 @@ async function processSlide({
             amount: 6,
             imageIndex: i,
           });
-
-          const imgObj = await generateSlideImage(image.prompt, { caption: image.caption });
+          let imgObj;
+          if (key === 'market' || key === 'competition') {
+            imgObj = await generateRunwareImage(image.prompt, { model: 'google:4@1'});
+          } else {
+            imgObj = await generateRunwareImage(image.prompt);
+          }
           await updateSlideImageService(slideId, image.caption, {
             key: imgObj.key,
             status: 'completed',

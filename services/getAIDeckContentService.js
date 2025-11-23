@@ -1,6 +1,7 @@
 // Module to generate AI content and images using google gemini and other AI models
 const { GoogleGenAI, Modality } = require("@google/genai");
 const Together = require("together-ai");
+const { Runware } = require("@runware/sdk-js");
 const { validateSlideSchema } = require("../utils/slideSchemaValidator");
 const { AppError } = require("../utils/error");
 const { sanitizeGeminiResponse } = require("../utils/helper");
@@ -236,5 +237,123 @@ const generateBrandKit = async (
   };
 
 
+/**
+ * Generate image using Runware AI
+ * @param {string} prompt - The prompt to send to the AI model
+ * @param {Object} options - { retries, model, width, height, numberResults }
+ */
+
+// Initialize Runware instance once (singleton pattern - CORRECT)
+let runwareInstance = null;
+const getRunwareInstance = () => {
+  if (!runwareInstance) {
+    runwareInstance = new Runware({ 
+      apiKey: process.env.RUNWARE_API_KEY,
+      shouldReconnect: true,
+      globalMaxRetries: 0, // ⚠️ DISABLE internal retries, handle retries ourselves
+      timeoutDuration: 90000, // 90 seconds
+    });
+  }
+  return runwareInstance;
+};
+
+const generateRunwareImage = async (
+  prompt, 
+  { 
+    retries = 2, 
+    model = "runware:100@1", 
+    width = 1024, 
+    height = 1024, 
+    numberResults = 1,
+  } = {}
+) => {
+  if (!prompt || typeof prompt !== "string") {
+    throw new AppError("Prompt must be a non-empty string", 400);
+  }
+
+  let lastError = null;
+
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const runware = getRunwareInstance(); // ✅ Reuses same instance
+
+      const images = await runware.requestImages({
+        positivePrompt: prompt,
+        model,
+        width,
+        height,
+        numberResults,
+      });
+
+      if (!images || images.length === 0) {
+        throw new AppError("No images returned from Runware AI", 500);
+      }
+
+      const imageData = images[0];
+
+      // Download image from URL
+      const response = await fetch(imageData.imageURL);
+      
+      if (!response.ok) {
+        throw new AppError(
+          `Failed to download image from Runware URL: ${response.statusText}`, 
+          500
+        );
+      }
+
+      const arrayBuffer = await response.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+
+      const imageFile = {
+        buffer,
+        mimetype: "image/png",
+        originalname: `runware-image-${Date.now()}.png`,
+      };
+      
+      const key = await uploadImageService(imageFile);
+      
+      return { 
+        prompt, 
+        key, 
+        status: "completed",
+      };
+
+    } catch (error) {
+      lastError = error;
+      
+      if (attempt < retries) {
+        console.warn(
+          `Runware attempt ${attempt + 1}/${retries + 1} failed: ${error.message}. Retrying...`
+        );
+        // Exponential backoff: 500ms, 1000ms, 2000ms...
+        await new Promise((res) => setTimeout(res, 500 * Math.pow(2, attempt)));
+        continue;
+      }
+      
+      console.error("All Runware attempts failed:", lastError);
+      throw new AppError(
+        `Failed to generate Runware image after ${retries + 1} attempts: ${lastError.message}`,
+        500
+      );
+    }
+  }
+};
+
+// Graceful shutdown helper
+const shutdownRunware = async () => {
+  if (runwareInstance) {
+    try {
+      await runwareInstance.disconnect();
+      console.log('Runware connection closed gracefully');
+    } catch (error) {
+      console.error('Error closing Runware connection:', error);
+    }
+    runwareInstance = null;
+  }
+};
+
+
 // Export function
-module.exports = { generateSlideContent, generateSlideImage, generateBrandKit, generateIconImage };
+module.exports = { generateSlideContent, generateSlideImage, generateBrandKit, generateIconImage,
+  generateRunwareImage, shutdownRunware,
+ };

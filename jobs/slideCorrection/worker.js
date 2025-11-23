@@ -2,7 +2,7 @@ const { Worker } = require('bullmq');
 const { redisClient } = require('../../config/redis');
 const { AppError } = require('../../utils/error');
 const { updateSlideByIdService, updateSlideImageService, getSlideByIdService } = require('../../services/slideService');
-const { generateSlideContent, generateSlideImage } = require('../../services/getAIDeckContentService');
+const { generateSlideContent, generateSlideImage, generateRunwareImage } = require('../../services/getAIDeckContentService');
 const { updateDeckByIdService } = require('../../services/deckService');
 const { modifyUserTokensService } = require('../../services/authService');
 const { logFailedSlideJobService } = require('../../services/failedSlideJobService');
@@ -92,7 +92,12 @@ const slideCorrectionWorker = new Worker(
             }
 
             // Generate the image
-            const imgObj = await generateSlideImage(image.prompt, { caption: image.caption });
+            let imgObj;
+            if (image.key === 'market' || image.key === 'competition') {
+              imgObj = await generateRunwareImage(image.prompt, { model: 'google:4@1'});
+            } else {
+              imgObj = await generateRunwareImage(image.prompt);
+            }
             
             await updateSlideImageService(slideId, image.caption, { 
               key: imgObj.key, 
