@@ -40,7 +40,7 @@ const SlideSchema = new mongoose.Schema({
     layout: { type: String, enum: ['default', 'title-bullets', 'image-text', 'full-image'], default: 'default' }, // e.g., 'title and bullets', 'image and text', etc.
     images: [ImageSchema],
     customData: { type: mongoose.Schema.Types.Mixed }, // For any additional custom data
-    status: { type: String, enum: ['pending', 'queued', 'generating', 'image-gen', 'ready', 'failed'], default: 'pending' },
+    status: { type: String, enum: ['pending', 'queued', 'generating', 'image-gen', 'ready', 'failed', 'partial_failed'], default: 'pending' },
     progress: { type: Number, default: 0 }, // Progress percentage (0-100)
     error: { type: String }, // Error message if generation fails
 }, { timestamps: true });

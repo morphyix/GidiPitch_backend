@@ -155,7 +155,7 @@ const slideCorrectionWorker = new Worker(
       // Update deck activity status to ready
       await updateDeckByIdService(deckId, { 
         activityStatus: `Slide correction completed for slide: ${slide.slideType}`, 
-        status: 'ready' 
+        status: 'ready'
       });
 
       console.log(`✓ Slide correction completed for slide: ${slideId}`);
