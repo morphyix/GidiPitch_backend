@@ -234,7 +234,12 @@ NOT: "Massive inefficiencies plague the fragmented logistics sector"
 Analyze the problems data and use web_search to quantify impact where needed.`,
             `One sentence explaining why this problem exists now and why ${startupName} is positioned to solve it.`,
             "title-bullets",
-            `1 image showing the real-world manifestation of this problem in ${scopeContext}. Visual should show actual pain, not abstract suffering.`,
+            `Generate 3 hollow, outline-style icons with transparent backgrounds using FLUX.1 schnell.
+ The color of the icons must be ${brandColor}.
+ - Icon 1 must visually represent the Who/What/How Much concept from BULLET 1. Its caption should be a short title (max 4 words) for BULLET 1.
+ - Icon 2 must visually represent the Who/What/How Much concept from BULLET 2. Its caption should be a short title (max 4 words) for BULLET 2.
+ - Icon 3 must visually represent the Who/What/How Much concept from BULLET 3. Its caption should be a short title (max 4 words) for BULLET 3.
+ The output must be a JSON array of 3 image objects, each with a 'prompt' and 'caption' field.`,
             startupData
         ),
 
@@ -259,7 +264,12 @@ Example: "98% delivery success rate vs. 75% industry average, improving merchant
 Synthesize from solutions, features, and any technical details in moreInfo.`,
             `One sentence explaining the core technology or business model innovation that makes this defensible.`,
             "image-text",
-            `1 product image showing the solution in actual use in ${scopeContext}. Should visualize the "before → after" transformation.`,
+            `Generate 3 hollow, outline-style icons with transparent backgrounds using FLUX.1 schnell.
+ The color of the icons must be ${brandColor}.
+ - Icon 1 must visually represent the direct problem-solution mapping from BULLET 1. Its caption should be a short title (max 4 words) for BULLET 1.
+ - Icon 2 must visually represent the core innovation from BULLET 2. Its caption should be a short title (max 4 words) for BULLET 2.
+ - Icon 3 must visually represent the key benefit from BULLET 3. Its caption should be a short title (max 4 words) for BULLET 3.
+ The output must be a JSON array of 3 image objects, each with a 'prompt' and 'caption' field.`,
             startupData
         ),
 
@@ -289,7 +299,12 @@ CRITICAL INSTRUCTIONS:
 Show what the product DOES and why users choose it.`,
             `One sentence describing how these features work together to create a superior user experience.`,
             "image-text",
-            `1 product screenshot or interface mockup showcasing the key features in action. Style: ${brandStyle}. Show actual UI elements, not abstract concepts.`,
+            `Generate 3 hollow, outline-style icons with transparent backgrounds using FLUX.1 schnell.
+ The color of the icons must be ${brandColor}.
+ - Icon 1 must visually represent the Feature + Benefit from BULLET 1. Its caption should be a short title (max 4 words) for BULLET 1.
+ - Icon 2 must visually represent the Feature + Benefit from BULLET 2. Its caption should be a short title (max 4 words) for BULLET 2.
+ - Icon 3 must visually represent the Feature + Benefit from BULLET 3. Its caption should be a short title (max 4 words) for BULLET 3.
+ The output must be a JSON array of 3 image objects, each with a 'prompt' and 'caption' field.`,
             startupData
         ),
 
@@ -320,7 +335,12 @@ Example: "Pilot with Lagos State Ministry resulted in 18% improvement in student
 Show momentum and product-market fit with real numbers.`,
             `One sentence explaining what these metrics reveal about customer demand and business viability.`,
             "title-bullets",
-            `1 growth chart or metrics dashboard showing the most impressive traction data (user growth curve, revenue trajectory, or retention cohort analysis).`,
+            `Generate 3 hollow, outline-style icons with transparent backgrounds using FLUX.1 schnell.
+ The color of the icons must be ${brandColor}.
+ - Icon 1 must visually represent the primary growth metric from BULLET 1. Its caption should be a short title (max 4 words) for BULLET 1.
+ - Icon 2 must visually represent the retention/satisfaction metric from BULLET 2. Its caption should be a short title (max 4 words) for BULLET 2.
+ - Icon 3 must visually represent the key validation milestone from BULLET 3. Its caption should be a short title (max 4 words) for BULLET 3.
+ The output must be a JSON array of 3 image objects, each with a 'prompt' and 'caption' field.`,
             startupData
         ),
 
@@ -351,7 +371,12 @@ Example: "E-commerce penetration in Nigeria increased 45% YoY, driving delivery 
 Make the market real, sized, and urgent.`,
             `One sentence on the specific beachhead strategy - where you'll start and why that segment is winnable now.`,
             "title-bullets",
-            `1 data visualization showing market size and growth trajectory. Clean, professional chart style appropriate for investor presentation.`,
+            `Generate 3 hollow, outline-style icons with transparent backgrounds using FLUX.1 schnell.
+ The color of the icons must be ${brandColor}.
+ - Icon 1 must visually represent the Total Addressable Market (TAM) from BULLET 1. Its caption should be a short title (max 4 words) for BULLET 1.
+ - Icon 2 must visually represent the Serviceable Addressable Market (SAM) from BULLET 2. Its caption should be a short title (max 4 words) for BULLET 2.
+ - Icon 3 must visually represent the key market driver from BULLET 3. Its caption should be a short title (max 4 words) for BULLET 3.
+ The output must be a JSON array of 3 image objects, each with a 'prompt' and 'caption' field.`,
             startupData
         ),
 
@@ -385,7 +410,12 @@ CRITICAL: If your pricing is 10x cheaper than competitors, LEAD WITH THAT. It's 
 Show investors the math works AND gets better over time.`,
             `One sentence explaining the primary driver of profitability and scalability (e.g., "Zero marginal cost structure enables 85%+ margins at scale" or "Network effects reduce CAC 40% for every 10% increase in supply-side density").`,
             "image-text",
-            `1 business model diagram showing: (1) Revenue streams with pricing, (2) Cost structure, (3) Key value exchanges between customer/platform/supply side. Use clean flowchart style appropriate for investor presentation. Show NUMBERS where possible (e.g., "$1.35 avg" on revenue stream arrow).`,
+            `Generate 3 hollow, outline-style icons with transparent backgrounds using FLUX.1 schnell.
+ The color of the icons must be ${brandColor}.
+ - Icon 1 must visually represent the revenue model and pricing from BULLET 1. Its caption should be a short title (max 4 words) for BULLET 1.
+ - Icon 2 must visually represent the unit economics from BULLET 2. Its caption should be a short title (max 4 words) for BULLET 2.
+ - Icon 3 must visually represent the scaling mechanism from BULLET 3. Its caption should be a short title (max 4 words) for BULLET 3.
+ The output must be a JSON array of 3 image objects, each with a 'prompt' and 'caption' field.`,
             startupData
         ),
 
@@ -413,7 +443,12 @@ Example: "Freemium model with watermarked exports creates 1.2 viral coefficient"
 Show you have a credible, capital-efficient path to customers.`,
             `One sentence explaining how these channels create compounding growth over time.`,
             "title-bullets",
-            `1 customer acquisition funnel showing the 3 channels and estimated conversion rates at each stage.`,
+            `Generate 3 hollow, outline-style icons with transparent backgrounds using FLUX.1 schnell.
+ The color of the icons must be ${brandColor}.
+ - Icon 1 must visually represent the primary acquisition channel from BULLET 1. Its caption should be a short title (max 4 words) for BULLET 1.
+ - Icon 2 must visually represent the secondary channel from BULLET 2. Its caption should be a short title (max 4 words) for BULLET 2.
+ - Icon 3 must visually represent the viral/retention mechanism from BULLET 3. Its caption should be a short title (max 4 words) for BULLET 3.
+ The output must be a JSON array of 3 image objects, each with a 'prompt' and 'caption' field.`,
             startupData
         ),
 
@@ -475,7 +510,12 @@ Example: "Series A readiness: $500K ARR, 4:1 LTV/CAC, 20% month-over-month growt
 Show traction, momentum, and clear vision for what's next.`,
             `One sentence demonstrating you understand what metrics matter for your stage and category.`,
             "title-bullets",
-            `1 timeline showing past achievements and future milestones with specific dates and metrics.`,
+            `Generate 3 hollow, outline-style icons with transparent backgrounds using FLUX.1 schnell.
+ The color of the icons must be ${brandColor}.
+ - Icon 1 must visually represent the historical metric from BULLET 1. Its caption should be a short title (max 4 words) for BULLET 1.
+ - Icon 2 must visually represent the near-term milestone from BULLET 2. Its caption should be a short title (max 4 words) for BULLET 2.
+ - Icon 3 must visually represent the major future milestone from BULLET 3. Its caption should be a short title (max 4 words) for BULLET 3.
+ The output must be a JSON array of 3 image objects, each with a 'prompt' and 'caption' field.`,
             startupData
         ),
 
@@ -525,7 +565,12 @@ Example: "Break-even at 15K paying users (Month 24); Series A at $500K ARR with 
 Projections must be conservative and defensible.`,
             `One sentence stating your primary growth assumption and acknowledging the key risk to that assumption.`,
             "title-bullets",
-            `1 clean revenue projection chart showing quarterly growth over 3 years with key milestone markers.`,
+            `Generate 3 hollow, outline-style icons with transparent backgrounds using FLUX.1 schnell.
+ The color of the icons must be ${brandColor}.
+ - Icon 1 must visually represent the current financial state from BULLET 1. Its caption should be a short title (max 4 words) for BULLET 1.
+ - Icon 2 must visually represent the 3-year projection from BULLET 2. Its caption should be a short title (max 4 words) for BULLET 2.
+ - Icon 3 must visually represent the path to profitability from BULLET 3. Its caption should be a short title (max 4 words) for BULLET 3.
+ The output must be a JSON array of 3 image objects, each with a 'prompt' and 'caption' field.`,
             startupData
         ),
 
@@ -553,7 +598,12 @@ Example: "At $20M ARR, 100K active founders, company becomes strategic acquisiti
 Make the exit path credible and attractive.`,
             `One sentence explaining how this becomes a $100M+ outcome for investors within 5-7 years.`,
             "title-bullets",
-            `1 aspirational but grounded image representing market leadership and growth trajectory in ${industry}.`,
+            `Generate 3 hollow, outline-style icons with transparent backgrounds using FLUX.1 schnell.
+ The color of the icons must be ${brandColor}.
+ - Icon 1 must visually represent the market position goal from BULLET 1. Its caption should be a short title (max 4 words) for BULLET 1.
+ - Icon 2 must visually represent the strategic acquirers from BULLET 2. Its caption should be a short title (max 4 words) for BULLET 2.
+ - Icon 3 must visually represent the acquisition readiness threshold from BULLET 3. Its caption should be a short title (max 4 words) for BULLET 3.
+ The output must be a JSON array of 3 image objects, each with a 'prompt' and 'caption' field.`,
             startupData
         ),
 
@@ -580,7 +630,12 @@ Example for edtech: "Partnership with Lagos State Education Ministry provides ac
 Example for healthtech: "Patent pending on diagnostic algorithm; priority date March 2024"`,
             `One sentence explaining how these assets accelerate growth or create competitive barriers.`,
             "image-text",
-            `1 image representing strategic assets: partnership logos, compliance badges, or IP visualization relevant to ${industry}.`,
+            `Generate 3 hollow, outline-style icons with transparent backgrounds using FLUX.1 schnell.
+ The color of the icons must be ${brandColor}.
+ - Icon 1 must visually represent the first derisking factor from BULLET 1. Its caption should be a short title (max 4 words) for BULLET 1.
+ - Icon 2 must visually represent the second derisking factor from BULLET 2. Its caption should be a short title (max 4 words) for BULLET 2.
+ - Icon 3 must visually represent the strategic advantage from BULLET 3. Its caption should be a short title (max 4 words) for BULLET 3.
+ The output must be a JSON array of 3 image objects, each with a 'prompt' and 'caption' field.`,
             startupData
         ),
 
@@ -608,7 +663,12 @@ Example: "Achieves $100K ARR, 10K active users, 4:1 LTV/CAC - Series A ready"
 Make the ask specific, justified, and milestone-driven.`,
             `One sentence on runway (months) and the key success metric for the next funding round.`,
             "title-bullets",
-            `1 capital allocation chart (pie or bar) showing breakdown across 3-4 categories.`,
+            `Generate 3 hollow, outline-style icons with transparent backgrounds using FLUX.1 schnell.
+ The color of the icons must be ${brandColor}.
+ - Icon 1 must visually represent the funding amount and round type from BULLET 1. Its caption should be a short title (max 4 words) for BULLET 1.
+ - Icon 2 must visually represent the capital allocation from BULLET 2. Its caption should be a short title (max 4 words) for BULLET 2.
+ - Icon 3 must visually represent the key milestone enabled from BULLET 3. Its caption should be a short title (max 4 words) for BULLET 3.
+ The output must be a JSON array of 3 image objects, each with a 'prompt' and 'caption' field.`,
             startupData
         ),
 
@@ -629,7 +689,11 @@ Example: "Email: founder@startup.com | Website: startup.com"
 Keep it simple and action-oriented.`,
             `One sentence thanking investors and expressing confidence in the opportunity.`,
             "full-image",
-            `1 clean branded closing image using color "${brandColor}" and style "${brandStyle}".`,
+            `Generate 2 hollow, outline-style icons with transparent backgrounds using FLUX.1 schnell.
+ The color of the icons must be ${brandColor}.
+ - Icon 1 must visually represent the call-to-action from BULLET 1. Its caption should be a short title (max 4 words) for BULLET 1.
+ - Icon 2 must visually represent the contact information from BULLET 2. Its caption should be a short title (max 4 words) for BULLET 2.
+ The output must be a JSON array of 2 image objects, each with a 'prompt' and 'caption' field.`,
             startupData
         ),
     };
@@ -661,7 +725,12 @@ Example: "Working with FDA consultancy to derisk clearance timeline; budget incl
 Show regulatory awareness and derisking strategy.`,
             `One sentence explaining how the regulatory pathway creates competitive advantage or timing opportunity.`,
             "image-text",
-            `3 icons representing regulatory approvals, compliance certifications, and risk mitigation in healthcare.`,
+            `Generate 3 hollow, outline-style icons with transparent backgrounds using FLUX.1 schnell.
+ The color of the icons must be ${brandColor}.
+ - Icon 1 must visually represent the regulatory status from BULLET 1. Its caption should be a short title (max 4 words) for BULLET 1.
+ - Icon 2 must visually represent the compliance certifications from BULLET 2. Its caption should be a short title (max 4 words) for BULLET 2.
+ - Icon 3 must visually represent the risk mitigation plan from BULLET 3. Its caption should be a short title (max 4 words) for BULLET 3.
+ The output must be a JSON array of 3 image objects, each with a 'prompt' and 'caption' field.`,
             startupData
         );
 
@@ -687,7 +756,12 @@ Example: "Results validated by Johns Hopkins researchers; publication submitted 
 Prove scientific rigor and competitive protection.`,
             `One sentence on how clinical evidence and IP create defensible competitive position.`,
             "title-bullets",
-            `3 icons representing clinical validation, patent protection, and scientific credibility.`,
+            `Generate 3 hollow, outline-style icons with transparent backgrounds using FLUX.1 schnell.
+ The color of the icons must be ${brandColor}.
+ - Icon 1 must visually represent the clinical/scientific evidence from BULLET 1. Its caption should be a short title (max 4 words) for BULLET 1.
+ - Icon 2 must visually represent the IP status from BULLET 2. Its caption should be a short title (max 4 words) for BULLET 2.
+ - Icon 3 must visually represent the source of credibility from BULLET 3. Its caption should be a short title (max 4 words) for BULLET 3.
+ The output must be a JSON array of 3 image objects, each with a 'prompt' and 'caption' field.`,
             startupData
         );
     }
@@ -715,7 +789,12 @@ Example: "Annual penetration testing by third-party firm; PCI DSS Level 1 certif
 Show operational maturity and risk management.`,
             `One sentence on how security infrastructure builds customer trust and reduces investment risk.`,
             "image-text",
-            `3 icons showing data encryption, fraud prevention, and security certifications for fintech.`,
+            `Generate 3 hollow, outline-style icons with transparent backgrounds using FLUX.1 schnell.
+ The color of the icons must be ${brandColor}.
+ - Icon 1 must visually represent the key security measures from BULLET 1. Its caption should be a short title (max 4 words) for BULLET 1.
+ - Icon 2 must visually represent the operational risk metrics from BULLET 2. Its caption should be a short title (max 4 words) for BULLET 2.
+ - Icon 3 must visually represent the audit and certification status from BULLET 3. Its caption should be a short title (max 4 words) for BULLET 3.
+ The output must be a JSON array of 3 image objects, each with a 'prompt' and 'caption' field.`,
             startupData
         );
 
@@ -742,7 +821,12 @@ Example: "First-mover on new CBN open banking framework; direct relationship wit
 Demonstrate regulatory readiness and strategic positioning.`,
             `One sentence showing you understand compliance as competitive advantage, not just a checkbox.`,
             "title-bullets",
-            `3 icons representing financial licensing, compliance milestones, and regulatory positioning in ${scopeContext}.`,
+            `Generate 3 hollow, outline-style icons with transparent backgrounds using FLUX.1 schnell.
+ The color of the icons must be ${brandColor}.
+ - Icon 1 must visually represent the current licensing status from BULLET 1. Its caption should be a short title (max 4 words) for BULLET 1.
+ - Icon 2 must visually represent the next compliance milestone from BULLET 2. Its caption should be a short title (max 4 words) for BULLET 2.
+ - Icon 3 must visually represent the regulatory advantage from BULLET 3. Its caption should be a short title (max 4 words) for BULLET 3.
+ The output must be a JSON array of 3 image objects, each with a 'prompt' and 'caption' field.`,
             startupData
         );
     }
@@ -770,7 +854,12 @@ Example: "90-day retention at 78%; schools renew at 95% rate after first year"
 Show product-market fit and distribution leverage.`,
             `One sentence on how partnerships and adoption metrics validate market need and accelerate growth.`,
             "image-text",
-            `3 icons representing user growth, institutional partnerships, and engagement metrics in education.`,
+            `Generate 3 hollow, outline-style icons with transparent backgrounds using FLUX.1 schnell.
+ The color of the icons must be ${brandColor}.
+ - Icon 1 must visually represent the key adoption metric from BULLET 1. Its caption should be a short title (max 4 words) for BULLET 1.
+ - Icon 2 must visually represent the strategic partnership from BULLET 2. Its caption should be a short title (max 4 words) for BULLET 2.
+ - Icon 3 must visually represent the retention and growth metrics from BULLET 3. Its caption should be a short title (max 4 words) for BULLET 3.
+ The output must be a JSON array of 3 image objects, each with a 'prompt' and 'caption' field.`,
             startupData
         );
 
@@ -796,7 +885,12 @@ Example: "Adaptive learning algorithm personalizes content based on 50+ skill as
 Prove educational efficacy and institutional credibility.`,
             `One sentence demonstrating measurable impact on learning outcomes validates educational value proposition.`,
             "title-bullets",
-            `3 icons representing learning outcomes, curriculum alignment, and adaptive pedagogy.`,
+            `Generate 3 hollow, outline-style icons with transparent backgrounds using FLUX.1 schnell.
+ The color of the icons must be ${brandColor}.
+ - Icon 1 must visually represent the quantified learning impact from BULLET 1. Its caption should be a short title (max 4 words) for BULLET 1.
+ - Icon 2 must visually represent the curriculum alignment from BULLET 2. Its caption should be a short title (max 4 words) for BULLET 2.
+ - Icon 3 must visually represent the pedagogical differentiation from BULLET 3. Its caption should be a short title (max 4 words) for BULLET 3.
+ The output must be a JSON array of 3 image objects, each with a 'prompt' and 'caption' field.`,
             startupData
         );
     }
@@ -975,92 +1069,61 @@ Remember: SURGICAL EDITS ONLY. Change what was requested. Preserve everything el
 `;
 };
 
-// Professional Pitch Deck Color Kit Generator - Hex Only Output
+// Professional Pitch Deck Color Kit Generator - Hex Only Output (Dual Kits)
 const createTailwindPrompt = (brandColor = 'orange') => {
     const isHex = /^#([0-9A-F]{3}){1,2}$/i.test(brandColor);
     const colorHint = isHex
-        ? `Brand HEX: ${brandColor}. Analyze this color and create a pitch deck palette where this brand color DOMINATES.`
-        : `Brand identity: "${brandColor}". Interpret as a professional HEX and create a pitch deck palette where this brand color DOMINATES.`;
+        ? `Brand HEX: ${brandColor}. Analyze this color.`
+        : `Brand identity: "${brandColor}". Interpret as a professional HEX.`;
 
     return `
-MISSION: You are a professional pitch deck designer. Analyze the provided brand color and autonomously create a color palette that makes the brand color DOMINANT while following research-backed best practices.
+MISSION: You are a professional pitch deck designer. Analyze the provided brand color and create TWO distinct color kits:
+1. "default": A standard pitch deck palette following best practices.
+2. "iconSlide": A specific palette for icon-heavy slides where the brand color is used for TEXT/GRAPHICS against a neutral background.
 
 ${colorHint}
 
 STEP 1: ANALYZE THE BRAND COLOR
-Extract these properties:
-- Hue family (red/orange/yellow/green/blue/purple/neutral)
-- Saturation level (vibrant vs muted)
-- Lightness (dark vs light)
-- Warmth (warm vs cool)
+Extract properties: Hue, Saturation, Lightness, Warmth.
 
-STEP 2: INFER STRATEGY BASED ON COLOR PSYCHOLOGY
+STEP 2: GENERATE KIT 1 - "default" (STANDARD LOGIC)
+Follow these rules for the "default" kit:
+- RED/ORANGE/YELLOW: Dark background strategies usually work best.
+- BLUE/GREEN/PURPLE: Flexible (Dark or Light backgrounds).
+- NEUTRAL: Elegant minimalist strategies.
+- LOGIC: 
+  - If Brand is Dark (<40% light): Use dark background + bright text OR light background + dark brand text.
+  - If Brand is Vibrant (>70% sat): Use Brand background + white text OR Dark background + Brand text.
+  - If Brand is Muted: Use Off-white background + Dark Brand text.
 
-RED (#D0021B to #FF6B6B): Energy, urgency, passion
-→ Strategy: Dark background OR rich red background with white text
-
-ORANGE (#FF6B35 to #FFA500): Innovation, creativity, approachability
-→ Strategy: Dark background (navy/charcoal) with vibrant orange titles
-
-YELLOW (#FFD700 to #F4E04D): Optimism, clarity, creativity
-→ Strategy: Light background with bold yellow accents
-
-GREEN (#00B894 to #6FCF97): Growth, health, sustainability
-→ Strategy: Rich green background OR dark background with vibrant green
-
-BLUE (#0066CC to #3498DB): Trust, professionalism, stability
-→ Strategy: Dark blue background OR vibrant blue on dark neutral
-
-PURPLE (#9B59B6 to #A855F7): Innovation, luxury, creativity
-→ Strategy: Deep purple background OR dark background with vibrant purple
-
-NEUTRAL (Gray/Beige/Black): Sophistication, minimalism
-→ Strategy: Elegant neutrals with strategic accent
-
-STEP 3: SELECT BACKGROUND APPROACH
-
-APPROACH A - BRAND-DOMINANT BACKGROUND (Best for vibrant colors):
-- Background: Brand color at 70-85% saturation
-- Title: White (#FFFFFF) or cream (#FEFEFE)
-- Bullets: White at 90-95% opacity (#EBEBEB, #F0F0F0)
-- Notes: White at 65-70% opacity (#A8A8A8, #B5B5B5)
-
-APPROACH B - DARK + VIBRANT BRAND (Best for professional/tech):
-- Background: Deep neutral (#0f1419, #1a1a1a, #1a2332)
-- Title: Full-strength brand color (95-100% saturation)
-- Bullets: Bright neutral (#F0F0F0, #E8E8E8)
-- Notes: Muted neutral (#A0A0A0, #B8B8B8)
-
-APPROACH C - LIGHT + BOLD BRAND (Best for healthcare/education):
-- Background: Off-white (#FAFAFA, #F8F9FA) or 5-8% brand tint
-- Title: Bold brand color at 85-100% saturation
-- Bullets: Dark gray (#2D2D2D, #333333)
-- Notes: Medium gray (#6B6B6B, #999999)
-
-SELECTION LOGIC:
-- Dark brand color (lightness <40%): Use Approach B or A
-- Vibrant brand color (saturation >70%): Use Approach A or B
-- Muted/pastel brand color: Use Approach C with darker variant
-- Warm colors (red/orange/yellow): Prefer Approach B
-- Cool colors (blue/green/purple): Any approach works
+STEP 3: GENERATE KIT 2 - "iconSlide" (ICON SLIDE VARIANT)
+Follow these STRICT rules for the "iconSlide" kit:
+- BACKGROUND: Must be a NEUTRAL color that contrasts strongly with the brand color.
+  - If Brand Color is DARK: Background must be Off-White/Light Gray (e.g., #F8F9FA).
+  - If Brand Color is BRIGHT/LIGHT: Background must be Dark Charcoal/Black (e.g., #1A1A1A).
+- TEXT ELEMENTS: Must use the Brand Color (or variations of it) to maintain hierarchy.
+  - Title: Brand Color (100% opacity/saturation).
+  - Bullets: Brand Color (slightly adjusted for readability if needed, but clearly the brand hue).
+  - Notes: Brand Color (lower opacity/saturation, e.g., 60-70%).
 
 STEP 4: ENSURE ACCESSIBILITY
-- Title to background: Minimum 4.5:1 contrast (or 3:1 if ≥18pt)
-- Bullets to background: Minimum 4.5:1 contrast
-- Adjust lightness if contrast fails
-
-CRITICAL RULES:
-✓ Brand color MUST be prominent and dominant
-✓ Never make brand color subtle or timid
-✓ Maintain WCAG AA contrast ratios
-✓ Create clear hierarchy: title > bullets > notes
+- Check contrast ratios for both kits.
+- Adjust values slightly if necessary to meet WCAG AA standards.
 
 STRICT OUTPUT (JSON only, no markdown, no explanations):
 {
-    "background": "#[HEX]",
-    "title": "#[HEX]",
-    "bullets": "#[HEX]",
-    "notes": "#[HEX]"
+    "default": {
+        "background": "#[HEX]",
+        "title": "#[HEX]",
+        "bullets": "#[HEX]",
+        "notes": "#[HEX]"
+    },
+    "iconSlide": {
+        "background": "#[HEX]",
+        "title": "#[HEX]",
+        "bullets": "#[HEX]",
+        "notes": "#[HEX]"
+    }
 }
 
 Return ONLY valid JSON with hex codes. Nothing else.

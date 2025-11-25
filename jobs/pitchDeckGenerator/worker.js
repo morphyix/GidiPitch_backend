@@ -242,10 +242,18 @@ const pitchDeckWorker = new Worker(
 
       const brandKit = await generateBrandKit(tailwindPrompt, { model: 'gemini-2.5-pro' });
       const brandKitObj = {
-        background: brandKit.background || 'bg-amber-950',
-        title: brandKit.title || 'text-yellow-400',
-        bullets: brandKit.bullets || 'text-gray-200',
-        note: brandKit.notes || 'text-gray-500',
+        default: {
+          background: brandKit?.default?.background || 'bg-amber-950',
+          title: brandKit?.default?.title || 'text-yellow-400',
+          bullets: brandKit?.default?.bullets || 'text-gray-200',
+          note: brandKit?.default?.note || 'text-gray-500',
+        },
+        iconSlide: {
+          background: brandKit?.iconSlide?.background || 'bg-amber-950',
+          title: brandKit?.iconSlide?.title || 'text-yellow-400',
+          bullets: brandKit?.iconSlide?.bullets || 'text-gray-200',
+          note: brandKit?.iconSlide?.note || 'text-gray-500',
+        }
       };
 
       await updateDeckByIdService(deckId, {
