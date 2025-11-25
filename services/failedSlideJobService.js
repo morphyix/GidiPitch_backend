@@ -7,7 +7,7 @@ const FailedSlideJob = require('../models/failedSlideJob');
 // Create a failed slide job entry
 const logFailedSlideJobService = async (userId, slideId, prompt, errorMsg, jobId = null) => {
     try {
-        if (!userId || !slideId || !correction) {
+        if (!userId || !slideId || !prompt) {
             throw new AppError('Invalid data provided for logging failed slide job', 400);
         }
 

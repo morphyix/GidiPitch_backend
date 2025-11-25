@@ -165,7 +165,7 @@ const getPitchDeckProgressController = async (req, res, next) => {
             return next(new AppError('No slides found for this deck', 404));
         }
 
-        const completedSlides = deckSlides.filter(slide => slide.progress === 100 && slide.status === 'ready');
+        const completedSlides = deckSlides.filter(slide => slide.progress === 100 && (slide.status === 'ready' || slide.status === 'partial_failed'));
 
         const currentStatus = deck.activityStatus;
         // Return error if deck generation failed:
@@ -848,7 +848,7 @@ const resumeFailedSlideJobController = async (req, res, next) => {
         await addSlideCorrectionJob(jobData);
 
         // Delete the failed slide job entry
-        await deleteFailedSlideBySlideIdService(failedJob.slideId);
+        await deleteFailedSlideJobBySlideIdService(failedJob.slideId);
 
         return res.status(200).json({
             status: 'success',

@@ -245,14 +245,16 @@ const generateBrandKit = async (
 
 // Initialize Runware instance once (singleton pattern - CORRECT)
 let runwareInstance = null;
-const getRunwareInstance = () => {
+const getRunwareInstance = async () => {
   if (!runwareInstance) {
     runwareInstance = new Runware({ 
       apiKey: process.env.RUNWARE_API_KEY,
       shouldReconnect: true,
-      globalMaxRetries: 0, // ⚠️ DISABLE internal retries, handle retries ourselves
       timeoutDuration: 90000, // 90 seconds
     });
+
+    await runwareInstance.ensureConnection();
+    console.log('✅ Runware connection established');
   }
   return runwareInstance;
 };
@@ -275,14 +277,14 @@ const generateRunwareImage = async (
 
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
-      const runware = getRunwareInstance(); // ✅ Reuses same instance
+      const runware = await getRunwareInstance(); // ✅ Reuses same instance
 
-      const images = await runware.requestImages({
+      const images = await runware.imageInference({
         positivePrompt: prompt,
-        model,
-        width,
-        height,
-        numberResults,
+        model: model,
+        width: width,
+        height: height,
+        numberResults: numberResults,
       });
 
       if (!images || images.length === 0) {
