@@ -100,7 +100,7 @@ const baseSlidePrompt = (slideType, titlePrefix, dataAnalysisInstruction, bullet
 
     const title = slideType === 'cover'
         ? `${titlePrefix}`
-        : `TITLE: "${titlePrefix}: [Clear, Specific Claim]" (Max 12 words). 
+        : `TITLE: "${titlePrefix}: [Clear, Specific Claim]" (Max 7 words). 
         
 After analyzing the startup data, create a title that captures the key insight for this slide.
 Focus on outcomes, not aspirations. 
@@ -234,12 +234,22 @@ NOT: "Massive inefficiencies plague the fragmented logistics sector"
 Analyze the problems data and use web_search to quantify impact where needed.`,
             `One sentence explaining why this problem exists now and why ${startupName} is positioned to solve it.`,
             "title-bullets",
-            `Generate 3 hollow, outline-style icons with transparent backgrounds using FLUX.1 schnell.
- The color of the icons must be ${brandColor}.
- - Icon 1 must visually represent the Who/What/How Much concept from BULLET 1. Its caption should be a short title (max 4 words) for BULLET 1.
- - Icon 2 must visually represent the Who/What/How Much concept from BULLET 2. Its caption should be a short title (max 4 words) for BULLET 2.
- - Icon 3 must visually represent the Who/What/How Much concept from BULLET 3. Its caption should be a short title (max 4 words) for BULLET 3.
- The output must be a JSON array of 3 image objects, each with a 'prompt' and 'caption' field.`,
+            `Generate 3 minimalist hollow outline icons using FLUX.1 schnell.
+
+STRICT ICON REQUIREMENTS:
+- Transparent background ONLY (RGBA transparency, no shapes, no filled areas, no white, black, or colored backdrop)
+- Icon lines must use the exact color ${brandColor}
+- No shadows, no gradients, no lighting effects, no 3D rendering
+- No container shapes (no circles, squares, blobs, badges)
+- Pure vector-style line icon, empty interior, consistent stroke width
+- Entire canvas should remain empty except the outline icon
+
+FOR EACH ICON:
+- Visually represent: [use the bullet-specific instruction]
+- Caption: [4-word max title from the corresponding bullet]
+
+Output must be a JSON array of 3 objects:
+[{ "prompt": "...", "caption": "..." }, ...]`,
             startupData
         ),
 
@@ -264,12 +274,22 @@ Example: "98% delivery success rate vs. 75% industry average, improving merchant
 Synthesize from solutions, features, and any technical details in moreInfo.`,
             `One sentence explaining the core technology or business model innovation that makes this defensible.`,
             "image-text",
-            `Generate 3 hollow, outline-style icons with transparent backgrounds using FLUX.1 schnell.
- The color of the icons must be ${brandColor}.
- - Icon 1 must visually represent the direct problem-solution mapping from BULLET 1. Its caption should be a short title (max 4 words) for BULLET 1.
- - Icon 2 must visually represent the core innovation from BULLET 2. Its caption should be a short title (max 4 words) for BULLET 2.
- - Icon 3 must visually represent the key benefit from BULLET 3. Its caption should be a short title (max 4 words) for BULLET 3.
- The output must be a JSON array of 3 image objects, each with a 'prompt' and 'caption' field.`,
+            `Generate 3 minimalist hollow outline icons using FLUX.1 schnell.
+
+STRICT ICON REQUIREMENTS:
+- Transparent background ONLY (RGBA transparency, no shapes, no filled areas, no white, black, or colored backdrop)
+- Icon lines must use the exact color ${brandColor}
+- No shadows, no gradients, no lighting effects, no 3D rendering
+- No container shapes (no circles, squares, blobs, badges)
+- Pure vector-style line icon, empty interior, consistent stroke width
+- Entire canvas should remain empty except the outline icon
+
+FOR EACH ICON:
+- Visually represent: [use the bullet-specific instruction]
+- Caption: [4-word max title from the corresponding bullet]
+
+Output must be a JSON array of 3 objects:
+[{ "prompt": "...", "caption": "..." }, ...]`,
             startupData
         ),
 
@@ -299,12 +319,22 @@ CRITICAL INSTRUCTIONS:
 Show what the product DOES and why users choose it.`,
             `One sentence describing how these features work together to create a superior user experience.`,
             "image-text",
-            `Generate 3 hollow, outline-style icons with transparent backgrounds using FLUX.1 schnell.
- The color of the icons must be ${brandColor}.
- - Icon 1 must visually represent the Feature + Benefit from BULLET 1. Its caption should be a short title (max 4 words) for BULLET 1.
- - Icon 2 must visually represent the Feature + Benefit from BULLET 2. Its caption should be a short title (max 4 words) for BULLET 2.
- - Icon 3 must visually represent the Feature + Benefit from BULLET 3. Its caption should be a short title (max 4 words) for BULLET 3.
- The output must be a JSON array of 3 image objects, each with a 'prompt' and 'caption' field.`,
+            `Generate 3 minimalist hollow outline icons using FLUX.1 schnell.
+
+STRICT ICON REQUIREMENTS:
+- Transparent background ONLY (RGBA transparency, no shapes, no filled areas, no white, black, or colored backdrop)
+- Icon lines must use the exact color ${brandColor}
+- No shadows, no gradients, no lighting effects, no 3D rendering
+- No container shapes (no circles, squares, blobs, badges)
+- Pure vector-style line icon, empty interior, consistent stroke width
+- Entire canvas should remain empty except the outline icon
+
+FOR EACH ICON:
+- Visually represent: [use the bullet-specific instruction]
+- Caption: [4-word max title from the corresponding bullet]
+
+Output must be a JSON array of 3 objects:
+[{ "prompt": "...", "caption": "..." }, ...]`,
             startupData
         ),
 
@@ -335,12 +365,22 @@ Example: "Pilot with Lagos State Ministry resulted in 18% improvement in student
 Show momentum and product-market fit with real numbers.`,
             `One sentence explaining what these metrics reveal about customer demand and business viability.`,
             "title-bullets",
-            `Generate 3 hollow, outline-style icons with transparent backgrounds using FLUX.1 schnell.
- The color of the icons must be ${brandColor}.
- - Icon 1 must visually represent the primary growth metric from BULLET 1. Its caption should be a short title (max 4 words) for BULLET 1.
- - Icon 2 must visually represent the retention/satisfaction metric from BULLET 2. Its caption should be a short title (max 4 words) for BULLET 2.
- - Icon 3 must visually represent the key validation milestone from BULLET 3. Its caption should be a short title (max 4 words) for BULLET 3.
- The output must be a JSON array of 3 image objects, each with a 'prompt' and 'caption' field.`,
+            `Generate 3 minimalist hollow outline icons using FLUX.1 schnell.
+
+STRICT ICON REQUIREMENTS:
+- Transparent background ONLY (RGBA transparency, no shapes, no filled areas, no white, black, or colored backdrop)
+- Icon lines must use the exact color ${brandColor}
+- No shadows, no gradients, no lighting effects, no 3D rendering
+- No container shapes (no circles, squares, blobs, badges)
+- Pure vector-style line icon, empty interior, consistent stroke width
+- Entire canvas should remain empty except the outline icon
+
+FOR EACH ICON:
+- Visually represent: [use the bullet-specific instruction]
+- Caption: [4-word max title from the corresponding bullet]
+
+Output must be a JSON array of 3 objects:
+[{ "prompt": "...", "caption": "..." }, ...]`,
             startupData
         ),
 
@@ -371,12 +411,22 @@ Example: "E-commerce penetration in Nigeria increased 45% YoY, driving delivery 
 Make the market real, sized, and urgent.`,
             `One sentence on the specific beachhead strategy - where you'll start and why that segment is winnable now.`,
             "title-bullets",
-            `Generate 3 hollow, outline-style icons with transparent backgrounds using FLUX.1 schnell.
- The color of the icons must be ${brandColor}.
- - Icon 1 must visually represent the Total Addressable Market (TAM) from BULLET 1. Its caption should be a short title (max 4 words) for BULLET 1.
- - Icon 2 must visually represent the Serviceable Addressable Market (SAM) from BULLET 2. Its caption should be a short title (max 4 words) for BULLET 2.
- - Icon 3 must visually represent the key market driver from BULLET 3. Its caption should be a short title (max 4 words) for BULLET 3.
- The output must be a JSON array of 3 image objects, each with a 'prompt' and 'caption' field.`,
+            `Generate 3 minimalist hollow outline icons using FLUX.1 schnell.
+
+STRICT ICON REQUIREMENTS:
+- Transparent background ONLY (RGBA transparency, no shapes, no filled areas, no white, black, or colored backdrop)
+- Icon lines must use the exact color ${brandColor}
+- No shadows, no gradients, no lighting effects, no 3D rendering
+- No container shapes (no circles, squares, blobs, badges)
+- Pure vector-style line icon, empty interior, consistent stroke width
+- Entire canvas should remain empty except the outline icon
+
+FOR EACH ICON:
+- Visually represent: [use the bullet-specific instruction]
+- Caption: [4-word max title from the corresponding bullet]
+
+Output must be a JSON array of 3 objects:
+[{ "prompt": "...", "caption": "..." }, ...]`,
             startupData
         ),
 
@@ -410,12 +460,22 @@ CRITICAL: If your pricing is 10x cheaper than competitors, LEAD WITH THAT. It's 
 Show investors the math works AND gets better over time.`,
             `One sentence explaining the primary driver of profitability and scalability (e.g., "Zero marginal cost structure enables 85%+ margins at scale" or "Network effects reduce CAC 40% for every 10% increase in supply-side density").`,
             "image-text",
-            `Generate 3 hollow, outline-style icons with transparent backgrounds using FLUX.1 schnell.
- The color of the icons must be ${brandColor}.
- - Icon 1 must visually represent the revenue model and pricing from BULLET 1. Its caption should be a short title (max 4 words) for BULLET 1.
- - Icon 2 must visually represent the unit economics from BULLET 2. Its caption should be a short title (max 4 words) for BULLET 2.
- - Icon 3 must visually represent the scaling mechanism from BULLET 3. Its caption should be a short title (max 4 words) for BULLET 3.
- The output must be a JSON array of 3 image objects, each with a 'prompt' and 'caption' field.`,
+            `Generate 3 minimalist hollow outline icons using FLUX.1 schnell.
+
+STRICT ICON REQUIREMENTS:
+- Transparent background ONLY (RGBA transparency, no shapes, no filled areas, no white, black, or colored backdrop)
+- Icon lines must use the exact color ${brandColor}
+- No shadows, no gradients, no lighting effects, no 3D rendering
+- No container shapes (no circles, squares, blobs, badges)
+- Pure vector-style line icon, empty interior, consistent stroke width
+- Entire canvas should remain empty except the outline icon
+
+FOR EACH ICON:
+- Visually represent: [use the bullet-specific instruction]
+- Caption: [4-word max title from the corresponding bullet]
+
+Output must be a JSON array of 3 objects:
+[{ "prompt": "...", "caption": "..." }, ...]`,
             startupData
         ),
 
@@ -443,12 +503,22 @@ Example: "Freemium model with watermarked exports creates 1.2 viral coefficient"
 Show you have a credible, capital-efficient path to customers.`,
             `One sentence explaining how these channels create compounding growth over time.`,
             "title-bullets",
-            `Generate 3 hollow, outline-style icons with transparent backgrounds using FLUX.1 schnell.
- The color of the icons must be ${brandColor}.
- - Icon 1 must visually represent the primary acquisition channel from BULLET 1. Its caption should be a short title (max 4 words) for BULLET 1.
- - Icon 2 must visually represent the secondary channel from BULLET 2. Its caption should be a short title (max 4 words) for BULLET 2.
- - Icon 3 must visually represent the viral/retention mechanism from BULLET 3. Its caption should be a short title (max 4 words) for BULLET 3.
- The output must be a JSON array of 3 image objects, each with a 'prompt' and 'caption' field.`,
+            `Generate 3 minimalist hollow outline icons using FLUX.1 schnell.
+
+STRICT ICON REQUIREMENTS:
+- Transparent background ONLY (RGBA transparency, no shapes, no filled areas, no white, black, or colored backdrop)
+- Icon lines must use the exact color ${brandColor}
+- No shadows, no gradients, no lighting effects, no 3D rendering
+- No container shapes (no circles, squares, blobs, badges)
+- Pure vector-style line icon, empty interior, consistent stroke width
+- Entire canvas should remain empty except the outline icon
+
+FOR EACH ICON:
+- Visually represent: [use the bullet-specific instruction]
+- Caption: [4-word max title from the corresponding bullet]
+
+Output must be a JSON array of 3 objects:
+[{ "prompt": "...", "caption": "..." }, ...]`,
             startupData
         ),
 
@@ -510,12 +580,22 @@ Example: "Series A readiness: $500K ARR, 4:1 LTV/CAC, 20% month-over-month growt
 Show traction, momentum, and clear vision for what's next.`,
             `One sentence demonstrating you understand what metrics matter for your stage and category.`,
             "title-bullets",
-            `Generate 3 hollow, outline-style icons with transparent backgrounds using FLUX.1 schnell.
- The color of the icons must be ${brandColor}.
- - Icon 1 must visually represent the historical metric from BULLET 1. Its caption should be a short title (max 4 words) for BULLET 1.
- - Icon 2 must visually represent the near-term milestone from BULLET 2. Its caption should be a short title (max 4 words) for BULLET 2.
- - Icon 3 must visually represent the major future milestone from BULLET 3. Its caption should be a short title (max 4 words) for BULLET 3.
- The output must be a JSON array of 3 image objects, each with a 'prompt' and 'caption' field.`,
+            `Generate 3 minimalist hollow outline icons using FLUX.1 schnell.
+
+STRICT ICON REQUIREMENTS:
+- Transparent background ONLY (RGBA transparency, no shapes, no filled areas, no white, black, or colored backdrop)
+- Icon lines must use the exact color ${brandColor}
+- No shadows, no gradients, no lighting effects, no 3D rendering
+- No container shapes (no circles, squares, blobs, badges)
+- Pure vector-style line icon, empty interior, consistent stroke width
+- Entire canvas should remain empty except the outline icon
+
+FOR EACH ICON:
+- Visually represent: [use the bullet-specific instruction]
+- Caption: [4-word max title from the corresponding bullet]
+
+Output must be a JSON array of 3 objects:
+[{ "prompt": "...", "caption": "..." }, ...]`,
             startupData
         ),
 
@@ -565,12 +645,22 @@ Example: "Break-even at 15K paying users (Month 24); Series A at $500K ARR with 
 Projections must be conservative and defensible.`,
             `One sentence stating your primary growth assumption and acknowledging the key risk to that assumption.`,
             "title-bullets",
-            `Generate 3 hollow, outline-style icons with transparent backgrounds using FLUX.1 schnell.
- The color of the icons must be ${brandColor}.
- - Icon 1 must visually represent the current financial state from BULLET 1. Its caption should be a short title (max 4 words) for BULLET 1.
- - Icon 2 must visually represent the 3-year projection from BULLET 2. Its caption should be a short title (max 4 words) for BULLET 2.
- - Icon 3 must visually represent the path to profitability from BULLET 3. Its caption should be a short title (max 4 words) for BULLET 3.
- The output must be a JSON array of 3 image objects, each with a 'prompt' and 'caption' field.`,
+            `Generate 3 minimalist hollow outline icons using FLUX.1 schnell.
+
+STRICT ICON REQUIREMENTS:
+- Transparent background ONLY (RGBA transparency, no shapes, no filled areas, no white, black, or colored backdrop)
+- Icon lines must use the exact color ${brandColor}
+- No shadows, no gradients, no lighting effects, no 3D rendering
+- No container shapes (no circles, squares, blobs, badges)
+- Pure vector-style line icon, empty interior, consistent stroke width
+- Entire canvas should remain empty except the outline icon
+
+FOR EACH ICON:
+- Visually represent: [use the bullet-specific instruction]
+- Caption: [4-word max title from the corresponding bullet]
+
+Output must be a JSON array of 3 objects:
+[{ "prompt": "...", "caption": "..." }, ...]`,
             startupData
         ),
 
@@ -598,12 +688,22 @@ Example: "At $20M ARR, 100K active founders, company becomes strategic acquisiti
 Make the exit path credible and attractive.`,
             `One sentence explaining how this becomes a $100M+ outcome for investors within 5-7 years.`,
             "title-bullets",
-            `Generate 3 hollow, outline-style icons with transparent backgrounds using FLUX.1 schnell.
- The color of the icons must be ${brandColor}.
- - Icon 1 must visually represent the market position goal from BULLET 1. Its caption should be a short title (max 4 words) for BULLET 1.
- - Icon 2 must visually represent the strategic acquirers from BULLET 2. Its caption should be a short title (max 4 words) for BULLET 2.
- - Icon 3 must visually represent the acquisition readiness threshold from BULLET 3. Its caption should be a short title (max 4 words) for BULLET 3.
- The output must be a JSON array of 3 image objects, each with a 'prompt' and 'caption' field.`,
+            `Generate 3 minimalist hollow outline icons using FLUX.1 schnell.
+
+STRICT ICON REQUIREMENTS:
+- Transparent background ONLY (RGBA transparency, no shapes, no filled areas, no white, black, or colored backdrop)
+- Icon lines must use the exact color ${brandColor}
+- No shadows, no gradients, no lighting effects, no 3D rendering
+- No container shapes (no circles, squares, blobs, badges)
+- Pure vector-style line icon, empty interior, consistent stroke width
+- Entire canvas should remain empty except the outline icon
+
+FOR EACH ICON:
+- Visually represent: [use the bullet-specific instruction]
+- Caption: [4-word max title from the corresponding bullet]
+
+Output must be a JSON array of 3 objects:
+[{ "prompt": "...", "caption": "..." }, ...]`,
             startupData
         ),
 
@@ -630,12 +730,22 @@ Example for edtech: "Partnership with Lagos State Education Ministry provides ac
 Example for healthtech: "Patent pending on diagnostic algorithm; priority date March 2024"`,
             `One sentence explaining how these assets accelerate growth or create competitive barriers.`,
             "image-text",
-            `Generate 3 hollow, outline-style icons with transparent backgrounds using FLUX.1 schnell.
- The color of the icons must be ${brandColor}.
- - Icon 1 must visually represent the first derisking factor from BULLET 1. Its caption should be a short title (max 4 words) for BULLET 1.
- - Icon 2 must visually represent the second derisking factor from BULLET 2. Its caption should be a short title (max 4 words) for BULLET 2.
- - Icon 3 must visually represent the strategic advantage from BULLET 3. Its caption should be a short title (max 4 words) for BULLET 3.
- The output must be a JSON array of 3 image objects, each with a 'prompt' and 'caption' field.`,
+            `Generate 3 minimalist hollow outline icons using FLUX.1 schnell.
+
+STRICT ICON REQUIREMENTS:
+- Transparent background ONLY (RGBA transparency, no shapes, no filled areas, no white, black, or colored backdrop)
+- Icon lines must use the exact color ${brandColor}
+- No shadows, no gradients, no lighting effects, no 3D rendering
+- No container shapes (no circles, squares, blobs, badges)
+- Pure vector-style line icon, empty interior, consistent stroke width
+- Entire canvas should remain empty except the outline icon
+
+FOR EACH ICON:
+- Visually represent: [use the bullet-specific instruction]
+- Caption: [4-word max title from the corresponding bullet]
+
+Output must be a JSON array of 3 objects:
+[{ "prompt": "...", "caption": "..." }, ...]`,
             startupData
         ),
 
@@ -663,12 +773,22 @@ Example: "Achieves $100K ARR, 10K active users, 4:1 LTV/CAC - Series A ready"
 Make the ask specific, justified, and milestone-driven.`,
             `One sentence on runway (months) and the key success metric for the next funding round.`,
             "title-bullets",
-            `Generate 3 hollow, outline-style icons with transparent backgrounds using FLUX.1 schnell.
- The color of the icons must be ${brandColor}.
- - Icon 1 must visually represent the funding amount and round type from BULLET 1. Its caption should be a short title (max 4 words) for BULLET 1.
- - Icon 2 must visually represent the capital allocation from BULLET 2. Its caption should be a short title (max 4 words) for BULLET 2.
- - Icon 3 must visually represent the key milestone enabled from BULLET 3. Its caption should be a short title (max 4 words) for BULLET 3.
- The output must be a JSON array of 3 image objects, each with a 'prompt' and 'caption' field.`,
+            `Generate 3 minimalist hollow outline icons using FLUX.1 schnell.
+
+STRICT ICON REQUIREMENTS:
+- Transparent background ONLY (RGBA transparency, no shapes, no filled areas, no white, black, or colored backdrop)
+- Icon lines must use the exact color ${brandColor}
+- No shadows, no gradients, no lighting effects, no 3D rendering
+- No container shapes (no circles, squares, blobs, badges)
+- Pure vector-style line icon, empty interior, consistent stroke width
+- Entire canvas should remain empty except the outline icon
+
+FOR EACH ICON:
+- Visually represent: [use the bullet-specific instruction]
+- Caption: [4-word max title from the corresponding bullet]
+
+Output must be a JSON array of 3 objects:
+[{ "prompt": "...", "caption": "..." }, ...]`,
             startupData
         ),
 
@@ -689,11 +809,22 @@ Example: "Email: founder@startup.com | Website: startup.com"
 Keep it simple and action-oriented.`,
             `One sentence thanking investors and expressing confidence in the opportunity.`,
             "full-image",
-            `Generate 2 hollow, outline-style icons with transparent backgrounds using FLUX.1 schnell.
- The color of the icons must be ${brandColor}.
- - Icon 1 must visually represent the call-to-action from BULLET 1. Its caption should be a short title (max 4 words) for BULLET 1.
- - Icon 2 must visually represent the contact information from BULLET 2. Its caption should be a short title (max 4 words) for BULLET 2.
- The output must be a JSON array of 2 image objects, each with a 'prompt' and 'caption' field.`,
+            `Generate 2 minimalist hollow outline icons using FLUX.1 schnell.
+
+STRICT ICON REQUIREMENTS:
+- Transparent background ONLY (RGBA transparency, no shapes, no filled areas, no white, black, or colored backdrop)
+- Icon lines must use the exact color ${brandColor}
+- No shadows, no gradients, no lighting effects, no 3D rendering
+- No container shapes (no circles, squares, blobs, badges)
+- Pure vector-style line icon, empty interior, consistent stroke width
+- Entire canvas should remain empty except the outline icon
+
+FOR EACH ICON:
+- Visually represent: [use the bullet-specific instruction]
+- Caption: [4-word max title from the corresponding bullet]
+
+Output must be a JSON array of 2 objects:
+[{ "prompt": "...", "caption": "..." }, ...]`,
             startupData
         ),
     };
@@ -725,12 +856,22 @@ Example: "Working with FDA consultancy to derisk clearance timeline; budget incl
 Show regulatory awareness and derisking strategy.`,
             `One sentence explaining how the regulatory pathway creates competitive advantage or timing opportunity.`,
             "image-text",
-            `Generate 3 hollow, outline-style icons with transparent backgrounds using FLUX.1 schnell.
- The color of the icons must be ${brandColor}.
- - Icon 1 must visually represent the regulatory status from BULLET 1. Its caption should be a short title (max 4 words) for BULLET 1.
- - Icon 2 must visually represent the compliance certifications from BULLET 2. Its caption should be a short title (max 4 words) for BULLET 2.
- - Icon 3 must visually represent the risk mitigation plan from BULLET 3. Its caption should be a short title (max 4 words) for BULLET 3.
- The output must be a JSON array of 3 image objects, each with a 'prompt' and 'caption' field.`,
+            `Generate 3 minimalist hollow outline icons using FLUX.1 schnell.
+
+STRICT ICON REQUIREMENTS:
+- Transparent background ONLY (RGBA transparency, no shapes, no filled areas, no white, black, or colored backdrop)
+- Icon lines must use the exact color ${brandColor}
+- No shadows, no gradients, no lighting effects, no 3D rendering
+- No container shapes (no circles, squares, blobs, badges)
+- Pure vector-style line icon, empty interior, consistent stroke width
+- Entire canvas should remain empty except the outline icon
+
+FOR EACH ICON:
+- Visually represent: [use the bullet-specific instruction]
+- Caption: [4-word max title from the corresponding bullet]
+
+Output must be a JSON array of 3 objects:
+[{ "prompt": "...", "caption": "..." }, ...]`,
             startupData
         );
 
@@ -756,12 +897,22 @@ Example: "Results validated by Johns Hopkins researchers; publication submitted 
 Prove scientific rigor and competitive protection.`,
             `One sentence on how clinical evidence and IP create defensible competitive position.`,
             "title-bullets",
-            `Generate 3 hollow, outline-style icons with transparent backgrounds using FLUX.1 schnell.
- The color of the icons must be ${brandColor}.
- - Icon 1 must visually represent the clinical/scientific evidence from BULLET 1. Its caption should be a short title (max 4 words) for BULLET 1.
- - Icon 2 must visually represent the IP status from BULLET 2. Its caption should be a short title (max 4 words) for BULLET 2.
- - Icon 3 must visually represent the source of credibility from BULLET 3. Its caption should be a short title (max 4 words) for BULLET 3.
- The output must be a JSON array of 3 image objects, each with a 'prompt' and 'caption' field.`,
+            `Generate 3 minimalist hollow outline icons using FLUX.1 schnell.
+
+STRICT ICON REQUIREMENTS:
+- Transparent background ONLY (RGBA transparency, no shapes, no filled areas, no white, black, or colored backdrop)
+- Icon lines must use the exact color ${brandColor}
+- No shadows, no gradients, no lighting effects, no 3D rendering
+- No container shapes (no circles, squares, blobs, badges)
+- Pure vector-style line icon, empty interior, consistent stroke width
+- Entire canvas should remain empty except the outline icon
+
+FOR EACH ICON:
+- Visually represent: [use the bullet-specific instruction]
+- Caption: [4-word max title from the corresponding bullet]
+
+Output must be a JSON array of 3 objects:
+[{ "prompt": "...", "caption": "..." }, ...]`,
             startupData
         );
     }
@@ -789,12 +940,22 @@ Example: "Annual penetration testing by third-party firm; PCI DSS Level 1 certif
 Show operational maturity and risk management.`,
             `One sentence on how security infrastructure builds customer trust and reduces investment risk.`,
             "image-text",
-            `Generate 3 hollow, outline-style icons with transparent backgrounds using FLUX.1 schnell.
- The color of the icons must be ${brandColor}.
- - Icon 1 must visually represent the key security measures from BULLET 1. Its caption should be a short title (max 4 words) for BULLET 1.
- - Icon 2 must visually represent the operational risk metrics from BULLET 2. Its caption should be a short title (max 4 words) for BULLET 2.
- - Icon 3 must visually represent the audit and certification status from BULLET 3. Its caption should be a short title (max 4 words) for BULLET 3.
- The output must be a JSON array of 3 image objects, each with a 'prompt' and 'caption' field.`,
+            `Generate 3 minimalist hollow outline icons using FLUX.1 schnell.
+
+STRICT ICON REQUIREMENTS:
+- Transparent background ONLY (RGBA transparency, no shapes, no filled areas, no white, black, or colored backdrop)
+- Icon lines must use the exact color ${brandColor}
+- No shadows, no gradients, no lighting effects, no 3D rendering
+- No container shapes (no circles, squares, blobs, badges)
+- Pure vector-style line icon, empty interior, consistent stroke width
+- Entire canvas should remain empty except the outline icon
+
+FOR EACH ICON:
+- Visually represent: [use the bullet-specific instruction]
+- Caption: [4-word max title from the corresponding bullet]
+
+Output must be a JSON array of 3 objects:
+[{ "prompt": "...", "caption": "..." }, ...]`,
             startupData
         );
 
@@ -821,12 +982,22 @@ Example: "First-mover on new CBN open banking framework; direct relationship wit
 Demonstrate regulatory readiness and strategic positioning.`,
             `One sentence showing you understand compliance as competitive advantage, not just a checkbox.`,
             "title-bullets",
-            `Generate 3 hollow, outline-style icons with transparent backgrounds using FLUX.1 schnell.
- The color of the icons must be ${brandColor}.
- - Icon 1 must visually represent the current licensing status from BULLET 1. Its caption should be a short title (max 4 words) for BULLET 1.
- - Icon 2 must visually represent the next compliance milestone from BULLET 2. Its caption should be a short title (max 4 words) for BULLET 2.
- - Icon 3 must visually represent the regulatory advantage from BULLET 3. Its caption should be a short title (max 4 words) for BULLET 3.
- The output must be a JSON array of 3 image objects, each with a 'prompt' and 'caption' field.`,
+            `Generate 3 minimalist hollow outline icons using FLUX.1 schnell.
+
+STRICT ICON REQUIREMENTS:
+- Transparent background ONLY (RGBA transparency, no shapes, no filled areas, no white, black, or colored backdrop)
+- Icon lines must use the exact color ${brandColor}
+- No shadows, no gradients, no lighting effects, no 3D rendering
+- No container shapes (no circles, squares, blobs, badges)
+- Pure vector-style line icon, empty interior, consistent stroke width
+- Entire canvas should remain empty except the outline icon
+
+FOR EACH ICON:
+- Visually represent: [use the bullet-specific instruction]
+- Caption: [4-word max title from the corresponding bullet]
+
+Output must be a JSON array of 3 objects:
+[{ "prompt": "...", "caption": "..." }, ...]`,
             startupData
         );
     }
@@ -854,12 +1025,22 @@ Example: "90-day retention at 78%; schools renew at 95% rate after first year"
 Show product-market fit and distribution leverage.`,
             `One sentence on how partnerships and adoption metrics validate market need and accelerate growth.`,
             "image-text",
-            `Generate 3 hollow, outline-style icons with transparent backgrounds using FLUX.1 schnell.
- The color of the icons must be ${brandColor}.
- - Icon 1 must visually represent the key adoption metric from BULLET 1. Its caption should be a short title (max 4 words) for BULLET 1.
- - Icon 2 must visually represent the strategic partnership from BULLET 2. Its caption should be a short title (max 4 words) for BULLET 2.
- - Icon 3 must visually represent the retention and growth metrics from BULLET 3. Its caption should be a short title (max 4 words) for BULLET 3.
- The output must be a JSON array of 3 image objects, each with a 'prompt' and 'caption' field.`,
+            `Generate 3 minimalist hollow outline icons using FLUX.1 schnell.
+
+STRICT ICON REQUIREMENTS:
+- Transparent background ONLY (RGBA transparency, no shapes, no filled areas, no white, black, or colored backdrop)
+- Icon lines must use the exact color ${brandColor}
+- No shadows, no gradients, no lighting effects, no 3D rendering
+- No container shapes (no circles, squares, blobs, badges)
+- Pure vector-style line icon, empty interior, consistent stroke width
+- Entire canvas should remain empty except the outline icon
+
+FOR EACH ICON:
+- Visually represent: [use the bullet-specific instruction]
+- Caption: [4-word max title from the corresponding bullet]
+
+Output must be a JSON array of 3 objects:
+[{ "prompt": "...", "caption": "..." }, ...]`,
             startupData
         );
 
@@ -885,12 +1066,22 @@ Example: "Adaptive learning algorithm personalizes content based on 50+ skill as
 Prove educational efficacy and institutional credibility.`,
             `One sentence demonstrating measurable impact on learning outcomes validates educational value proposition.`,
             "title-bullets",
-            `Generate 3 hollow, outline-style icons with transparent backgrounds using FLUX.1 schnell.
- The color of the icons must be ${brandColor}.
- - Icon 1 must visually represent the quantified learning impact from BULLET 1. Its caption should be a short title (max 4 words) for BULLET 1.
- - Icon 2 must visually represent the curriculum alignment from BULLET 2. Its caption should be a short title (max 4 words) for BULLET 2.
- - Icon 3 must visually represent the pedagogical differentiation from BULLET 3. Its caption should be a short title (max 4 words) for BULLET 3.
- The output must be a JSON array of 3 image objects, each with a 'prompt' and 'caption' field.`,
+            `Generate 3 minimalist hollow outline icons using FLUX.1 schnell.
+
+STRICT ICON REQUIREMENTS:
+- Transparent background ONLY (RGBA transparency, no shapes, no filled areas, no white, black, or colored backdrop)
+- Icon lines must use the exact color ${brandColor}
+- No shadows, no gradients, no lighting effects, no 3D rendering
+- No container shapes (no circles, squares, blobs, badges)
+- Pure vector-style line icon, empty interior, consistent stroke width
+- Entire canvas should remain empty except the outline icon
+
+FOR EACH ICON:
+- Visually represent: [use the bullet-specific instruction]
+- Caption: [4-word max title from the corresponding bullet]
+
+Output must be a JSON array of 3 objects:
+[{ "prompt": "...", "caption": "..." }, ...]`,
             startupData
         );
     }
@@ -1069,64 +1260,122 @@ Remember: SURGICAL EDITS ONLY. Change what was requested. Preserve everything el
 `;
 };
 
-// Professional Pitch Deck Color Kit Generator - Hex Only Output (Dual Kits)
+// Professional Pitch Deck Color Kit Generator - Returns TWO color schemes
 const createTailwindPrompt = (brandColor = 'orange') => {
-    const isHex = /^#([0-9A-F]{3}){1,2}$/i.test(brandColor);
-    const colorHint = isHex
-        ? `Brand HEX: ${brandColor}. Analyze this color.`
-        : `Brand identity: "${brandColor}". Interpret as a professional HEX.`;
+const isHex = /^#([0-9A-F]{3}){1,2}$/i.test(brandColor);
+const colorHint = isHex
+? `Brand HEX: ${brandColor}. Analyze this color and create TWO pitch deck palettes where this brand color DOMINATES.`
+: `Brand identity: "${brandColor}". Interpret as a professional HEX and create TWO pitch deck palettes where this brand color DOMINATES.`;
 
-    return `
-MISSION: You are a professional pitch deck designer. Analyze the provided brand color and create TWO distinct color kits:
-1. "default": A standard pitch deck palette following best practices.
-2. "iconSlide": A specific palette for icon-heavy slides where the brand color is used for TEXT/GRAPHICS against a neutral background.
 
+return `
+MISSION: You are a professional pitch deck designer. Analyze the provided brand color and autonomously create TWO color palettes for different slide templates:
+
+CLASSIC TEMPLATE: Dark/rich background with light text (traditional pitch deck style)
+MODERN ICON TEMPLATE: Light neutral background with brand-colored content (for icon-based slides)
 ${colorHint}
-
 STEP 1: ANALYZE THE BRAND COLOR
-Extract properties: Hue, Saturation, Lightness, Warmth.
+Extract these properties:
 
-STEP 2: GENERATE KIT 1 - "default" (STANDARD LOGIC)
-Follow these rules for the "default" kit:
-- RED/ORANGE/YELLOW: Dark background strategies usually work best.
-- BLUE/GREEN/PURPLE: Flexible (Dark or Light backgrounds).
-- NEUTRAL: Elegant minimalist strategies.
-- LOGIC: 
-  - If Brand is Dark (<40% light): Use dark background + bright text OR light background + dark brand text.
-  - If Brand is Vibrant (>70% sat): Use Brand background + white text OR Dark background + Brand text.
-  - If Brand is Muted: Use Off-white background + Dark Brand text.
+Hue family (red/orange/yellow/green/blue/purple/neutral)
+Saturation level (vibrant vs muted)
+Lightness (dark vs light)
+Warmth (warm vs cool)
+STEP 2: CREATE TWO DISTINCT PALETTES
+═══════════════════════════════════════════════════════════════
+PALETTE 1: CLASSIC TEMPLATE (Dark/Rich Background)
+═══════════════════════════════════════════════════════════════
+APPROACH OPTIONS:
+A) BRAND-DOMINANT BACKGROUND (for vibrant colors):
 
-STEP 3: GENERATE KIT 2 - "iconSlide" (ICON SLIDE VARIANT)
-Follow these STRICT rules for the "iconSlide" kit:
-- BACKGROUND: Must be a NEUTRAL color that contrasts strongly with the brand color.
-  - If Brand Color is DARK: Background must be Off-White/Light Gray (e.g., #F8F9FA).
-  - If Brand Color is BRIGHT/LIGHT: Background must be Dark Charcoal/Black (e.g., #1A1A1A).
-- TEXT ELEMENTS: Must use the Brand Color (or variations of it) to maintain hierarchy.
-  - Title: Brand Color (100% opacity/saturation).
-  - Bullets: Brand Color (slightly adjusted for readability if needed, but clearly the brand hue).
-  - Notes: Brand Color (lower opacity/saturation, e.g., 60-70%).
+Background: Brand color at 70-85% saturation
+Title: White (#FFFFFF) or cream (#FEFEFE)
+Bullets: White at 90-95% opacity (#EBEBEB, #F0F0F0)
+Notes: White at 65-70% opacity (#A8A8A8, #B5B5B5)
+B) DARK + VIBRANT BRAND (for professional/tech):
 
-STEP 4: ENSURE ACCESSIBILITY
-- Check contrast ratios for both kits.
-- Adjust values slightly if necessary to meet WCAG AA standards.
+Background: Deep neutral (#0f1419, #1a1a1a, #1a2332)
+Title: Full-strength brand color (95-100% saturation)
+Bullets: Bright neutral (#F0F0F0, #E8E8E8)
+Notes: Muted neutral (#A0A0A0, #B8B8B8)
+SELECTION LOGIC:
 
+Dark brand (lightness <40%): Use Approach B
+Vibrant brand (saturation >70%): Use Approach A or B
+Warm colors (red/orange/yellow): Prefer Approach B
+Cool colors (blue/green/purple): Any approach works
+═══════════════════════════════════════════════════════════════
+PALETTE 2: MODERN ICON TEMPLATE (Light Neutral Background)
+═══════════════════════════════════════════════════════════════
+CRITICAL DESIGN PRINCIPLE:
+The background must be a NEUTRAL COLOR that creates high contrast with the brand color.
+This template inverts the classic approach - brand color is used for content, not background.
+BACKGROUND SELECTION (Choose the neutral that contrasts best with brand color):
+For DARK brand colors (e.g., navy, dark purple, dark green):
+
+Use light neutrals: #FAFAFA, #F8F9FA, #F5F5F5, #FFFFFF
+For LIGHT brand colors (e.g., yellow, light blue, pastel):
+
+Use slightly darker neutrals: #F0F0F0, #E8E8E8, #E5E5E5
+For MEDIUM brand colors:
+
+Use off-white: #FAFAFA, #F8F9FA
+CONTENT COLOR HIERARCHY (All use brand color with varying intensity):
+
+Title: Brand color at 100% saturation (STRONGEST)
+Example: If brand is #3B82F6, title = #3B82F6
+Bullets: Brand color at 80-85% opacity (MEDIUM STRONG)
+Example: If brand is #3B82F6, bullets might be #5A96F7 or rgba with 85% opacity
+Notes: Brand color at 50-60% opacity (SUBTLE)
+Example: If brand is #3B82F6, notes might be #8FB8F9 or rgba with 55% opacity
+HIERARCHY RULE: title > bullets > notes (achieved through saturation/opacity variations)
+CONTRAST REQUIREMENTS:
+
+Title to background: Minimum 4.5:1 contrast
+Bullets to background: Minimum 4.5:1 contrast
+Notes to background: Minimum 3:1 contrast
+═══════════════════════════════════════════════════════════════
+STEP 3: ENSURE ACCESSIBILITY (BOTH PALETTES)
+
+Title to background: Minimum 4.5:1 contrast (or 3:1 if ≥18pt)
+Bullets to background: Minimum 4.5:1 contrast
+Adjust lightness/opacity if contrast fails
+CRITICAL RULES:
+✓ Brand color MUST be prominent in both palettes
+✓ Palette 2 MUST use neutral background, brand-colored content
+✓ Clear hierarchy maintained: title > bullets > notes
+✓ Both palettes must meet WCAG AA standards
 STRICT OUTPUT (JSON only, no markdown, no explanations):
 {
-    "default": {
-        "background": "#[HEX]",
-        "title": "#[HEX]",
-        "bullets": "#[HEX]",
-        "notes": "#[HEX]"
-    },
-    "iconSlide": {
-        "background": "#[HEX]",
-        "title": "#[HEX]",
-        "bullets": "#[HEX]",
-        "notes": "#[HEX]"
-    }
+"default": {
+"background": "#[HEX]",
+"title": "#[HEX]",
+"bullets": "#[HEX]",
+"notes": "#[HEX]"
+},
+"iconSlide": {
+"background": "#[HEX - MUST BE NEUTRAL]",
+"title": "#[HEX - BRAND COLOR]",
+"bullets": "#[HEX - BRAND COLOR VARIANT]",
+"notes": "#[HEX - BRAND COLOR LIGHTER VARIANT]"
 }
-
-Return ONLY valid JSON with hex codes. Nothing else.
+}
+EXAMPLE OUTPUT for brand color #3B82F6 (blue):
+{
+"default": {
+"background": "#1a2332",
+"title": "#3B82F6",
+"bullets": "#F0F0F0",
+"notes": "#A0A0A0"
+},
+"iconSlide": {
+"background": "#FAFAFA",
+"title": "#3B82F6",
+"bullets": "#5A96F7",
+"notes": "#8FB8F9"
+}
+}
+Return ONLY valid JSON with both color schemes. Nothing else.
 `;
 };
 
