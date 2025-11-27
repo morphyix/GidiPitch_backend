@@ -94,7 +94,7 @@ const slideCorrectionWorker = new Worker(
             // Generate the image
             let imgObj;
             if (slide.key === 'competition') {
-              imgObj = await generateRunwareImage(image.prompt, { model: 'google:4@1'});
+              imgObj = await generateSlideImage(image.prompt);
             } else if (slide.key === 'cover') {
               imgObj = await generateRunwareImage(image.prompt);
             } else {

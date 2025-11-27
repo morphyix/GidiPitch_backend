@@ -129,7 +129,7 @@ async function processSlide({
           });
           let imgObj;
           if (key === 'competition') {
-            imgObj = await generateRunwareImage(image.prompt, { model: 'google:4@1'});
+            imgObj = await generateSlideImage(image.prompt);
           } else if (key === 'cover') {
             imgObj = await generateRunwareImage(image.prompt);
           } else {
