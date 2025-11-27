@@ -95,85 +95,12 @@ Then craft slide content that an investor would find credible and compelling.
 `;
 };
 
-// Optimized SVG icon prompt for Gemini 2.5 Pro
-const generateDynamicIconPrompt = (brandColor, bulletContext) => `
-AFTER you generate the bullets above, create SVG icons for them.
-
-You are an expert SVG icon designer. Generate minimalist outline icons that DIRECTLY represent the meaning of each bullet point you just created.
-
-ICON DESIGN REQUIREMENTS:
-- Style: Minimalist line art (hollow/outline only, similar to Lucide or Feather Icons)
-- Each icon must SEMANTICALLY match its corresponding bullet's core concept
-- Think: "What single visual metaphor represents this idea?"
-- Avoid generic icons - make each icon specific to its bullet
-- Icons should be immediately recognizable at small sizes
-
-SVG TECHNICAL SPECIFICATIONS:
-- viewBox="0 0 24 24" (standard)
-- xmlns="http://www.w3.org/2000/svg"
-- ALL strokes must be: stroke="${brandColor}"
-- ALL fills must be: fill="none"
-- stroke-width="2" (consistent across all icons)
-- stroke-linecap="round" stroke-linejoin="round"
-- Use ONLY: <path>, <circle>, <rect>, <line>, <polyline>, <polygon>
-- Maximum 4 elements per icon (keep it simple and clean)
-- No gradients, filters, masks, text elements, or complex effects
-
-CAPTION REQUIREMENTS:
-- Each caption must be EXACTLY 4 words
-- Caption should be a title/headline for the bullet (not a description of the icon)
-- Use Title Case (e.g., "Reduces Driver Wait Time" not "reduces driver wait time")
-- Think of it as a slide sub-heading that encapsulates the bullet's key message
-
-CONTEXT FOR ICON MAPPING:
-${bulletContext}
-
-OUTPUT FORMAT (must be valid JSON inside the images array):
-[
-  {
-    "prompt": "<svg viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\"><circle cx=\"12\" cy=\"12\" r=\"10\" stroke=\"${brandColor}\" fill=\"none\" stroke-width=\"2\"/><path d=\"M8 12l2 2 4-4\" stroke=\"${brandColor}\" fill=\"none\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>",
-    "caption": "Four Word Title Here"
-  },
-  {
-    "prompt": "<svg viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\">...</svg>",
-    "caption": "Another Four Word Title"
-  },
-  {
-    "prompt": "<svg viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\">...</svg>",
-    "caption": "Last Four Word Title"
-  }
-]
-
-ICON MAPPING EXAMPLES:
-- Bullet: "Reduced booking time from 2 hours to 3 minutes" 
-  → Icon: Clock/timer with fast-forward arrow
-  → Caption: "Booking Time Reduced Drastically"
-
-- Bullet: "Algorithm learns from 10K+ daily transactions"
-  → Icon: Brain/neural network with connected nodes
-  → Caption: "Machine Learning Algorithm Optimizes"
-
-- Bullet: "98% delivery success rate vs 75% industry average"
-  → Icon: Target/bullseye with checkmark
-  → Caption: "Delivery Success Rate Improved"
-
-CRITICAL RULES:
-1. Each icon must be UNIQUE and SPECIFIC to its bullet point
-2. Caption must be EXACTLY 4 words (not 3, not 5)
-3. SVG code must be valid XML (test with a parser)
-4. All stroke colors must be "${brandColor}" (no other colors anywhere)
-5. No fill colors except fill="none"
-6. Keep designs simple - complex paths that work at 24px are better than intricate details
-
-Generate the icons now based on the bullets you created above.
-`;
-
 // Base slide prompt with intelligent synthesis instructions
 const baseSlidePrompt = (slideType, titlePrefix, dataAnalysisInstruction, bulletsInstruction, notesInstruction, layoutHint, imagePrompts, startupData) => {
 
     const title = slideType === 'cover'
         ? `${titlePrefix}`
-        : `TITLE: "${titlePrefix}: [Clear, Specific Claim]" (Max 7 words). 
+        : `TITLE: "${titlePrefix}: [Clear, Specific Claim]" (Max 12 words). 
         
 After analyzing the startup data, create a title that captures the key insight for this slide.
 Focus on outcomes, not aspirations. 
@@ -231,8 +158,6 @@ const pitchDeckSlidePrompt = (startupData) => {
         team, moreInfo, features
     } = startupData;
 
-    console.log("Generating slide prompts for:", startupName);
-
     const scopeContext = scope || "the target market";
     const teamNamesList = team?.map(t => t.name).join(", ") || "Founding team";
     const teamImageCount = team?.length || 3;
@@ -285,7 +210,7 @@ If there's a dramatic price point ($1-5 range), LEAD WITH IT.
 (RETURN EXACTLY ONE BULLET POINT - THE TAGLINE ONLY)`,
             `Generate one sentence (max 15 words) that expands on the tagline by stating WHO benefits and HOW. Use solutions, features, and businessModel to make this concrete and specific.`,
             "full-image",
-            `1 clean, professional hero image representing ${industry} in ${scopeContext}. Style: ${brandColor}. Show the CUSTOMER using the product in a real scenario, not abstract concepts or technology. Example: For pitch deck tool, show a founder presenting to investors. For logistics, show a delivery in progress.`,
+            `1 clean, professional hero image representing ${industry} in ${scopeContext}. Style: ${brandStyle}. Show the CUSTOMER using the product in a real scenario, not abstract concepts or technology. Example: For pitch deck tool, show a founder presenting to investors. For logistics, show a delivery in progress.`,
             startupData
         ),
 
@@ -309,8 +234,7 @@ NOT: "Massive inefficiencies plague the fragmented logistics sector"
 Analyze the problems data and use web_search to quantify impact where needed.`,
             `One sentence explaining why this problem exists now and why ${startupName} is positioned to solve it.`,
             "title-bullets",
-            generateDynamicIconPrompt(brandColor, `Create icons that represent each of the 3 problem bullets you generated.
-Focus on visualizing the pain points: time waste, financial loss, inefficiency, trust issues, etc.`),
+            `1 image showing the real-world manifestation of this problem in ${scopeContext}. Visual should show actual pain, not abstract suffering.`,
             startupData
         ),
 
@@ -335,8 +259,7 @@ Example: "98% delivery success rate vs. 75% industry average, improving merchant
 Synthesize from solutions, features, and any technical details in moreInfo.`,
             `One sentence explaining the core technology or business model innovation that makes this defensible.`,
             "image-text",
-            generateDynamicIconPrompt(brandColor, `Create icons that represent each of the 3 solution bullets you generated.
-Focus on visualizing: speed/efficiency, innovation/technology, results/outcomes.`),
+            `1 product image showing the solution in actual use in ${scopeContext}. Should visualize the "before → after" transformation.`,
             startupData
         ),
 
@@ -366,8 +289,7 @@ CRITICAL INSTRUCTIONS:
 Show what the product DOES and why users choose it.`,
             `One sentence describing how these features work together to create a superior user experience.`,
             "image-text",
-            generateDynamicIconPrompt(brandColor, `Create icons that represent each of the 3 product feature bullets you generated.
-Focus on visualizing: key capabilities, user benefits, technical differentiators.`),
+            `1 product screenshot or interface mockup showcasing the key features in action. Style: ${brandStyle}. Show actual UI elements, not abstract concepts.`,
             startupData
         ),
 
@@ -398,8 +320,7 @@ Example: "Pilot with Lagos State Ministry resulted in 18% improvement in student
 Show momentum and product-market fit with real numbers.`,
             `One sentence explaining what these metrics reveal about customer demand and business viability.`,
             "title-bullets",
-            generateDynamicIconPrompt(brandColor, `Create icons that represent each of the 3 traction bullets you generated.
-Focus on visualizing: growth trajectory, customer satisfaction, validation milestones.`),
+            `1 growth chart or metrics dashboard showing the most impressive traction data (user growth curve, revenue trajectory, or retention cohort analysis).`,
             startupData
         ),
 
@@ -430,8 +351,7 @@ Example: "E-commerce penetration in Nigeria increased 45% YoY, driving delivery 
 Make the market real, sized, and urgent.`,
             `One sentence on the specific beachhead strategy - where you'll start and why that segment is winnable now.`,
             "title-bullets",
-            generateDynamicIconPrompt(brandColor, `Create icons that represent each of the 3 market opportunity bullets you generated.
-Focus on visualizing: market size, target segment, growth drivers.`),
+            `1 data visualization showing market size and growth trajectory. Clean, professional chart style appropriate for investor presentation.`,
             startupData
         ),
 
@@ -465,8 +385,7 @@ CRITICAL: If your pricing is 10x cheaper than competitors, LEAD WITH THAT. It's 
 Show investors the math works AND gets better over time.`,
             `One sentence explaining the primary driver of profitability and scalability (e.g., "Zero marginal cost structure enables 85%+ margins at scale" or "Network effects reduce CAC 40% for every 10% increase in supply-side density").`,
             "image-text",
-            generateDynamicIconPrompt(brandColor, `Create icons that represent each of the 3 business model bullets you generated.
-Focus on visualizing: pricing model, unit economics, scaling mechanisms.`),
+            `1 business model diagram showing: (1) Revenue streams with pricing, (2) Cost structure, (3) Key value exchanges between customer/platform/supply side. Use clean flowchart style appropriate for investor presentation. Show NUMBERS where possible (e.g., "$1.35 avg" on revenue stream arrow).`,
             startupData
         ),
 
@@ -494,8 +413,7 @@ Example: "Freemium model with watermarked exports creates 1.2 viral coefficient"
 Show you have a credible, capital-efficient path to customers.`,
             `One sentence explaining how these channels create compounding growth over time.`,
             "title-bullets",
-            generateDynamicIconPrompt(brandColor, `Create icons that represent each of the 3 go-to-market bullets you generated.
-Focus on visualizing: acquisition channels, partnerships, viral mechanisms.`),
+            `1 customer acquisition funnel showing the 3 channels and estimated conversion rates at each stage.`,
             startupData
         ),
 
@@ -557,8 +475,7 @@ Example: "Series A readiness: $500K ARR, 4:1 LTV/CAC, 20% month-over-month growt
 Show traction, momentum, and clear vision for what's next.`,
             `One sentence demonstrating you understand what metrics matter for your stage and category.`,
             "title-bullets",
-            generateDynamicIconPrompt(brandColor, `Create icons that represent each of the 3 milestone bullets you generated.
-Focus on visualizing: past achievements, near-term goals, long-term vision.`),
+            `1 timeline showing past achievements and future milestones with specific dates and metrics.`,
             startupData
         ),
 
@@ -608,8 +525,7 @@ Example: "Break-even at 15K paying users (Month 24); Series A at $500K ARR with 
 Projections must be conservative and defensible.`,
             `One sentence stating your primary growth assumption and acknowledging the key risk to that assumption.`,
             "title-bullets",
-            generateDynamicIconPrompt(brandColor, `Create icons that represent each of the 3 financial bullets you generated.
-Focus on visualizing: current state, projected growth, profitability path.`),
+            `1 clean revenue projection chart showing quarterly growth over 3 years with key milestone markers.`,
             startupData
         ),
 
@@ -637,8 +553,7 @@ Example: "At $20M ARR, 100K active founders, company becomes strategic acquisiti
 Make the exit path credible and attractive.`,
             `One sentence explaining how this becomes a $100M+ outcome for investors within 5-7 years.`,
             "title-bullets",
-            generateDynamicIconPrompt(brandColor, `Create icons that represent each of the 3 vision bullets you generated.
-Focus on visualizing: market leadership, acquisition potential, exit timing.`),
+            `1 aspirational but grounded image representing market leadership and growth trajectory in ${industry}.`,
             startupData
         ),
 
@@ -650,7 +565,7 @@ Focus on visualizing: market leadership, acquisition potential, exit timing.`),
 Look at: moreInfo (CRITICAL - may contain regulatory status, partnerships, IP, compliance data).
 For fintech/healthtech: Focus on regulatory pathway.
 For other industries: Focus on strategic partnerships and assets.`,
-`Generate 3 bullets (max 20 words each) showing derisking factors:
+            `Generate 3 bullets (max 20 words each) showing derisking factors:
 
 Analyze moreInfo for mentions of:
 - Regulatory status, licenses, compliance certifications
@@ -665,8 +580,7 @@ Example for edtech: "Partnership with Lagos State Education Ministry provides ac
 Example for healthtech: "Patent pending on diagnostic algorithm; priority date March 2024"`,
             `One sentence explaining how these assets accelerate growth or create competitive barriers.`,
             "image-text",
-            generateDynamicIconPrompt(brandColor, `Create icons that represent each of the 3 strategic asset bullets you generated.
-Focus on visualizing: regulatory status, partnerships, intellectual property.`),
+            `1 image representing strategic assets: partnership logos, compliance badges, or IP visualization relevant to ${industry}.`,
             startupData
         ),
 
@@ -694,8 +608,7 @@ Example: "Achieves $100K ARR, 10K active users, 4:1 LTV/CAC - Series A ready"
 Make the ask specific, justified, and milestone-driven.`,
             `One sentence on runway (months) and the key success metric for the next funding round.`,
             "title-bullets",
-            generateDynamicIconPrompt(brandColor, `Create icons that represent each of the 3 funding ask bullets you generated.
-Focus on visualizing: funding amount, capital allocation, milestone achievement.`),
+            `1 capital allocation chart (pie or bar) showing breakdown across 3-4 categories.`,
             startupData
         ),
 
@@ -716,10 +629,7 @@ Example: "Email: founder@startup.com | Website: startup.com"
 Keep it simple and action-oriented.`,
             `One sentence thanking investors and expressing confidence in the opportunity.`,
             "full-image",
-            generateDynamicIconPrompt(brandColor, `Create 2 icons that represent the 2 contact bullets you generated.
-Focus on visualizing: call-to-action (calendar/meeting) and contact methods (email/website).
-
-NOTE: Generate only 2 icons for this slide, not 3.`),
+            `1 clean branded closing image using color "${brandColor}" and style "${brandStyle}".`,
             startupData
         ),
     };
@@ -751,8 +661,7 @@ Example: "Working with FDA consultancy to derisk clearance timeline; budget incl
 Show regulatory awareness and derisking strategy.`,
             `One sentence explaining how the regulatory pathway creates competitive advantage or timing opportunity.`,
             "image-text",
-            generateDynamicIconPrompt(brandColor, `Create icons that represent each of the 3 bullets you generated for this industry-specific slide.
-Focus on visualizing the specific concepts mentioned in each bullet.`),
+            `3 icons representing regulatory approvals, compliance certifications, and risk mitigation in healthcare.`,
             startupData
         );
 
@@ -778,8 +687,7 @@ Example: "Results validated by Johns Hopkins researchers; publication submitted 
 Prove scientific rigor and competitive protection.`,
             `One sentence on how clinical evidence and IP create defensible competitive position.`,
             "title-bullets",
-            generateDynamicIconPrompt(brandColor, `Create icons that represent each of the 3 bullets you generated for this industry-specific slide.
-Focus on visualizing the specific concepts mentioned in each bullet.`),
+            `3 icons representing clinical validation, patent protection, and scientific credibility.`,
             startupData
         );
     }
@@ -807,8 +715,7 @@ Example: "Annual penetration testing by third-party firm; PCI DSS Level 1 certif
 Show operational maturity and risk management.`,
             `One sentence on how security infrastructure builds customer trust and reduces investment risk.`,
             "image-text",
-            generateDynamicIconPrompt(brandColor, `Create icons that represent each of the 3 bullets you generated for this industry-specific slide.
-Focus on visualizing the specific concepts mentioned in each bullet.`),
+            `3 icons showing data encryption, fraud prevention, and security certifications for fintech.`,
             startupData
         );
 
@@ -835,8 +742,7 @@ Example: "First-mover on new CBN open banking framework; direct relationship wit
 Demonstrate regulatory readiness and strategic positioning.`,
             `One sentence showing you understand compliance as competitive advantage, not just a checkbox.`,
             "title-bullets",
-            generateDynamicIconPrompt(brandColor, `Create icons that represent each of the 3 bullets you generated for this industry-specific slide.
-Focus on visualizing the specific concepts mentioned in each bullet.`),
+            `3 icons representing financial licensing, compliance milestones, and regulatory positioning in ${scopeContext}.`,
             startupData
         );
     }
@@ -864,8 +770,7 @@ Example: "90-day retention at 78%; schools renew at 95% rate after first year"
 Show product-market fit and distribution leverage.`,
             `One sentence on how partnerships and adoption metrics validate market need and accelerate growth.`,
             "image-text",
-            generateDynamicIconPrompt(brandColor, `Create icons that represent each of the 3 bullets you generated for this industry-specific slide.
-Focus on visualizing the specific concepts mentioned in each bullet.`),
+            `3 icons representing user growth, institutional partnerships, and engagement metrics in education.`,
             startupData
         );
 
@@ -891,8 +796,7 @@ Example: "Adaptive learning algorithm personalizes content based on 50+ skill as
 Prove educational efficacy and institutional credibility.`,
             `One sentence demonstrating measurable impact on learning outcomes validates educational value proposition.`,
             "title-bullets",
-            generateDynamicIconPrompt(brandColor, `Create icons that represent each of the 3 bullets you generated for this industry-specific slide.
-Focus on visualizing the specific concepts mentioned in each bullet.`),
+            `3 icons representing learning outcomes, curriculum alignment, and adaptive pedagogy.`,
             startupData
         );
     }
@@ -902,9 +806,6 @@ Focus on visualizing the specific concepts mentioned in each bullet.`),
 
 // Generate prompts for selected slides
 const generatePromptsForSlides = (startupData, slides) => {
-    if (!startupData || typeof startupData !== 'object') {
-        throw new Error("Invalid startupData provided to prompt generator.");
-    }
     const allPrompts = pitchDeckSlidePrompt(startupData);
     const selectedPrompts = {};
 
@@ -1074,57 +975,97 @@ Remember: SURGICAL EDITS ONLY. Change what was requested. Preserve everything el
 `;
 };
 
-// Professional Pitch Deck Color Kit Generator - Concise & Effective
+// Professional Pitch Deck Color Kit Generator - Hex Only Output
 const createTailwindPrompt = (brandColor = 'orange') => {
     const isHex = /^#([0-9A-F]{3}){1,2}$/i.test(brandColor);
-    const colorInput = isHex ? brandColor : `Interpret "${brandColor}" as a professional hex color`;
+    const colorHint = isHex
+        ? `Brand HEX: ${brandColor}. Analyze this color and create a pitch deck palette where this brand color DOMINATES.`
+        : `Brand identity: "${brandColor}". Interpret as a professional HEX and create a pitch deck palette where this brand color DOMINATES.`;
 
-    return `You are a pitch deck color expert. Analyze ${colorInput} and create TWO optimized palettes.
+    return `
+MISSION: You are a professional pitch deck designer. Analyze the provided brand color and autonomously create a color palette that makes the brand color DOMINANT while following research-backed best practices.
 
-BRAND COLOR ANALYSIS:
-1. Identify: Hue (red/orange/yellow/green/blue/purple), saturation (vibrant/muted), lightness (dark/light), temperature (warm/cool)
-2. Apply psychology: Red=energy, Orange=innovation, Yellow=optimism, Green=growth, Blue=trust, Purple=luxury
+${colorHint}
 
-PALETTE 1 - DEFAULT (text-heavy slides):
-Choose ONE approach based on brand color:
-• APPROACH A (vibrant colors): Brand color background (70-85% sat) + white text
-• APPROACH B (dark brand/tech): Dark neutral bg (#1a1a1a-#1a2332) + vibrant brand title
-• APPROACH C (light brand/health): Off-white bg (#FAFAFA) + bold brand title
+STEP 1: ANALYZE THE BRAND COLOR
+Extract these properties:
+- Hue family (red/orange/yellow/green/blue/purple/neutral)
+- Saturation level (vibrant vs muted)
+- Lightness (dark vs light)
+- Warmth (warm vs cool)
 
-PALETTE 2 - ICON SLIDE (icon-based slides):
-CRITICAL: Background is NEVER brand color. Select strategic neutral:
+STEP 2: INFER STRATEGY BASED ON COLOR PSYCHOLOGY
 
-Background Rules:
-• Warm brand → Cool neutral (slate #334155, navy #1E293B, charcoal #2E3440)
-• Cool brand → Warm neutral (beige #FAF8F3, sand #F5F1E8, warm gray #E8E6E3)
-• Dark brand (L<35%) → Light neutral (#F5F5F7 to #FAFAFA)
-• Light brand (L>70%) → Dark neutral (#1A1A1A to #374151)
-• Vibrant brand (S>70%) → Desaturated neutral (5-15% saturation)
+RED (#D0021B to #FF6B6B): Energy, urgency, passion
+→ Strategy: Dark background OR rich red background with white text
 
-Text Hierarchy (all use brand color with varying intensity):
-• Title: Brand color 95-100% saturation (most dominant)
-• Bullets: Brand color 85-95% saturation (slightly softer)
-• Notes: Brand color 65-75% saturation (subtle hierarchy)
+ORANGE (#FF6B35 to #FFA500): Innovation, creativity, approachability
+→ Strategy: Dark background (navy/charcoal) with vibrant orange titles
 
-Accessibility: All colors must pass WCAG AA (4.5:1 for body, 3:1 for large text ≥18pt)
+YELLOW (#FFD700 to #F4E04D): Optimism, clarity, creativity
+→ Strategy: Light background with bold yellow accents
 
-OUTPUT (JSON only, no markdown):
+GREEN (#00B894 to #6FCF97): Growth, health, sustainability
+→ Strategy: Rich green background OR dark background with vibrant green
+
+BLUE (#0066CC to #3498DB): Trust, professionalism, stability
+→ Strategy: Dark blue background OR vibrant blue on dark neutral
+
+PURPLE (#9B59B6 to #A855F7): Innovation, luxury, creativity
+→ Strategy: Deep purple background OR dark background with vibrant purple
+
+NEUTRAL (Gray/Beige/Black): Sophistication, minimalism
+→ Strategy: Elegant neutrals with strategic accent
+
+STEP 3: SELECT BACKGROUND APPROACH
+
+APPROACH A - BRAND-DOMINANT BACKGROUND (Best for vibrant colors):
+- Background: Brand color at 70-85% saturation
+- Title: White (#FFFFFF) or cream (#FEFEFE)
+- Bullets: White at 90-95% opacity (#EBEBEB, #F0F0F0)
+- Notes: White at 65-70% opacity (#A8A8A8, #B5B5B5)
+
+APPROACH B - DARK + VIBRANT BRAND (Best for professional/tech):
+- Background: Deep neutral (#0f1419, #1a1a1a, #1a2332)
+- Title: Full-strength brand color (95-100% saturation)
+- Bullets: Bright neutral (#F0F0F0, #E8E8E8)
+- Notes: Muted neutral (#A0A0A0, #B8B8B8)
+
+APPROACH C - LIGHT + BOLD BRAND (Best for healthcare/education):
+- Background: Off-white (#FAFAFA, #F8F9FA) or 5-8% brand tint
+- Title: Bold brand color at 85-100% saturation
+- Bullets: Dark gray (#2D2D2D, #333333)
+- Notes: Medium gray (#6B6B6B, #999999)
+
+SELECTION LOGIC:
+- Dark brand color (lightness <40%): Use Approach B or A
+- Vibrant brand color (saturation >70%): Use Approach A or B
+- Muted/pastel brand color: Use Approach C with darker variant
+- Warm colors (red/orange/yellow): Prefer Approach B
+- Cool colors (blue/green/purple): Any approach works
+
+STEP 4: ENSURE ACCESSIBILITY
+- Title to background: Minimum 4.5:1 contrast (or 3:1 if ≥18pt)
+- Bullets to background: Minimum 4.5:1 contrast
+- Adjust lightness if contrast fails
+
+CRITICAL RULES:
+✓ Brand color MUST be prominent and dominant
+✓ Never make brand color subtle or timid
+✓ Maintain WCAG AA contrast ratios
+✓ Create clear hierarchy: title > bullets > notes
+
+STRICT OUTPUT (JSON only, no markdown, no explanations):
 {
-  "default": {
-    "background": "#HEX",
-    "title": "#HEX",
-    "bullets": "#HEX",
-    "notes": "#HEX"
-  },
-  "iconSlide": {
-    "background": "#HEX",
-    "title": "#HEX",
-    "bullets": "#HEX",
-    "notes": "#HEX"
-  }
-}`;
-};
+    "background": "#[HEX]",
+    "title": "#[HEX]",
+    "bullets": "#[HEX]",
+    "notes": "#[HEX]"
+}
 
+Return ONLY valid JSON with hex codes. Nothing else.
+`;
+};
 
 // Allowed slide types by industry
 const getAllowedSlides = (industry) => {
