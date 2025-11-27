@@ -35,12 +35,6 @@ const DeckSchema = new mongoose.Schema({
         title: { type: String },
         bullets: { type: String },
         note: { type: String },
-        iconSlide: {
-            background: { type: String },
-            title: { type: String },
-            bullets: { type: String },
-            note: { type: String }
-        }
     },
     error: { type: String },
     exportedAt: { type: Date },

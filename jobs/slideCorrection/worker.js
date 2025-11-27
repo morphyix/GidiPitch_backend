@@ -98,7 +98,7 @@ const slideCorrectionWorker = new Worker(
             } else if (slide.key === 'cover') {
               imgObj = await generateRunwareImage(image.prompt);
             } else {
-              imgObj = await generateRunwareImage(image.prompt, { width: 512, height: 512 });
+              imgObj = await generateRunwareImage(image.prompt);
             }
             
             await updateSlideImageService(slideId, image.caption, { 
