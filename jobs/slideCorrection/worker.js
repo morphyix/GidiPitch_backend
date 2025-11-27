@@ -93,10 +93,12 @@ const slideCorrectionWorker = new Worker(
 
             // Generate the image
             let imgObj;
-            if (slide.key === 'market' || slide.key === 'competition') {
+            if (slide.key === 'competition') {
               imgObj = await generateRunwareImage(image.prompt, { model: 'google:4@1'});
-            } else {
+            } else if (slide.key === 'cover') {
               imgObj = await generateRunwareImage(image.prompt);
+            } else {
+              imgObj = await generateRunwareImage(image.prompt, { width: 512, height: 512 });
             }
             
             await updateSlideImageService(slideId, image.caption, { 

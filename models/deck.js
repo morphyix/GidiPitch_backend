@@ -31,12 +31,10 @@ const DeckSchema = new mongoose.Schema({
     pptxKey: { type: String },
     progress: { type: Number, default: 0 },
     brandKit: {
-        default: {
-            background: { type: String },
-            title: { type: String },
-            bullets: { type: String },
-            note: { type: String }
-        },
+        background: { type: String },
+        title: { type: String },
+        bullets: { type: String },
+        note: { type: String },
         iconSlide: {
             background: { type: String },
             title: { type: String },

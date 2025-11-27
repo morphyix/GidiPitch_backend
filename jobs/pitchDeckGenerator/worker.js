@@ -16,7 +16,7 @@ const {
   getSlidesByDeckIdService,
   updateSlideImageService,
 } = require('../../services/slideService');
-const { extractFileKey } = require('../../utils/helper');
+const { extractFileKey, convertSVGToPNG } = require('../../utils/helper');
 const { modifyUserTokensService } = require('../../services/authService');
 const { logFailedDeckJobService } = require('../../services/failedDeckJobService');
 
@@ -128,10 +128,12 @@ async function processSlide({
             imageIndex: i,
           });
           let imgObj;
-          if (key === 'market' || key === 'competition') {
+          if (key === 'competition') {
             imgObj = await generateRunwareImage(image.prompt, { model: 'google:4@1'});
-          } else {
+          } else if (key === 'cover') {
             imgObj = await generateRunwareImage(image.prompt);
+          } else {
+            imgObj = await convertSVGToPNG(image.prompt);
           }
           await updateSlideImageService(slideId, image.caption, {
             key: imgObj.key,
@@ -242,12 +244,10 @@ const pitchDeckWorker = new Worker(
 
       const brandKit = await generateBrandKit(tailwindPrompt, { model: 'gemini-2.5-pro' });
       const brandKitObj = {
-        default: {
-          background: brandKit?.default?.background || 'bg-amber-950',
-          title: brandKit?.default?.title || 'text-yellow-400',
-          bullets: brandKit?.default?.bullets || 'text-gray-200',
-          note: brandKit?.default?.note || 'text-gray-500',
-        },
+        background: brandKit?.background || 'bg-amber-950',
+        title: brandKit?.title || 'text-yellow-400',
+        bullets: brandKit?.bullets || 'text-gray-200',
+        note: brandKit?.note || 'text-gray-500',
         iconSlide: {
           background: brandKit?.iconSlide?.background || 'bg-amber-950',
           title: brandKit?.iconSlide?.title || 'text-yellow-400',
