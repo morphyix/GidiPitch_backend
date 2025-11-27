@@ -231,6 +231,8 @@ const pitchDeckSlidePrompt = (startupData) => {
         team, moreInfo, features
     } = startupData;
 
+    console.log("Generating slide prompts for:", startupName);
+
     const scopeContext = scope || "the target market";
     const teamNamesList = team?.map(t => t.name).join(", ") || "Founding team";
     const teamImageCount = team?.length || 3;
@@ -648,6 +650,21 @@ Focus on visualizing: market leadership, acquisition potential, exit timing.`),
 Look at: moreInfo (CRITICAL - may contain regulatory status, partnerships, IP, compliance data).
 For fintech/healthtech: Focus on regulatory pathway.
 For other industries: Focus on strategic partnerships and assets.`,
+`Generate 3 bullets (max 20 words each) showing derisking factors:
+
+Analyze moreInfo for mentions of:
+- Regulatory status, licenses, compliance certifications
+- Strategic partnerships, pilot programs, LOIs
+- Intellectual property, patents, proprietary data
+- Key customer contracts or commitments
+
+Present the 2 strongest derisking factors and 1 strategic advantage that creates barriers to entry.
+
+Example for fintech: "CBN payment license application submitted Q1 2025; legal review complete"
+Example for edtech: "Partnership with Lagos State Education Ministry provides access to 2,000+ schools"
+Example for healthtech: "Patent pending on diagnostic algorithm; priority date March 2024"`,
+            `One sentence explaining how these assets accelerate growth or create competitive barriers.`,
+            "image-text",
             generateDynamicIconPrompt(brandColor, `Create icons that represent each of the 3 strategic asset bullets you generated.
 Focus on visualizing: regulatory status, partnerships, intellectual property.`),
             startupData
@@ -885,6 +902,9 @@ Focus on visualizing the specific concepts mentioned in each bullet.`),
 
 // Generate prompts for selected slides
 const generatePromptsForSlides = (startupData, slides) => {
+    if (!startupData || typeof startupData !== 'object') {
+        throw new Error("Invalid startupData provided to prompt generator.");
+    }
     const allPrompts = pitchDeckSlidePrompt(startupData);
     const selectedPrompts = {};
 
