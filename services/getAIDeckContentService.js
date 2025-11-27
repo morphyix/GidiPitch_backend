@@ -291,7 +291,16 @@ const generateRunwareImage = async (
         throw new AppError("No images returned from Runware AI", 500);
       }
 
-      const imageData = images[0];
+      let imageData = images[0];
+
+      // Remove background of image if image is an icon (transparent bg)
+      if (width <= 512 && height <= 512) {
+        const icon = await runware.removeBackground({
+          inputImage: imageData.imageUUID,
+        });
+
+        imageData = icon;
+      }
 
       // Download image from URL
       const response = await fetch(imageData.imageURL);

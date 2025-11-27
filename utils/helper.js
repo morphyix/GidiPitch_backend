@@ -1,6 +1,9 @@
 const sanitizeHtml = require('sanitize-html');
 const puppeteer = require('puppeteer');
+const sharp = require('sharp');
+const uuid = require('uuid').v4;
 const { AppError } = require('./error');
+const { uploadImageService } = require('../services/uploadService');
 
 
 const sanitize = (input) => {
@@ -116,9 +119,66 @@ const sanitizeGeminiResponse = (rawResponse) => {
 };
 
 
+const convertSVGToPNG = async (svgString, size = 128, retries = 2, quality = 100) => {
+  if (!svgString || typeof svgString !== 'string') {
+    throw new AppError('Invalid SVG string provided', 400);
+  }
+
+  // validate SVG format
+  if (!svgString.includes('<svg')) {
+    throw new AppError('Invalid SVG format: must contain <svg> tag', 400);
+  }
+
+  let lastError = null;
+
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      let processedSVG = svgString.trim();
+
+      // convert svg to png buffer using sharp
+      const buffer = Buffer.from(processedSVG);
+
+      const pngBuffer = await sharp(buffer)
+        .resize(size, size, {
+          fit: 'contain',
+          background: { r: 255, g: 255, b: 255, alpha: 0 } // transparent background
+        })
+        .png({
+          quality: quality,
+          compressionLevel: 9,
+          palette: false,
+        })
+        .toBuffer();
+
+        const uid = uuid();
+        const imageFile = {
+          buffer: pngBuffer,
+          mimetype: 'image/png',
+          originalname: `icon_${uid}.png`,
+        };
+
+        // upload image to S3
+        const key = await uploadImageService(imageFile);
+        return { key };
+    } catch (error) {
+      console.warn(`Attempt ${attempt + 1} to convert SVG to PNG failed:`, error);
+      lastError = error;
+      if (attempt < retries) {
+        // exponential backoff before retrying
+        await new Promise(res => setTimeout(res, Math.pow(2, attempt) * 100));
+        continue;
+      }
+      console.error('All attempts to convert SVG to PNG failed:', lastError);
+      throw new AppError('Failed to convert SVG to PNG after multiple attempts', 500);
+    }
+  }
+};
+
+
 module.exports = {
     sanitize,
     extractFileKey,
     generatePdfFromHtml,
-    sanitizeGeminiResponse
+    sanitizeGeminiResponse,
+    convertSVGToPNG,
 }
