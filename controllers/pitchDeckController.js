@@ -48,8 +48,6 @@ const createPitchDeckController = async (req, res, next) => {
             }
         }
 
-        console.log('more Info:', moreInfo);
-
         // Create startup data object
         const startupData = {
             startupName: sanitize(startupName),
@@ -179,6 +177,7 @@ const getPitchDeckProgressController = async (req, res, next) => {
             data: {
                 deckId: deck._id,
                 status: deck.status,
+                startupName: deck.startupName,
                 brandKit: brandKit,
                 activityStatus: currentStatus || 'In Queue',
                 error: currentStatus === 'failed' ? deck.error || 'Unknown error during deck generation' : null,
