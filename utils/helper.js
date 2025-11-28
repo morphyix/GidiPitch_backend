@@ -134,6 +134,7 @@ const convertSVGToPNG = async (svgString, size = 128, retries = 2, quality = 100
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
       let processedSVG = svgString.trim();
+      console.log(`Converting SVG to PNG, attempt ${attempt + 1}`);
 
       // convert svg to png buffer using sharp
       const buffer = Buffer.from(processedSVG);
@@ -156,9 +157,11 @@ const convertSVGToPNG = async (svgString, size = 128, retries = 2, quality = 100
           mimetype: 'image/png',
           originalname: `icon_${uid}.png`,
         };
+        console.log('PNG buffer created successfully, uploading to S3...');
 
         // upload image to S3
         const key = await uploadImageService(imageFile);
+        console.log(`Successfully uploaded PNG to S3 with key: ${key}`);
         return { key };
     } catch (error) {
       console.warn(`Attempt ${attempt + 1} to convert SVG to PNG failed:`, error);

@@ -128,12 +128,12 @@ async function processSlide({
             imageIndex: i,
           });
           let imgObj;
-          if (key === 'competition') {
+          if (key === 'competitions') {
             imgObj = await generateSlideImage(image.prompt);
           } else if (key === 'cover') {
             imgObj = await generateRunwareImage(image.prompt);
           } else {
-            imgObj = await generateRunwareImage(image.prompt);
+            imgObj = await convertSVGToPNG(image.prompt);
           }
           await updateSlideImageService(slideId, image.caption, {
             key: imgObj.key,
@@ -248,6 +248,12 @@ const pitchDeckWorker = new Worker(
         title: brandKit?.title || 'text-yellow-400',
         bullets: brandKit?.bullets || 'text-gray-200',
         note: brandKit?.note || 'text-gray-500',
+        iconSlide: {
+          background: brandKit?.iconSlide?.background || 'bg-amber-950',
+          title: brandKit?.iconSlide?.title || 'text-yellow-400',
+          bullets: brandKit?.iconSlide?.bullets || 'text-gray-200',
+          note: brandKit?.iconSlide?.note || 'text-gray-500',
+        }
       };
 
       await updateDeckByIdService(deckId, {
