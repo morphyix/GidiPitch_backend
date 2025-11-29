@@ -1074,12 +1074,15 @@ Remember: SURGICAL EDITS ONLY. Change what was requested. Preserve everything el
 `;
 };
 
-// Professional Pitch Deck Color Kit Generator - Concise & Effective
+// Professional Pitch Deck Color Kit Generator - Hex Output Only
 const createTailwindPrompt = (brandColor = 'orange') => {
     const isHex = /^#([0-9A-F]{3}){1,2}$/i.test(brandColor);
     const colorInput = isHex ? brandColor : `Interpret "${brandColor}" as a professional hex color`;
 
     return `You are a pitch deck color expert. Analyze ${colorInput} and create TWO optimized palettes.
+
+CRITICAL: ALL OUTPUT MUST BE HEX COLOR CODES (e.g., #FF6B35, #1A1A1A, #FAFAFA).
+NEVER output Tailwind CSS class names, color names, or any other format.
 
 BRAND COLOR ANALYSIS:
 1. Identify: Hue (red/orange/yellow/green/blue/purple), saturation (vibrant/muted), lightness (dark/light), temperature (warm/cool)
@@ -1087,42 +1090,63 @@ BRAND COLOR ANALYSIS:
 
 PALETTE 1 - DEFAULT (text-heavy slides):
 Choose ONE approach based on brand color:
-• APPROACH A (vibrant colors): Brand color background (70-85% sat) + white text
-• APPROACH B (dark brand/tech): Dark neutral bg (#1a1a1a-#1a2332) + vibrant brand title
-• APPROACH C (light brand/health): Off-white bg (#FAFAFA) + bold brand title
+- APPROACH A (vibrant colors): Brand color background (70-85% sat) + white text
+- APPROACH B (dark brand/tech): Dark neutral bg (#1A1A1A to #1A2332) + vibrant brand title
+- APPROACH C (light brand/health): Off-white bg (#FAFAFA to #F8F9FA) + bold brand title
 
 PALETTE 2 - ICON SLIDE (icon-based slides):
-CRITICAL: Background is NEVER brand color. Select strategic neutral:
+CRITICAL: Background is NEVER brand color. Select strategic neutral HEX:
 
-Background Rules:
-• Warm brand → Cool neutral (slate #334155, navy #1E293B, charcoal #2E3440)
-• Cool brand → Warm neutral (beige #FAF8F3, sand #F5F1E8, warm gray #E8E6E3)
-• Dark brand (L<35%) → Light neutral (#F5F5F7 to #FAFAFA)
-• Light brand (L>70%) → Dark neutral (#1A1A1A to #374151)
-• Vibrant brand (S>70%) → Desaturated neutral (5-15% saturation)
+Background Rules (ALL MUST BE HEX CODES):
+- Warm brand → Cool neutral (#334155, #1E293B, #2E3440)
+- Cool brand → Warm neutral (#FAF8F3, #F5F1E8, #E8E6E3)
+- Dark brand (L<35%) → Light neutral (#F5F5F7 to #FAFAFA)
+- Light brand (L>70%) → Dark neutral (#1A1A1A to #374151)
+- Vibrant brand (S>70%) → Desaturated neutral (5-15% saturation, e.g., #E5E5E5, #D3D3D3)
 
 Text Hierarchy (all use brand color with varying intensity):
-• Title: Brand color 95-100% saturation (most dominant)
-• Bullets: Brand color 85-95% saturation (slightly softer)
-• Notes: Brand color 65-75% saturation (subtle hierarchy)
+- Title: Brand color 95-100% saturation (most dominant)
+- Bullets: Brand color 85-95% saturation (slightly softer)
+- Notes: Brand color 65-75% saturation (subtle hierarchy)
 
 Accessibility: All colors must pass WCAG AA (4.5:1 for body, 3:1 for large text ≥18pt)
 
-OUTPUT (JSON only, no markdown):
+STRICT OUTPUT FORMAT:
+Return ONLY valid JSON with HEX color codes. No markdown, no comments, no explanations.
+Every value MUST start with # and contain exactly 6 hexadecimal characters (e.g., #FF6B35).
+
 {
   "default": {
-    "background": "#HEX",
-    "title": "#HEX",
-    "bullets": "#HEX",
-    "notes": "#HEX"
+    "background": "#HEXCODE",
+    "title": "#HEXCODE",
+    "bullets": "#HEXCODE",
+    "notes": "#HEXCODE"
   },
   "iconSlide": {
-    "background": "#HEX",
-    "title": "#HEX",
-    "bullets": "#HEX",
-    "notes": "#HEX"
+    "background": "#HEXCODE",
+    "title": "#HEXCODE",
+    "bullets": "#HEXCODE",
+    "notes": "#HEXCODE"
   }
-}`;
+}
+
+EXAMPLE OUTPUT:
+{
+  "default": {
+    "background": "#1A1A1A",
+    "title": "#FF6B35",
+    "bullets": "#F0F0F0",
+    "notes": "#B8B8B8"
+  },
+  "iconSlide": {
+    "background": "#334155",
+    "title": "#FF6B35",
+    "bullets": "#FF8C5A",
+    "notes": "#FFB088"
+  }
+}
+
+Remember: ONLY output HEX codes starting with #. Never use color names or CSS classes.`;
 };
 
 
