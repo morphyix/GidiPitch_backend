@@ -79,22 +79,43 @@ const uploadImageService = async (file) => {
             throw new AppError('Please upload an image', 400);
         }
 
-        const allowedTypes = [ 'image/png', 'image/jpg', 'image/jpeg', 'image/webp'];
+        const allowedTypes = [ 'image/png', 'image/jpg', 'image/jpeg', 'image/webp', 'image/svg+xml'];
         if (!allowedTypes.includes(file.mimetype)) {
-            throw new AppError('Invalid file type. Only PNG, JPG, JPEG, and WEBP are allowed.', 400);
+            throw new AppError('Invalid file type. Only PNG, JPG, SVG, JPEG, and WEBP are allowed.', 400);
         }
 
         const fileKey = `gidiPitch/${Date.now()}-${file.originalname}`;
-        const imageBuffer = await sharp(file.buffer)
-            .jpeg({ quality: 80 }) // Convert to Web4 with 80% quality
-            .toBuffer();
+        let imageBuffer;
+        let contentType;
+
+        // Handle formats differently
+        if (file.mimetype === 'image/png' || file.mimetype === 'image/webp') {
+            // convert to png
+            imageBuffer = await sharp(file.buffer)
+                .png({ 
+                    quality: 80,
+                    compressionLevel: 9,
+                    palette: false // Ensures alpha channel is preserved
+                })
+                .toBuffer();
+            contentType = 'image/png';
+        } else if (file.mimetype === 'image/svg+xml') {
+            // For SVG, use the original buffer
+            imageBuffer = file.buffer;
+            contentType = 'image/svg+xml';
+        } else {
+            imageBuffer = await sharp(file.buffer)
+                .jpeg({ quality: 80 })
+                .toBuffer();
+            contentType = 'image/jpeg';
+        }
         
         // upload parameters
         const uploadParams = {
             Bucket: process.env.S3_BUCKET,
             Key: fileKey,
             Body: imageBuffer,
-            ContentType: 'image/jpeg', // Set the content type to JPEG
+            ContentType: contentType, // Set the content type
         };
 
         // Upload the image to S3

@@ -6,6 +6,7 @@ const { generateSlideContent, generateSlideImage, generateRunwareImage } = requi
 const { updateDeckByIdService } = require('../../services/deckService');
 const { modifyUserTokensService } = require('../../services/authService');
 const { logFailedSlideJobService } = require('../../services/failedSlideJobService');
+const { convertSVGToPNG } = require('../../utils/helper');
 
 const slideCorrectionWorker = new Worker(
   'slideCorrectionQueue',
@@ -98,7 +99,7 @@ const slideCorrectionWorker = new Worker(
             } else if (slide.key === 'cover') {
               imgObj = await generateRunwareImage(image.prompt);
             } else {
-              imgObj = await generateRunwareImage(image.prompt);
+              imgObj = await convertSVGToPNG(image.prompt);
             }
             
             await updateSlideImageService(slideId, image.caption, { 

@@ -95,77 +95,110 @@ Then craft slide content that an investor would find credible and compelling.
 `;
 };
 
-// Optimized SVG icon prompt for Gemini 2.5 Pro
+// Enhanced SVG icon prompt optimized for pitch deck best practices
 const generateDynamicIconPrompt = (brandColor, bulletContext) => `
 AFTER you generate the bullets above, create SVG icons for them.
 
-You are an expert SVG icon designer. Generate minimalist outline icons that DIRECTLY represent the meaning of each bullet point you just created.
+You are an expert pitch deck icon designer. Generate minimalist outline icons that DIRECTLY represent the core meaning of each bullet point you just created.
+
+PITCH DECK ICON PHILOSOPHY:
+- Purpose: Icons must simplify complex ideas into instantly recognizable visual metaphors
+- Investors scan slides in 3 seconds - icons must communicate meaning at a glance
+- Think: "If someone saw ONLY this icon, what would they understand?"
+- Each icon is a visual anchor that helps investors remember your key points
+- Icons bridge language barriers - they must be universally understood
 
 ICON DESIGN REQUIREMENTS:
-- Style: Minimalist line art (hollow/outline only, similar to Lucide or Feather Icons)
-- Each icon must SEMANTICALLY match its corresponding bullet's core concept
-- Think: "What single visual metaphor represents this idea?"
-- Avoid generic icons - make each icon specific to its bullet
-- Icons should be immediately recognizable at small sizes
+- Style: Ultra-minimalist line art (hollow/outline only, inspired by Lucide/Feather Icons)
+- Each icon must be SEMANTICALLY specific to its bullet's CORE CONCEPT (not generic)
+- Use strong visual metaphors: transformation = arrow morphing, growth = upward trend, efficiency = streamlined path
+- Icons should be immediately recognizable even at 32px size
+- Avoid overused clichés: no generic lightbulbs for "innovation", no handshakes for "partnership" unless truly relevant
+- Test: "Would an investor understand this icon WITHOUT reading the text?"
 
 SVG TECHNICAL SPECIFICATIONS:
-- viewBox="0 0 24 24" (standard)
+- viewBox="0 0 24 24" (standard icon grid)
 - xmlns="http://www.w3.org/2000/svg"
-- ALL strokes must be: stroke="${brandColor}"
-- ALL fills must be: fill="none"
-- stroke-width="2" (consistent across all icons)
-- stroke-linecap="round" stroke-linejoin="round"
+- width="24" height="24" (CRITICAL: prevents black background rendering issues)
+- ALL strokes: stroke="${brandColor}"
+- ALL fills: fill="none"
+- stroke-width="2" (consistent visual weight)
+- stroke-linecap="round" stroke-linejoin="round" (smooth, professional curves)
 - Use ONLY: <path>, <circle>, <rect>, <line>, <polyline>, <polygon>
-- Maximum 4 elements per icon (keep it simple and clean)
-- No gradients, filters, masks, text elements, or complex effects
+- Maximum 3-4 elements per icon (cognitive load principle)
+- No gradients, filters, masks, text, or complex effects
 
 CAPTION REQUIREMENTS:
-- Each caption must be EXACTLY 4 words
-- Caption should be a title/headline for the bullet (not a description of the icon)
-- Use Title Case (e.g., "Reduces Driver Wait Time" not "reduces driver wait time")
-- Think of it as a slide sub-heading that encapsulates the bullet's key message
+- Each caption must be EXACTLY 4 words (strict constraint)
+- Caption is a HEADLINE/KEY TAKEAWAY, not an icon description
+- Use Title Case (e.g., "Market Share Increased Significantly")
+- Think: "What single message does this bullet communicate?"
+- Avoid redundancy with the icon - caption adds context, not duplication
 
 CONTEXT FOR ICON MAPPING:
 ${bulletContext}
 
-OUTPUT FORMAT (must be valid JSON inside the images array):
+ICON MAPPING STRATEGY:
+For each bullet, identify:
+1. The CORE METRIC or CONCEPT (time saved, cost reduced, market share, accuracy, speed)
+2. The TRANSFORMATION or RESULT (faster → slower, more → less, manual → automated)
+3. The BEST VISUAL METAPHOR (clock for time, target for accuracy, rocket for growth)
+
+OUTPUT FORMAT (must be valid JSON):
 [
   {
-    "prompt": "<svg viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\"><circle cx=\"12\" cy=\"12\" r=\"10\" stroke=\"${brandColor}\" fill=\"none\" stroke-width=\"2\"/><path d=\"M8 12l2 2 4-4\" stroke=\"${brandColor}\" fill=\"none\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>",
-    "caption": "Four Word Title Here"
+    "prompt": "<svg width=\\"24\\" height=\\"24\\" viewBox=\\"0 0 24 24\\" xmlns=\\"http://www.w3.org/2000/svg\\"><circle cx=\\"12\\" cy=\\"12\\" r=\\"10\\" stroke=\\"${brandColor}\\" fill=\\"none\\" stroke-width=\\"2\\"/><path d=\\"M8 12l2 2 4-4\\" stroke=\\"${brandColor}\\" fill=\\"none\\" stroke-width=\\"2\\" stroke-linecap=\\"round\\" stroke-linejoin=\\"round\\"/></svg>",
+    "caption": "Target Achievement Rate Soared"
   },
   {
-    "prompt": "<svg viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\">...</svg>",
-    "caption": "Another Four Word Title"
+    "prompt": "<svg width=\\"24\\" height=\\"24\\" viewBox=\\"0 0 24 24\\" xmlns=\\"http://www.w3.org/2000/svg\\">...</svg>",
+    "caption": "Processing Speed Increased Dramatically"
   },
   {
-    "prompt": "<svg viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\">...</svg>",
-    "caption": "Last Four Word Title"
+    "prompt": "<svg width=\\"24\\" height=\\"24\\" viewBox=\\"0 0 24 24\\" xmlns=\\"http://www.w3.org/2000/svg\\">...</svg>",
+    "caption": "Customer Satisfaction Scores Improved"
   }
 ]
 
-ICON MAPPING EXAMPLES:
-- Bullet: "Reduced booking time from 2 hours to 3 minutes" 
-  → Icon: Clock/timer with fast-forward arrow
-  → Caption: "Booking Time Reduced Drastically"
+ICON EXAMPLES WITH STRONG METAPHORS:
+✅ GOOD:
+- Bullet: "Reduced booking time from 2 hours to 3 minutes"
+  → Icon: Hourglass with fast-forward arrow (time compression metaphor)
+  → Caption: "Booking Speed Increased Massively"
 
 - Bullet: "Algorithm learns from 10K+ daily transactions"
-  → Icon: Brain/neural network with connected nodes
-  → Caption: "Machine Learning Algorithm Optimizes"
+  → Icon: Brain with data nodes/connections (machine learning metaphor)
+  → Caption: "AI Learns From Transactions"
 
-- Bullet: "98% delivery success rate vs 75% industry average"
-  → Icon: Target/bullseye with checkmark
-  → Caption: "Delivery Success Rate Improved"
+- Bullet: "98% delivery success vs 75% industry average"
+  → Icon: Bullseye target with centered arrow (precision/accuracy metaphor)
+  → Caption: "Delivery Accuracy Outperforms Market"
 
-CRITICAL RULES:
-1. Each icon must be UNIQUE and SPECIFIC to its bullet point
-2. Caption must be EXACTLY 4 words (not 3, not 5)
-3. SVG code must be valid XML (test with a parser)
-4. All stroke colors must be "${brandColor}" (no other colors anywhere)
-5. No fill colors except fill="none"
-6. Keep designs simple - complex paths that work at 24px are better than intricate details
+- Bullet: "Automated 40 manual processes saving 200 hours/week"
+  → Icon: Robot arm replacing human hand (automation metaphor)
+  → Caption: "Manual Processes Fully Automated"
 
-Generate the icons now based on the bullets you created above.
+❌ AVOID:
+- Generic lightbulb for any "innovation" → Be more specific
+- Generic handshake for "partnership" → Show what the partnership achieves
+- Generic chart for "growth" → Show the type of growth (exponential, linear, market)
+
+SVG VALIDATION CHECKLIST:
+✅ Includes width="24" height="24" (prevents black background)
+✅ All stroke colors are "${brandColor}"
+✅ All fills are "none"
+✅ No more than 4 shape elements
+✅ Properly escaped quotes in JSON (\\" not ")
+✅ Valid XML structure (test with parser)
+
+CAPTION VALIDATION CHECKLIST:
+✅ Exactly 4 words (not 3, not 5)
+✅ Title Case formatting
+✅ Communicates the bullet's KEY INSIGHT
+✅ Makes sense without seeing the icon
+
+Generate ${bulletContext.split('\n').filter(line => line.trim()).length} icons now based on the bullets above.
+Each icon must be distinct, purposeful, and investor-focused.
 `;
 
 // Base slide prompt with intelligent synthesis instructions
@@ -1074,15 +1107,12 @@ Remember: SURGICAL EDITS ONLY. Change what was requested. Preserve everything el
 `;
 };
 
-// Professional Pitch Deck Color Kit Generator - Hex Output Only
+// Professional Pitch Deck Color Kit Generator - Concise & Effective
 const createTailwindPrompt = (brandColor = 'orange') => {
     const isHex = /^#([0-9A-F]{3}){1,2}$/i.test(brandColor);
     const colorInput = isHex ? brandColor : `Interpret "${brandColor}" as a professional hex color`;
 
     return `You are a pitch deck color expert. Analyze ${colorInput} and create TWO optimized palettes.
-
-CRITICAL: ALL OUTPUT MUST BE HEX COLOR CODES (e.g., #FF6B35, #1A1A1A, #FAFAFA).
-NEVER output Tailwind CSS class names, color names, or any other format.
 
 BRAND COLOR ANALYSIS:
 1. Identify: Hue (red/orange/yellow/green/blue/purple), saturation (vibrant/muted), lightness (dark/light), temperature (warm/cool)
@@ -1090,63 +1120,42 @@ BRAND COLOR ANALYSIS:
 
 PALETTE 1 - DEFAULT (text-heavy slides):
 Choose ONE approach based on brand color:
-- APPROACH A (vibrant colors): Brand color background (70-85% sat) + white text
-- APPROACH B (dark brand/tech): Dark neutral bg (#1A1A1A to #1A2332) + vibrant brand title
-- APPROACH C (light brand/health): Off-white bg (#FAFAFA to #F8F9FA) + bold brand title
+• APPROACH A (vibrant colors): Brand color background (70-85% sat) + white text
+• APPROACH B (dark brand/tech): Dark neutral bg (#1a1a1a-#1a2332) + vibrant brand title
+• APPROACH C (light brand/health): Off-white bg (#FAFAFA) + bold brand title
 
 PALETTE 2 - ICON SLIDE (icon-based slides):
-CRITICAL: Background is NEVER brand color. Select strategic neutral HEX:
+CRITICAL: Background is NEVER brand color. Select strategic neutral:
 
-Background Rules (ALL MUST BE HEX CODES):
-- Warm brand → Cool neutral (#334155, #1E293B, #2E3440)
-- Cool brand → Warm neutral (#FAF8F3, #F5F1E8, #E8E6E3)
-- Dark brand (L<35%) → Light neutral (#F5F5F7 to #FAFAFA)
-- Light brand (L>70%) → Dark neutral (#1A1A1A to #374151)
-- Vibrant brand (S>70%) → Desaturated neutral (5-15% saturation, e.g., #E5E5E5, #D3D3D3)
+Background Rules:
+• Warm brand → Cool neutral (slate #334155, navy #1E293B, charcoal #2E3440)
+• Cool brand → Warm neutral (beige #FAF8F3, sand #F5F1E8, warm gray #E8E6E3)
+• Dark brand (L<35%) → Light neutral (#F5F5F7 to #FAFAFA)
+• Light brand (L>70%) → Dark neutral (#1A1A1A to #374151)
+• Vibrant brand (S>70%) → Desaturated neutral (5-15% saturation)
 
 Text Hierarchy (all use brand color with varying intensity):
-- Title: Brand color 95-100% saturation (most dominant)
-- Bullets: Brand color 85-95% saturation (slightly softer)
-- Notes: Brand color 65-75% saturation (subtle hierarchy)
+• Title: Brand color 95-100% saturation (most dominant)
+• Bullets: Brand color 85-95% saturation (slightly softer)
+• Notes: Brand color 65-75% saturation (subtle hierarchy)
 
 Accessibility: All colors must pass WCAG AA (4.5:1 for body, 3:1 for large text ≥18pt)
 
-STRICT OUTPUT FORMAT:
-Return ONLY valid JSON with HEX color codes. No markdown, no comments, no explanations.
-Every value MUST start with # and contain exactly 6 hexadecimal characters (e.g., #FF6B35).
-
+OUTPUT (JSON only, no markdown):
 {
   "default": {
-    "background": "#HEXCODE",
-    "title": "#HEXCODE",
-    "bullets": "#HEXCODE",
-    "notes": "#HEXCODE"
+    "background": "#HEX",
+    "title": "#HEX",
+    "bullets": "#HEX",
+    "notes": "#HEX"
   },
   "iconSlide": {
-    "background": "#HEXCODE",
-    "title": "#HEXCODE",
-    "bullets": "#HEXCODE",
-    "notes": "#HEXCODE"
+    "background": "#HEX",
+    "title": "#HEX",
+    "bullets": "#HEX",
+    "notes": "#HEX"
   }
-}
-
-EXAMPLE OUTPUT:
-{
-  "default": {
-    "background": "#1A1A1A",
-    "title": "#FF6B35",
-    "bullets": "#F0F0F0",
-    "notes": "#B8B8B8"
-  },
-  "iconSlide": {
-    "background": "#334155",
-    "title": "#FF6B35",
-    "bullets": "#FF8C5A",
-    "notes": "#FFB088"
-  }
-}
-
-Remember: ONLY output HEX codes starting with #. Never use color names or CSS classes.`;
+}`;
 };
 
 
