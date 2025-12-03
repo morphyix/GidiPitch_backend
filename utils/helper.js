@@ -136,13 +136,38 @@ const convertSVGToPNG = async (svgString, size = 128, retries = 2, quality = 100
       let processedSVG = svgString.trim();
       console.log(`Converting SVG to PNG, attempt ${attempt + 1}`);
 
-      // convert svg to png buffer using sharp
+      // CRITICAL FIX: Add width and height attributes if missing
+      // librsvg (used by Sharp) requires explicit dimensions to render properly
+      if (!processedSVG.includes('width=') || !processedSVG.includes('height=')) {
+        // Extract viewBox dimensions if present
+        const viewBoxMatch = processedSVG.match(/viewBox=["']([^"']+)["']/);
+        let width = size;
+        let height = size;
+        
+        if (viewBoxMatch) {
+          const viewBoxValues = viewBoxMatch[1].split(/\s+/);
+          if (viewBoxValues.length === 4) {
+            width = parseFloat(viewBoxValues[2]);
+            height = parseFloat(viewBoxValues[3]);
+          }
+        }
+        
+        // Insert width and height into the SVG tag
+        processedSVG = processedSVG.replace(
+          /<svg/,
+          `<svg width="${width}" height="${height}"`
+        );
+      }
+
+      // Convert SVG to PNG buffer using Sharp
       const buffer = Buffer.from(processedSVG);
 
-      const pngBuffer = await sharp(buffer)
+      const pngBuffer = await sharp(buffer, { 
+        density: 300 // High density for quality rendering
+      })
         .resize(size, size, {
           fit: 'contain',
-          background: { r: 255, g: 255, b: 255, alpha: 0 } // transparent background
+          background: { r: 0, g: 0, b: 0, alpha: 0 } // transparent background
         })
         .png({
           quality: quality,
@@ -151,18 +176,18 @@ const convertSVGToPNG = async (svgString, size = 128, retries = 2, quality = 100
         })
         .toBuffer();
 
-        const uid = uuid();
-        const imageFile = {
-          buffer: pngBuffer,
-          mimetype: 'image/png',
-          originalname: `icon_${uid}.png`,
-        };
-        console.log('PNG buffer created successfully, uploading to S3...');
+      const uid = uuid();
+      const imageFile = {
+        buffer: pngBuffer,
+        mimetype: 'image/png',
+        originalname: `icon_${uid}.png`,
+      };
+      console.log('PNG buffer created successfully, uploading to S3...');
 
-        // upload image to S3
-        const key = await uploadImageService(imageFile);
-        console.log(`Successfully uploaded PNG to S3 with key: ${key}`);
-        return { key };
+      // upload image to S3
+      const key = await uploadImageService(imageFile);
+      console.log(`Successfully uploaded PNG to S3 with key: ${key}`);
+      return { key };
     } catch (error) {
       console.warn(`Attempt ${attempt + 1} to convert SVG to PNG failed:`, error);
       lastError = error;

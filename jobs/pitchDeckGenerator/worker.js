@@ -76,7 +76,7 @@ async function processSlide({
       amount: 4,
     });
 
-    const slideContent = await generateSlideContent(slidePrompt, { model: 'gemini-2.5-pro' });
+    const slideContent = await generateSlideContent(slidePrompt, { model: 'gemini-2.5-flash' });
     slideContent.status = imageGenType === 'ai' ? 'image_gen' : 'ready';
     slideContent.progress = imageGenType === 'ai' ? 50 : 100;
 
@@ -242,17 +242,17 @@ const pitchDeckWorker = new Worker(
       // ✅ Store in job data for failed handler access
       await job.updateData({ ...job.data, brandTx, trackingData });
 
-      const brandKit = await generateBrandKit(tailwindPrompt, { model: 'gemini-2.5-pro' });
+      const brandKit = await generateBrandKit(tailwindPrompt, { model: 'gemini-2.5-flash' });
       const brandKitObj = {
         background: brandKit?.default?.background || 'bg-amber-950',
         title: brandKit?.default?.title || 'text-yellow-400',
         bullets: brandKit?.default?.bullets || 'text-gray-200',
-        note: brandKit?.default?.note || 'text-gray-500',
+        note: brandKit?.default?.notes || 'text-gray-500',
         iconSlide: {
           background: brandKit?.iconSlide?.background || 'bg-amber-950',
           title: brandKit?.iconSlide?.title || 'text-yellow-400',
           bullets: brandKit?.iconSlide?.bullets || 'text-gray-200',
-          note: brandKit?.iconSlide?.note || 'text-gray-500',
+          note: brandKit?.iconSlide?.notes || 'text-gray-500',
         }
       };
 
