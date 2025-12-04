@@ -103,20 +103,43 @@ async function processSlide({
       // ✅ Use Promise.all instead of allSettled - let failures propagate
       await Promise.all(
         slideContent.images.map(async (image, i) => {
-          const imageTx = await modifyUserTokensService(
-            userId,
-            'deduct',
-            9,
-            `Generating image for slide ${key}`,
-            `${jobId}-image-${key}-${i + 1}`,
-          );
+          let imageTx;
+          let amount;
+          if (key === 'competitions') {
+            imageTx = await modifyUserTokensService(
+              userId,
+              'deduct',
+              10,
+              `Generating image for slide ${key}`,
+              `${jobId}-image-${key}-${i + 1}`,
+            );
+            amount = 10;
+          } else if (key === 'cover') {
+            imageTx = await modifyUserTokensService(
+              userId,
+              'deduct',
+              3,
+              `Generating image for slide ${key}`,
+              `${jobId}-image-${key}-${i + 1}`,
+            );
+            amount = 3;
+          } else {
+            imageTx = await modifyUserTokensService(
+              userId,
+              'deduct',
+              1,
+              `Generating icon for slide ${key}`,
+              `${jobId}-image-${key}-${i + 1}`,
+            );
+            amount = 1;
+          }
           
           // ✅ Track this transaction
           imageTxList.push({
             type: 'image',
             slideKey: key,
             jobId: imageTx.jobId,
-            amount: 6,
+            amount: amount,
             imageIndex: i,
           });
           
@@ -124,12 +147,12 @@ async function processSlide({
             type: 'image',
             slideKey: key,
             jobId: imageTx.jobId,
-            amount: 6,
+            amount: amount,
             imageIndex: i,
           });
           let imgObj;
           if (key === 'competitions') {
-            imgObj = await generateSlideImage(image.prompt);
+            imgObj = await generateRunwareImage(image.prompt, { model: 'google:4@2' });
           } else if (key === 'cover') {
             imgObj = await generateRunwareImage(image.prompt);
           } else {
@@ -189,10 +212,11 @@ async function processSlide({
     // ✅ Refund any successful image transactions
     for (const imgTx of imageTxList) {
       try {
+        const amt = imgTx.amount || 1;
         await modifyUserTokensService(
           userId,
           'refund',
-          9,
+          amt,
           `Refund for failed image generation on slide ${key}`,
           imgTx.jobId,
         );
