@@ -95,111 +95,149 @@ Then craft slide content that an investor would find credible and compelling.
 `;
 };
 
-// Enhanced SVG icon prompt optimized for pitch deck best practices
-const generateDynamicIconPrompt = (brandColor, bulletContext) => `
+const generateDynamicIconPrompt = (brandColor, bulletContext) => {
+    const getDesaturatedColor = (color) => {
+    // If it's a named color, convert to hex first
+    const colorMap = {
+      'blue': '#5B6CFF',
+      'indigo': '#6366F1',
+      'purple': '#8B5CF6',
+      'pink': '#EC4899',
+      'red': '#EF4444',
+      'orange': '#F97316',
+      'yellow': '#EAB308',
+      'green': '#22C55E',
+      'teal': '#14B8A6',
+      'cyan': '#06B6D4'
+    };
+    
+    let hex = colorMap[color.toLowerCase()] || color;
+    
+    // Remove # if present
+    hex = hex.replace('#', '');
+    
+    // Convert to RGB
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+    
+    // Convert to HSL for saturation control
+    const rNorm = r / 255;
+    const gNorm = g / 255;
+    const bNorm = b / 255;
+    
+    const max = Math.max(rNorm, gNorm, bNorm);
+    const min = Math.min(rNorm, gNorm, bNorm);
+    const l = (max + min) / 2;
+    
+    if (max === min) return `#${hex}`; // Achromatic
+    
+    const d = max - min;
+    const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    
+    let h;
+    switch (max) {
+      case rNorm: h = ((gNorm - bNorm) / d + (gNorm < bNorm ? 6 : 0)) / 6; break;
+      case gNorm: h = ((bNorm - rNorm) / d + 2) / 6; break;
+      case bNorm: h = ((rNorm - gNorm) / d + 4) / 6; break;
+    }
+    
+    // Reduce saturation to 85-92% of original
+    const newS = s * 0.88;
+    
+    // Convert back to RGB
+    const hue2rgb = (p, q, t) => {
+      if (t < 0) t += 1;
+      if (t > 1) t -= 1;
+      if (t < 1/6) return p + (q - p) * 6 * t;
+      if (t < 1/2) return q;
+      if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+      return p;
+    };
+    
+    const q = l < 0.5 ? l * (1 + newS) : l + newS - l * newS;
+    const p = 2 * l - q;
+    
+    const newR = Math.round(hue2rgb(p, q, h + 1/3) * 255);
+    const newG = Math.round(hue2rgb(p, q, h) * 255);
+    const newB = Math.round(hue2rgb(p, q, h - 1/3) * 255);
+    
+    return `#${newR.toString(16).padStart(2, '0')}${newG.toString(16).padStart(2, '0')}${newB.toString(16).padStart(2, '0')}`;
+  };
+  
+  const iconColor = getDesaturatedColor(brandColor);
+    return `
 AFTER you generate the bullets above, create SVG icons for them.
 
-You are an expert pitch deck icon designer. Generate minimalist outline icons that DIRECTLY represent the core meaning of each bullet point you just created.
-
-PITCH DECK ICON PHILOSOPHY:
-- Purpose: Icons must simplify complex ideas into instantly recognizable visual metaphors
-- Investors scan slides in 3 seconds - icons must communicate meaning at a glance
-- Think: "If someone saw ONLY this icon, what would they understand?"
-- Each icon is a visual anchor that helps investors remember your key points
-- Icons bridge language barriers - they must be universally understood
+You are an expert SVG icon designer. Generate minimalist outline icons that DIRECTLY represent the meaning of each bullet point you just created.
 
 ICON DESIGN REQUIREMENTS:
-- Style: Ultra-minimalist line art (hollow/outline only, inspired by Lucide/Feather Icons)
-- Each icon must be SEMANTICALLY specific to its bullet's CORE CONCEPT (not generic)
-- Use strong visual metaphors: transformation = arrow morphing, growth = upward trend, efficiency = streamlined path
-- Icons should be immediately recognizable even at 32px size
-- Avoid overused clichés: no generic lightbulbs for "innovation", no handshakes for "partnership" unless truly relevant
-- Test: "Would an investor understand this icon WITHOUT reading the text?"
+- Style: Minimalist line art (hollow/outline only, similar to Lucide or Feather Icons)
+- Each icon must SEMANTICALLY match its corresponding bullet's core concept
+- Think: "What single visual metaphor represents this idea?"
+- Avoid generic icons - make each icon specific to its bullet
+- Icons should be immediately recognizable at small sizes
 
 SVG TECHNICAL SPECIFICATIONS:
-- viewBox="0 0 24 24" (standard icon grid)
+- viewBox="0 0 24 24" (standard)
 - xmlns="http://www.w3.org/2000/svg"
-- width="24" height="24" (CRITICAL: prevents black background rendering issues)
-- ALL strokes: stroke="${brandColor}"
-- ALL fills: fill="none"
-- stroke-width="2" (consistent visual weight)
-- stroke-linecap="round" stroke-linejoin="round" (smooth, professional curves)
+- ALL strokes must be: stroke="${iconColor}"
+- ALL fills must be: fill="none"
+- stroke-width="2" (consistent across all icons)
+- stroke-linecap="round" stroke-linejoin="round"
 - Use ONLY: <path>, <circle>, <rect>, <line>, <polyline>, <polygon>
-- Maximum 3-4 elements per icon (cognitive load principle)
-- No gradients, filters, masks, text, or complex effects
+- Maximum 4 elements per icon (keep it simple and clean)
+- No gradients, filters, masks, text elements, or complex effects
 
 CAPTION REQUIREMENTS:
-- Each caption must be EXACTLY 4 words (strict constraint)
-- Caption is a HEADLINE/KEY TAKEAWAY, not an icon description
-- Use Title Case (e.g., "Market Share Increased Significantly")
-- Think: "What single message does this bullet communicate?"
-- Avoid redundancy with the icon - caption adds context, not duplication
+- Each caption must be EXACTLY 4 words
+- Caption should be a title/headline for the bullet (not a description of the icon)
+- Use Title Case (e.g., "Reduces Driver Wait Time" not "reduces driver wait time")
+- Think of it as a slide sub-heading that encapsulates the bullet's key message
 
 CONTEXT FOR ICON MAPPING:
 ${bulletContext}
 
-ICON MAPPING STRATEGY:
-For each bullet, identify:
-1. The CORE METRIC or CONCEPT (time saved, cost reduced, market share, accuracy, speed)
-2. The TRANSFORMATION or RESULT (faster → slower, more → less, manual → automated)
-3. The BEST VISUAL METAPHOR (clock for time, target for accuracy, rocket for growth)
-
-OUTPUT FORMAT (must be valid JSON):
+OUTPUT FORMAT (must be valid JSON inside the images array):
 [
   {
-    "prompt": "<svg width=\\"24\\" height=\\"24\\" viewBox=\\"0 0 24 24\\" xmlns=\\"http://www.w3.org/2000/svg\\"><circle cx=\\"12\\" cy=\\"12\\" r=\\"10\\" stroke=\\"${brandColor}\\" fill=\\"none\\" stroke-width=\\"2\\"/><path d=\\"M8 12l2 2 4-4\\" stroke=\\"${brandColor}\\" fill=\\"none\\" stroke-width=\\"2\\" stroke-linecap=\\"round\\" stroke-linejoin=\\"round\\"/></svg>",
-    "caption": "Target Achievement Rate Soared"
+    "prompt": "<svg viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\"><circle cx=\"12\" cy=\"12\" r=\"10\" stroke=\"${brandColor}\" fill=\"none\" stroke-width=\"2\"/><path d=\"M8 12l2 2 4-4\" stroke=\"${brandColor}\" fill=\"none\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>",
+    "caption": "Four Word Title Here"
   },
   {
-    "prompt": "<svg width=\\"24\\" height=\\"24\\" viewBox=\\"0 0 24 24\\" xmlns=\\"http://www.w3.org/2000/svg\\">...</svg>",
-    "caption": "Processing Speed Increased Dramatically"
+    "prompt": "<svg viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\">...</svg>",
+    "caption": "Another Four Word Title"
   },
   {
-    "prompt": "<svg width=\\"24\\" height=\\"24\\" viewBox=\\"0 0 24 24\\" xmlns=\\"http://www.w3.org/2000/svg\\">...</svg>",
-    "caption": "Customer Satisfaction Scores Improved"
+    "prompt": "<svg viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\">...</svg>",
+    "caption": "Last Four Word Title"
   }
 ]
 
-ICON EXAMPLES WITH STRONG METAPHORS:
-✅ GOOD:
-- Bullet: "Reduced booking time from 2 hours to 3 minutes"
-  → Icon: Hourglass with fast-forward arrow (time compression metaphor)
-  → Caption: "Booking Speed Increased Massively"
+ICON MAPPING EXAMPLES:
+- Bullet: "Reduced booking time from 2 hours to 3 minutes" 
+  → Icon: Clock/timer with fast-forward arrow
+  → Caption: "Booking Time Reduced Drastically"
 
 - Bullet: "Algorithm learns from 10K+ daily transactions"
-  → Icon: Brain with data nodes/connections (machine learning metaphor)
-  → Caption: "AI Learns From Transactions"
+  → Icon: Brain/neural network with connected nodes
+  → Caption: "Machine Learning Algorithm Optimizes"
 
-- Bullet: "98% delivery success vs 75% industry average"
-  → Icon: Bullseye target with centered arrow (precision/accuracy metaphor)
-  → Caption: "Delivery Accuracy Outperforms Market"
+- Bullet: "98% delivery success rate vs 75% industry average"
+  → Icon: Target/bullseye with checkmark
+  → Caption: "Delivery Success Rate Improved"
 
-- Bullet: "Automated 40 manual processes saving 200 hours/week"
-  → Icon: Robot arm replacing human hand (automation metaphor)
-  → Caption: "Manual Processes Fully Automated"
+CRITICAL RULES:
+1. Each icon must be UNIQUE and SPECIFIC to its bullet point
+2. Caption must be EXACTLY 4 words (not 3, not 5)
+3. SVG code must be valid XML (test with a parser)
+4. All stroke colors must be "${brandColor}" (no other colors anywhere)
+5. No fill colors except fill="none"
+6. Keep designs simple - complex paths that work at 24px are better than intricate details
 
-❌ AVOID:
-- Generic lightbulb for any "innovation" → Be more specific
-- Generic handshake for "partnership" → Show what the partnership achieves
-- Generic chart for "growth" → Show the type of growth (exponential, linear, market)
-
-SVG VALIDATION CHECKLIST:
-✅ Includes width="24" height="24" (prevents black background)
-✅ All stroke colors are "${brandColor}"
-✅ All fills are "none"
-✅ No more than 4 shape elements
-✅ Properly escaped quotes in JSON (\\" not ")
-✅ Valid XML structure (test with parser)
-
-CAPTION VALIDATION CHECKLIST:
-✅ Exactly 4 words (not 3, not 5)
-✅ Title Case formatting
-✅ Communicates the bullet's KEY INSIGHT
-✅ Makes sense without seeing the icon
-
-Generate ${bulletContext.split('\n').filter(line => line.trim()).length} icons now based on the bullets above.
-Each icon must be distinct, purposeful, and investor-focused.
-`;
+Generate the icons now based on the bullets you created above.
+`
+};
 
 // Base slide prompt with intelligent synthesis instructions
 const baseSlidePrompt = (slideType, titlePrefix, dataAnalysisInstruction, bulletsInstruction, notesInstruction, layoutHint, imagePrompts, startupData) => {
@@ -930,6 +968,227 @@ Focus on visualizing the specific concepts mentioned in each bullet.`),
         );
     }
 
+// These are UNIQUE to Web3 and don't duplicate existing slides
+
+if (industryLower === "web3" || industryLower === "crypto" || industryLower === "blockchain" || industryLower === "defi") {
+    
+    // 1. TOKENOMICS SLIDE (Web3-specific - doesn't exist in standard deck)
+    slides.tokenomics = baseSlidePrompt(
+        "tokenomics",
+        "Token Economics & Utility",
+        `Analyze: How does the token drive the ecosystem? What's the utility? Distribution? Incentive structure?
+Look at: moreInfo (CRITICAL - should contain token utility, distribution, vesting, supply metrics, incentive mechanisms).
+Use web_search if you need to understand tokenomics best practices or benchmark against similar projects.
+
+CRITICAL: The token should enable the business model. Investors want to see token utility tied to business logic - if your token drives network incentives, governance, or liquidity, show that clearly.`,
+        `Generate 3 bullets (max 20 words each) explaining tokenomics with clarity:
+
+BULLET 1: Core token utility (WHY the token exists and HOW it creates value)
+Example: "Governance token enables DAO voting on protocol upgrades; stakers earn 8-12% APY from transaction fees"
+Example: "Utility token required for network access; burns 2% per transaction creating deflationary pressure"
+Example: "Rewards token incentivizes liquidity provision; 60% of protocol revenue distributed to LP stakers"
+(Extract from moreInfo - focus on UTILITY and VALUE CAPTURE, not just features)
+
+BULLET 2: Token distribution with anti-dilution safeguards
+Example: "Total supply: 100M tokens; 40% community, 25% team (4-year vest), 20% treasury, 15% investors (2-year cliff)"
+Example: "Fair launch: 80% liquidity mining over 5 years; 10% team (linear unlock); 10% DAO treasury"
+(Look for allocation and vesting in moreInfo - show distribution including allocations for team, investors, community)
+
+BULLET 3: Economic sustainability mechanism (how tokenomics creates long-term value)
+Example: "Revenue-sharing: 50% of platform fees buy-back and burn tokens, reducing supply while demand grows"
+Example: "Network effects: Each new validator increases staking rewards 3%, creating compounding incentive alignment"
+Example: "Token required for gas; as network usage 10x, token demand increases while supply remains capped"
+(Explain the FLYWHEEL - how token economics reinforce growth and value accrual)
+
+Show token utility is defensible and creates real economic value, not speculation.`,
+        `One sentence explaining how tokenomics aligns user incentives with protocol growth and creates sustainable value capture.`,
+        "image-text",
+        generateDynamicIconPrompt(brandColor, `Create icons that represent each of the 3 tokenomics bullets you generated.
+Focus on visualizing: token utility mechanism, distribution/vesting model, value capture flywheel.`),
+        startupData
+    );
+
+    // 2. BLOCKCHAIN ARCHITECTURE (Web3-specific technical deep-dive)
+    slides.architecture = baseSlidePrompt(
+        "architecture",
+        "Technical Architecture & Security",
+        `Analyze: What blockchain/layer is being used? Why that choice? What's the technical differentiation?
+Look at: moreInfo (should contain chain choice, smart contract architecture, scalability approach, security measures).
+Use web_search to understand technical tradeoffs of the chosen blockchain infrastructure.
+
+CRITICAL: Show technical competence without overwhelming non-technical investors. Use simple explanations.`,
+        `Generate 3 bullets (max 20 words each) explaining technical approach:
+
+BULLET 1: Blockchain infrastructure choice with strategic rationale
+Example: "Built on Ethereum L2 (Arbitrum) for 10x lower gas costs while maintaining Ethereum security guarantees"
+Example: "Multi-chain deployment: Polygon for transactions, Ethereum mainnet for settlement, optimizing cost vs security"
+Example: "Custom Cosmos SDK chain enables 10,000 TPS with 2-second finality for real-time trading"
+(Extract from moreInfo - explain WHAT you're building on and WHY that choice is strategic)
+
+BULLET 2: Core technical innovation or competitive moat
+Example: "Zero-knowledge proofs enable private transactions with public verifiability; patent pending on novel ZK circuit"
+Example: "Novel consensus mechanism reduces validator requirements 80%, enabling wider decentralization"
+Example: "Cross-chain bridge architecture supports 15+ chains with <5 minute finality, 3x faster than competitors"
+(Look for technical differentiation in moreInfo - explain the unique innovation)
+
+BULLET 3: Security and audit status (builds trust)
+Example: "Smart contracts audited by Trail of Bits and Consensys Diligence; $2M bug bounty program active"
+Example: "Formal verification completed on core contracts; multi-sig treasury with 5/7 threshold"
+Example: "Security-first design: time-locked upgrades, circuit breakers on withdrawals, insurance fund with $500K TVL"
+(Extract security measures from moreInfo - critical for building investor confidence)
+
+Keep explanations simple - avoid overwhelming technical jargon.`,
+        `One sentence explaining how technical architecture enables scale while maintaining security and decentralization.`,
+        "image-text",
+        generateDynamicIconPrompt(brandColor, `Create icons that represent each of the 3 architecture bullets you generated.
+Focus on visualizing: blockchain infrastructure, technical innovation, security measures.`),
+        startupData
+    );
+
+    // 3. ON-CHAIN METRICS (Web3-specific validation - different from standard traction)
+    slides.onChainMetrics = baseSlidePrompt(
+        "onChainMetrics",
+        "On-Chain Validation & TVL",
+        `Analyze: What on-chain metrics prove protocol-market fit? TVL? Active wallets? Transaction volume?
+Look at: moreInfo (CRITICAL - should contain TVL, daily/monthly active users, transaction volumes, retention rates).
+
+CRITICAL: Use VERIFIABLE on-chain data. These metrics can be checked on blockchain explorers.`,
+        `Generate 3 bullets (max 20 words each) proving on-chain validation:
+
+BULLET 1: Total Value Locked (TVL) and growth trajectory
+Example: "$4.2M TVL reached in 90 days post-launch; 2,500+ unique wallet addresses, 35% month-over-month TVL growth"
+Example: "$12M TVL across 3 liquidity pools; top 15 protocol by TVL in Arbitrum ecosystem"
+(Extract from moreInfo - TVL is THE key metric for DeFi protocols)
+
+BULLET 2: User activity and retention metrics (on-chain behavior)
+Example: "150K transactions processed across 8,500 active wallets; average 18 transactions per user per month"
+Example: "60-day wallet retention at 72%; power users (10+ transactions) represent 40% of volume"
+(Look for on-chain engagement data in moreInfo - shows sticky product)
+
+BULLET 3: Protocol integrations and ecosystem validation
+Example: "Integration with Uniswap and Curve; $500K liquidity incentives from Arbitrum Foundation grant"
+Example: "12,000 NFTs minted at 0.5 ETH floor; secondary market volume $2.1M in first 60 days"
+Example: "Partnership with Circle (USDC issuer) for native stablecoin integration"
+(Extract partnerships and strategic relationships from moreInfo)
+
+All metrics should be verifiable on-chain - transparency builds trust.`,
+        `One sentence explaining what these on-chain metrics reveal about protocol-market fit and network effects.`,
+        "title-bullets",
+        generateDynamicIconPrompt(brandColor, `Create icons that represent each of the 3 on-chain metrics bullets you generated.
+Focus on visualizing: TVL growth, user activity, protocol integrations.`),
+        startupData
+    );
+
+    // 4. REGULATORY STRATEGY (Web3-specific - different from fintech regulation)
+    slides.web3Regulation = baseSlidePrompt(
+        "web3Regulation",
+        "Regulatory Strategy & Compliance",
+        `Analyze: How is the project navigating crypto regulation? Legal structure? Token classification?
+Look at: moreInfo (should contain legal entity structure, jurisdiction, token classification, compliance measures).
+Use web_search to understand current regulatory environment for crypto/Web3 in relevant jurisdictions.
+
+CRITICAL: Regulatory risk is VCs' #1 concern in Web3. Address it proactively.`,
+        `Generate 3 bullets (max 20 words each) addressing regulatory positioning:
+
+BULLET 1: Legal entity structure and jurisdiction choice
+Example: "Incorporated as Cayman Foundation Company; operates in Switzerland for regulatory clarity and innovation-friendly framework"
+Example: "Delaware C-Corp holds IP; protocol governed by decentralized DAO to minimize regulatory surface area"
+Example: "BVI entity structure recommended by Cooley LLP; compliant with local crypto asset service provider regulations"
+(Extract from moreInfo - jurisdiction choice is critical for Web3 projects)
+
+BULLET 2: Token classification and compliance approach
+Example: "Utility token analysis by Perkins Coie: no security features, sufficient decentralization, limited team reliance"
+Example: "Governance token with no profit-sharing rights; Howey test analysis supports non-security classification"
+Example: "Security token registered under Reg D; qualified investors only, full SEC compliance framework implemented"
+(Look for token classification in moreInfo - explain whether utility, governance, or security token)
+
+BULLET 3: Compliance measures and risk mitigation strategy
+Example: "Geo-blocking for restricted jurisdictions; KYC/AML via Chainalysis for fiat on-ramps; compliance officer hired"
+Example: "Progressive decentralization roadmap: admin keys time-locked, multi-sig treasury, on-chain governance by Month 12"
+Example: "No token pre-sale to US persons; fair launch with equal access; securities counsel on retainer"
+(Extract compliance measures from moreInfo - show proactive compliance, not avoidance)
+
+Show regulatory awareness and proactive risk management.`,
+        `One sentence explaining how regulatory strategy balances compliance requirements with decentralization principles.`,
+        "title-bullets",
+        generateDynamicIconPrompt(brandColor, `Create icons that represent each of the 3 regulatory strategy bullets you generated.
+Focus on visualizing: legal structure, token compliance, risk mitigation.`),
+        startupData
+    );
+
+    // 5. DECENTRALIZATION ROADMAP (Web3-specific - shows progressive path to autonomy)
+    slides.decentralization = baseSlidePrompt(
+        "decentralization",
+        "Decentralization Roadmap",
+        `Analyze: What's the path to progressive decentralization? Token launch timeline? Governance transition?
+Look at: moreInfo (should contain decentralization plan, token launch timeline, governance transition milestones).
+
+CRITICAL: Progressive decentralization shows regulatory sophistication and long-term vision.`,
+        `Generate 3 bullets (max 20 words each) outlining decentralization path:
+
+BULLET 1: Token generation event and distribution timeline
+Example: "Token generation event Q2 2025; 40% fair launch via liquidity mining over 18 months; no pre-sale"
+Example: "Airdrop to early users (15% supply) in Month 6; governance token unlocks begin Month 12 with 24-month linear vest"
+Example: "Public sale Q3 2025 at $0.10/token; $3M raise target; listing on Uniswap with $500K initial liquidity"
+(Extract from moreInfo - investors care deeply about launch mechanics and dilution schedule)
+
+BULLET 2: Governance transition and community control
+Example: "Month 12: Transfer admin keys to 5/7 multi-sig; Month 18: Launch DAO governance; Month 24: Full token holder control"
+Example: "Year 1: Team maintains upgrade keys; Year 2: Time-locked governance; Year 3: Fully autonomous DAO"
+Example: "Q3 2025: Governance forum launch; Q4 2025: First community votes; 2026: Protocol upgrades require token vote"
+(Look for governance roadmap in moreInfo - shows commitment to decentralization)
+
+BULLET 3: Protocol maturity and autonomy milestones
+Example: "Smart contract immutability at Month 24; all protocol parameters controlled by token holders; team advisory role only"
+Example: "Treasury management transitions to DAO; community-elected council manages $5M+ protocol-owned liquidity"
+Example: "Protocol achieves full decentralization: no admin keys, immutable contracts, on-chain governance for all decisions"
+(Extract long-term autonomy plan from moreInfo - ultimate goal is credible neutrality)
+
+Show clear path from centralized launch to decentralized protocol.`,
+        `One sentence explaining how progressive decentralization balances rapid iteration with community ownership and regulatory compliance.`,
+        "image-text",
+        generateDynamicIconPrompt(brandColor, `Create icons that represent each of the 3 decentralization roadmap bullets you generated.
+Focus on visualizing: token launch, governance transition, protocol autonomy.`),
+        startupData
+    );
+
+    // 6. COMMUNITY & ECOSYSTEM (Web3-specific - community is the moat)
+    slides.community = baseSlidePrompt(
+        "community",
+        "Community & Ecosystem Growth",
+        `Analyze: How strong is the community? What ecosystem partnerships exist? Developer adoption?
+Look at: moreInfo (should contain community size, engagement metrics, developer partnerships, ecosystem integrations).
+
+CRITICAL: In Web3, community strength and ecosystem alignment ARE the competitive moat.`,
+        `Generate 3 bullets (max 20 words each) demonstrating community traction:
+
+BULLET 1: Community size and engagement metrics (not just vanity metrics)
+Example: "35K Discord members with 78% weekly active rate; 120K Twitter followers; 2,500+ daily community messages"
+Example: "15K GitHub stars; 80+ external contributors; 12 community-built integrations launched in past 90 days"
+Example: "Community treasury: $2M; 15 governance proposals passed; average 45% voter participation in protocol decisions"
+(Extract from moreInfo - show ACTIVE community, not passive followers)
+
+BULLET 2: Strategic ecosystem partnerships and integrations
+Example: "Integrated with Chainlink oracles, The Graph indexing, Gelato automation; featured in Ethereum Foundation newsletter"
+Example: "Official partnership with Polygon for L2 deployment; $250K ecosystem grant; co-marketing to 2M+ developers"
+Example: "DeFi integrations: Liquidity on Uniswap V3, Curve, Balancer; aggregator support from 1inch and Paraswap"
+(Look for ecosystem relationships in moreInfo - show strategic positioning within Web3 stack)
+
+BULLET 3: Developer adoption and network effects
+Example: "40+ projects building on our protocol; SDK downloaded 25K+ times; 8 ecosystem projects raised $5M+ using our infra"
+Example: "Open-source toolkit: 150+ developers contributed; 5 hackathon wins; developer grants program with $500K budget"
+Example: "Network effects: Each new liquidity provider increases APY for all users; 3x TVL growth in 60 days"
+(Extract developer metrics from moreInfo - show compounding ecosystem value)
+
+Community ownership and ecosystem momentum create defensible competitive moat.`,
+        `One sentence explaining how community ownership and ecosystem network effects drive sustainable protocol growth.`,
+        "image-text",
+        generateDynamicIconPrompt(brandColor, `Create icons that represent each of the 3 community/ecosystem bullets you generated.
+Focus on visualizing: community engagement, strategic partnerships, network effects.`),
+        startupData
+    );
+}
+
     return slides;
 };
 
@@ -1172,6 +1431,8 @@ const getAllowedSlides = (industry) => {
         biotech: ["compliance", "validation"],
         fintech: ["security", "regulation"],
         edtech: ["adoption", "outcomes"],
+        web3: ["tokenomics", "architecture", "onChainMetrics", "web3Regulation", "decentralization", "community"],
+        defi: ["tokenomics", "architecture", "onChainMetrics", "web3Regulation", "decentralization", "community"],
     };
 
     const extra = industrySlides[(industry || "").toLowerCase()] || [];
