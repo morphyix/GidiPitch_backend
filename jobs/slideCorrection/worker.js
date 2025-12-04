@@ -72,16 +72,39 @@ const slideCorrectionWorker = new Worker(
         for (let i = 0; i < slideContent.images.length; i++) {
           const image = slideContent.images[i];
           let imageTx = null;
+          let amount = 1;
           
           try {
             // Deduct tokens for this image
-            imageTx = await modifyUserTokensService(
-              userId, 
-              'deduct', 
-              9, 
-              `Generating image ${i + 1} for slide ${slide.slideType}`, 
-              `${job.id}-image-${i + 1}`
-            );
+            if (slide.slideType === 'competitions') {
+              amount = 10;
+              imageTx = await modifyUserTokensService(
+                userId, 
+                'deduct', 
+                amount, 
+                `Generating image ${i + 1} for slide ${slide.slideType}`, 
+                `${job.id}-image-${i + 1}`
+              );
+            } else if (slide.slideType === 'cover') {
+              amount = 3;
+              imageTx = await modifyUserTokensService(
+                userId, 
+                'deduct', 
+                amount, 
+                `Generating image ${i + 1} for slide ${slide.slideType}`, 
+                `${job.id}-image-${i + 1}`
+              );
+            } else {
+              amount = 1;
+              // Icons for other slides
+              imageTx = await modifyUserTokensService(
+                userId, 
+                'deduct', 
+                amount, 
+                `Generating icon ${i + 1} for slide ${slide.slideType}`, 
+                `${job.id}-image-${i + 1}`
+              );
+            }
             
             // ✅ Track successful deduction (only if not skipped)
             if (imageTx && !imageTx.skipped) {
@@ -94,8 +117,8 @@ const slideCorrectionWorker = new Worker(
 
             // Generate the image
             let imgObj;
-            if (slide.key === 'competition') {
-              imgObj = await generateSlideImage(image.prompt);
+            if (slide.key === 'competitions') {
+              imgObj = await generateRunwareImage(image.prompt, { model: 'google:4@2' });
             } else if (slide.key === 'cover') {
               imgObj = await generateRunwareImage(image.prompt);
             } else {
@@ -124,11 +147,11 @@ const slideCorrectionWorker = new Worker(
                 await modifyUserTokensService(
                   userId, 
                   'refund', 
-                  9, 
+                  amount, 
                   `Refund for failed image ${i + 1} in slide correction`, 
                   imageTx.jobId
                 );
-                console.log(`Refunded 9 tokens for failed image ${i + 1}`);
+                console.log(`Refunded ${amount} tokens for failed image ${i + 1}`);
                 
                 // ✅ Remove from tracking since we already refunded
                 transactions.images = transactions.images.filter(
@@ -212,11 +235,11 @@ const slideCorrectionWorker = new Worker(
             await modifyUserTokensService(
               userId, 
               'refund', 
-              9, 
+              1, 
               `Refund for image ${imgTx.imageIndex + 1} in failed job`, 
               imgTx.jobId
             );
-            console.log(`✓ Refunded 6 tokens for image ${imgTx.imageIndex + 1}`);
+            console.log(`✓ Refunded 1 tokens for image ${imgTx.imageIndex + 1}`);
           } catch (refundErr) {
             console.error(`✗ Failed to refund tokens for image ${imgTx.imageIndex + 1}:`, refundErr);
           }
