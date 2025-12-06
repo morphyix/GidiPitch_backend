@@ -238,6 +238,7 @@ const correctSlideController = async (req, res, next) => {
         const jobData = {
             slideId,
             prompt,
+            brandColor: deck.brandKit?.iconSlide?.title || '',
             userId: user._id
         };
 
@@ -365,7 +366,7 @@ const getAllIndustriesController = async (req, res, next) => {
             'agriTech', 'biotech', 'fashion', 'automotive', 'media', 'telecommunications',
             'agriculture', 'aerospace', 'construction', 'consulting', 'energy',
             'fitness', 'legal', 'manufacturing', 'music', 'nonProfit', 'publishing',
-            'retail', 'sports', 'transportation', 'utilities'
+            'retail', 'sports', 'transportation', 'utilities', 'web3', 'defi'
         ];
         return res.status(200).json({
             status: 'success',
