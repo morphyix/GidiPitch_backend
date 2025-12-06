@@ -6,12 +6,12 @@ const { generateSlideContent, generateSlideImage, generateRunwareImage } = requi
 const { updateDeckByIdService } = require('../../services/deckService');
 const { modifyUserTokensService } = require('../../services/authService');
 const { logFailedSlideJobService } = require('../../services/failedSlideJobService');
-const { convertSVGToPNG } = require('../../utils/helper');
+const { generatePremiumStyledIcon } = require('../../utils/iconPipeline');
 
 const slideCorrectionWorker = new Worker(
   'slideCorrectionQueue',
   async (job) => {
-    const { slideId, prompt, userId } = job.data;
+    const { slideId, prompt, userId, brandColor } = job.data;
     
     // ✅ Track all transactions
     const transactions = {
@@ -122,7 +122,7 @@ const slideCorrectionWorker = new Worker(
             } else if (slide.key === 'cover') {
               imgObj = await generateRunwareImage(image.prompt);
             } else {
-              imgObj = await convertSVGToPNG(image.prompt);
+              imgObj = await generatePremiumStyledIcon(image.prompt, brandColor);
             }
             
             await updateSlideImageService(slideId, image.caption, { 

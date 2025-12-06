@@ -96,98 +96,54 @@ Then craft slide content that an investor would find credible and compelling.
 };
 
 const generateDynamicIconPrompt = (brandColor, bulletContext) => {
-    const getDesaturatedColor = (color) => {
-    // If it's a named color, convert to hex first
-    const colorMap = {
-      'blue': '#5B6CFF',
-      'indigo': '#6366F1',
-      'purple': '#8B5CF6',
-      'pink': '#EC4899',
-      'red': '#EF4444',
-      'orange': '#F97316',
-      'yellow': '#EAB308',
-      'green': '#22C55E',
-      'teal': '#14B8A6',
-      'cyan': '#06B6D4'
-    };
-    
-    let hex = colorMap[color.toLowerCase()] || color;
-    
-    // Remove # if present
-    hex = hex.replace('#', '');
-    
-    // Convert to RGB
-    const r = parseInt(hex.substring(0, 2), 16);
-    const g = parseInt(hex.substring(2, 4), 16);
-    const b = parseInt(hex.substring(4, 6), 16);
-    
-    // Convert to HSL for saturation control
-    const rNorm = r / 255;
-    const gNorm = g / 255;
-    const bNorm = b / 255;
-    
-    const max = Math.max(rNorm, gNorm, bNorm);
-    const min = Math.min(rNorm, gNorm, bNorm);
-    const l = (max + min) / 2;
-    
-    if (max === min) return `#${hex}`; // Achromatic
-    
-    const d = max - min;
-    const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-    
-    let h;
-    switch (max) {
-      case rNorm: h = ((gNorm - bNorm) / d + (gNorm < bNorm ? 6 : 0)) / 6; break;
-      case gNorm: h = ((bNorm - rNorm) / d + 2) / 6; break;
-      case bNorm: h = ((rNorm - gNorm) / d + 4) / 6; break;
-    }
-    
-    // Reduce saturation to 85-92% of original
-    const newS = s * 0.88;
-    
-    // Convert back to RGB
-    const hue2rgb = (p, q, t) => {
-      if (t < 0) t += 1;
-      if (t > 1) t -= 1;
-      if (t < 1/6) return p + (q - p) * 6 * t;
-      if (t < 1/2) return q;
-      if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
-      return p;
-    };
-    
-    const q = l < 0.5 ? l * (1 + newS) : l + newS - l * newS;
-    const p = 2 * l - q;
-    
-    const newR = Math.round(hue2rgb(p, q, h + 1/3) * 255);
-    const newG = Math.round(hue2rgb(p, q, h) * 255);
-    const newB = Math.round(hue2rgb(p, q, h - 1/3) * 255);
-    
-    return `#${newR.toString(16).padStart(2, '0')}${newG.toString(16).padStart(2, '0')}${newB.toString(16).padStart(2, '0')}`;
-  };
-  
-  const iconColor = getDesaturatedColor(brandColor);
-    return `
-AFTER you generate the bullets above, create SVG icons for them.
+  return `
+AFTER you generate the bullets above, create icon keywords for them.
 
-You are an expert SVG icon designer. Generate minimalist outline icons that DIRECTLY represent the meaning of each bullet point you just created.
+You are an expert at mapping concepts to visual icons. Generate precise icon keywords that can be used to fetch icons from Iconify libraries (Lucide, Heroicons, Material Icons, etc.).
 
-ICON DESIGN REQUIREMENTS:
-- Style: Minimalist line art (hollow/outline only, similar to Lucide or Feather Icons)
-- Each icon must SEMANTICALLY match its corresponding bullet's core concept
-- Think: "What single visual metaphor represents this idea?"
-- Avoid generic icons - make each icon specific to its bullet
-- Icons should be immediately recognizable at small sizes
+ICON KEYWORD REQUIREMENTS:
+- Each keyword must represent a CONCRETE, TANGIBLE OBJECT or SYMBOL
+- Think: "What single physical object/symbol represents this concept?"
+- Keywords should match common icon library naming conventions
+- Use simple, recognizable objects that work well as icons
+- Avoid abstract concepts like "innovation", "growth", "success", "efficiency"
+- Prefer nouns over verbs (e.g., "clock" not "timing")
 
-SVG TECHNICAL SPECIFICATIONS:
-- viewBox="0 0 24 24" (standard)
-- xmlns="http://www.w3.org/2000/svg"
-- ALL strokes must be: stroke="${iconColor}"
-- ALL fills must be: fill="none"
-- stroke-width="2" (consistent across all icons)
-- stroke-linecap="round" stroke-linejoin="round"
-- Use ONLY: <path>, <circle>, <rect>, <line>, <polyline>, <polygon>
-- Maximum 4 elements per icon (keep it simple and clean)
-- No gradients, filters, masks, text elements, or complex effects
+KEYWORD SELECTION STRATEGY:
+1. Identify the CORE VISUAL ELEMENT of the bullet point
+2. Choose the most LITERAL object that represents it
+3. Provide 3 keywords as fallbacks (primary, secondary, tertiary)
+4. Order from most specific to most generic
+5. Use standard icon terminology (check what's commonly available in Lucide/Heroicons)
+
+FALLBACK KEYWORD STRATEGY:
+- Primary: Most specific/compound keyword (e.g., "clock-fast")
+- Secondary: Simpler alternative (e.g., "timer")
+- Tertiary: Generic fallback that will definitely exist (e.g., "clock")
+
+GOOD KEYWORDS (Concrete Objects):
+✓ clock, timer, stopwatch
+✓ target, bullseye, crosshair
+✓ brain, cpu, circuit
+✓ rocket, speed-gauge, zap
+✓ shield, lock, key
+✓ map, route, navigation
+✓ users, team, people
+✓ dollar-sign, coins, wallet
+✓ chart-line, trending-up, bar-chart
+✓ package, box, truck
+✓ calendar, schedule, clock
+✓ bell, alert, notification
+✓ wrench, settings, tool
+✓ lightning, bolt, flash
+✓ graph, network, nodes
+
+BAD KEYWORDS (Abstract/Vague):
+✗ innovation, efficiency, optimization
+✗ improvement, enhancement, transformation
+✗ solution, strategy, approach
+✗ excellence, quality, performance
+✗ value, benefit, advantage
 
 CAPTION REQUIREMENTS:
 - Each caption must be EXACTLY 4 words
@@ -198,45 +154,147 @@ CAPTION REQUIREMENTS:
 CONTEXT FOR ICON MAPPING:
 ${bulletContext}
 
-OUTPUT FORMAT (must be valid JSON inside the images array):
+OUTPUT FORMAT (must be valid JSON):
 [
   {
-    "prompt": "<svg viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\"><circle cx=\"12\" cy=\"12\" r=\"10\" stroke=\"${brandColor}\" fill=\"none\" stroke-width=\"2\"/><path d=\"M8 12l2 2 4-4\" stroke=\"${brandColor}\" fill=\"none\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>",
-    "caption": "Four Word Title Here"
+    "prompt": "clock-fast,timer,clock",
+    "caption": "Booking Time Reduced Drastically"
   },
   {
-    "prompt": "<svg viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\">...</svg>",
-    "caption": "Another Four Word Title"
+    "prompt": "brain-circuit,cpu,brain",
+    "caption": "Machine Learning Algorithm Optimizes"
   },
   {
-    "prompt": "<svg viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\">...</svg>",
-    "caption": "Last Four Word Title"
+    "prompt": "target-arrow,target,bullseye",
+    "caption": "Delivery Success Rate Improved"
   }
 ]
 
 ICON MAPPING EXAMPLES:
-- Bullet: "Reduced booking time from 2 hours to 3 minutes" 
-  → Icon: Clock/timer with fast-forward arrow
+
+Example 1:
+- Bullet: "Reduced booking time from 2 hours to 3 minutes"
+  → Think: Time being reduced/accelerated
+  → Primary: "clock-fast" (specific compound)
+  → Secondary: "timer" (simpler alternative)
+  → Tertiary: "clock" (guaranteed fallback)
+  → Keywords: "clock-fast,timer,clock"
   → Caption: "Booking Time Reduced Drastically"
 
+Example 2:
 - Bullet: "Algorithm learns from 10K+ daily transactions"
-  → Icon: Brain/neural network with connected nodes
+  → Think: Learning/processing data
+  → Primary: "brain-circuit" (specific compound)
+  → Secondary: "cpu" (simpler alternative)
+  → Tertiary: "brain" (guaranteed fallback)
+  → Keywords: "brain-circuit,cpu,brain"
   → Caption: "Machine Learning Algorithm Optimizes"
 
+Example 3:
 - Bullet: "98% delivery success rate vs 75% industry average"
-  → Icon: Target/bullseye with checkmark
+  → Think: Accuracy/hitting target
+  → Primary: "target-arrow" (specific compound)
+  → Secondary: "target" (simpler alternative)
+  → Tertiary: "bullseye" (guaranteed fallback)
+  → Keywords: "target-arrow,target,bullseye"
   → Caption: "Delivery Success Rate Improved"
 
-CRITICAL RULES:
-1. Each icon must be UNIQUE and SPECIFIC to its bullet point
-2. Caption must be EXACTLY 4 words (not 3, not 5)
-3. SVG code must be valid XML (test with a parser)
-4. All stroke colors must be "${brandColor}" (no other colors anywhere)
-5. No fill colors except fill="none"
-6. Keep designs simple - complex paths that work at 24px are better than intricate details
+Example 4:
+- Bullet: "Automated route optimization saves 30% fuel costs"
+  → Think: Navigation/path/route
+  → Primary: "route-square" (specific compound)
+  → Secondary: "map-pin" (simpler alternative)
+  → Tertiary: "map" (guaranteed fallback)
+  → Keywords: "route-square,map-pin,map"
+  → Caption: "Automated Route Optimization Saves"
 
-Generate the icons now based on the bullets you created above.
-`
+Example 5:
+- Bullet: "Real-time driver tracking improves customer satisfaction"
+  → Think: Location tracking
+  → Primary: "map-pin-check" (specific compound)
+  → Secondary: "radar" (simpler alternative)
+  → Tertiary: "map-pin" (guaranteed fallback)
+  → Keywords: "map-pin-check,radar,map-pin"
+  → Caption: "Real Time Driver Tracking"
+
+Example 6:
+- Bullet: "Reduced carbon emissions by 40% through route optimization"
+  → Think: Environmental protection
+  → Primary: "leaf-check" (specific compound)
+  → Secondary: "sprout" (simpler alternative)
+  → Tertiary: "leaf" (guaranteed fallback)
+  → Keywords: "leaf-check,sprout,leaf"
+  → Caption: "Carbon Emissions Reduced Significantly"
+
+KEYWORD GUIDELINES BY CATEGORY:
+
+Time/Speed:
+- Primary: clock-fast, timer-reset, hourglass-fast
+- Secondary: timer, stopwatch, gauge-high
+- Tertiary: clock, hourglass, zap
+
+Money/Cost:
+- Primary: dollar-decrease, coins-hand, wallet-check
+- Secondary: trending-down, piggy-bank, coins
+- Tertiary: dollar-sign, wallet, chart
+
+Accuracy/Success:
+- Primary: target-arrow, shield-check, badge-check
+- Secondary: target, bullseye, check-circle
+- Tertiary: crosshair, shield, badge
+
+Technology/AI:
+- Primary: brain-circuit, chip-check, network-wired
+- Secondary: cpu, circuit-board, network
+- Tertiary: brain, chip, nodes
+
+Analytics/Data:
+- Primary: chart-line-up, trending-up-double, bar-chart-big
+- Secondary: trending-up, bar-chart, activity
+- Tertiary: chart-line, pie-chart, graph
+
+Location/Navigation:
+- Primary: map-pin-check, route-square, radar-scan
+- Secondary: map-pin, route, radar
+- Tertiary: map, navigation, compass
+
+People/Team:
+- Primary: users-check, user-group, team-check
+- Secondary: users, people, user-check
+- Tertiary: user, team, person
+
+Communication:
+- Primary: bell-ring, message-check, mail-open
+- Secondary: bell, message-circle, mail
+- Tertiary: notification, chat, envelope
+
+Automation/Process:
+- Primary: settings-automation, cog-play, workflow-check
+- Secondary: settings, workflow, cog
+- Tertiary: gear, process, tool
+
+Speed/Performance:
+- Primary: rocket-launch, zap-fast, gauge-max
+- Secondary: rocket, zap, speedometer
+- Tertiary: fast-forward, bolt, gauge
+
+CRITICAL RULES:
+1. Always provide EXACTLY 3 keywords separated by commas (no spaces)
+2. Order keywords from most specific to most generic
+3. Keywords must be concrete, searchable terms found in icon libraries
+4. Caption must be EXACTLY 4 words (not 3, not 5)
+5. Each icon keyword set must be UNIQUE and SPECIFIC to its bullet point
+6. Always use lowercase with hyphens (kebab-case)
+7. NO SPACES in the prompt string - only commas between keywords
+
+FORMAT REMINDER:
+✅ CORRECT: "clock-fast,timer,clock"
+❌ WRONG: "clock-fast, timer, clock" (has spaces)
+❌ WRONG: "clock-fast" (only one keyword)
+❌ WRONG: "clock-fast,timer,clock,stopwatch" (too many keywords)
+
+Generate the icon keywords now based on the bullets you created above.
+`;
 };
 
 // Base slide prompt with intelligent synthesis instructions

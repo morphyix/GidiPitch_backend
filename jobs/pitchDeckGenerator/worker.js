@@ -16,7 +16,8 @@ const {
   getSlidesByDeckIdService,
   updateSlideImageService,
 } = require('../../services/slideService');
-const { extractFileKey, convertSVGToPNG } = require('../../utils/helper');
+const { extractFileKey } = require('../../utils/helper');
+const { generatePremiumStyledIcon } = require('../../utils/iconPipeline');
 const { modifyUserTokensService } = require('../../services/authService');
 const { logFailedDeckJobService } = require('../../services/failedDeckJobService');
 
@@ -56,6 +57,7 @@ async function processSlide({
   deckId,
   imageGenType,
   userId,
+  brandColor,
   jobId,
   trackingData, // ✅ NEW: Pass tracking object by reference
 }) {
@@ -156,7 +158,7 @@ async function processSlide({
           } else if (key === 'cover') {
             imgObj = await generateRunwareImage(image.prompt);
           } else {
-            imgObj = await convertSVGToPNG(image.prompt);
+            imgObj = await generatePremiumStyledIcon(image.prompt, brandColor);
           }
           await updateSlideImageService(slideId, image.caption, {
             key: imgObj.key,
@@ -301,6 +303,7 @@ const pitchDeckWorker = new Worker(
               deckId,
               imageGenType,
               userId,
+              brandColor: brandKit?.iconSlide?.title,
               jobId: job.id,
               trackingData, // Pass by reference
             }),
