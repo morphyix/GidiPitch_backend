@@ -84,6 +84,7 @@ const searchIconifyIcons = async (keyword) => {
         }
         
         const svgContent = await svgResponse.text();
+        console.log(svgContent);
         
         console.log(`✅ Successfully found icon using ${keywordLabel} keyword: ${currentKeyword}`);
         
@@ -212,107 +213,147 @@ function convertToHex(color) {
  */
 function applyPremiumIconStyling(svgContent, brandColor, options = {}) {
   const {
-    strokeWidth = 2.5,        // 2.5-3px for presentations (vs 2px default)
-    linecap = 'round',        // Rounded corners for premium feel
-    linejoin = 'round',       // Rounded joins for consistency
-    addDropShadow = true,     // Subtle depth for polish
-    desaturate = true,        // Prevent "neon" colors
-    padding = 2,              // Internal padding for consistent optical size
+    strokeWidth = 2.5,
+    linecap = 'round',
+    linejoin = 'round',
+    addDropShadow = true,
+    desaturate = true,
+    padding = 2,
   } = options;
 
-  // Step 1: Get desaturated brand color
+  // Step 1: Get styled color
   const styledColor = desaturate 
     ? getDesaturatedColor(brandColor)
     : convertToHex(brandColor);
 
-  // Step 2: Apply stroke styling
-  let styledSVG = svgContent
-    // Replace stroke color
-    .replace(/stroke="[^"]*"/g, `stroke="${styledColor}"`)
-    .replace(/stroke:[^;]*/g, `stroke:${styledColor}`)
-    
-    // Apply stroke width (presentation-optimized)
-    .replace(/stroke-width="[^"]*"/g, `stroke-width="${strokeWidth}"`)
-    .replace(/stroke-width:[^;]*/g, `stroke-width:${strokeWidth}`)
-    
-    // Apply rounded corners and joins
-    .replace(/stroke-linecap="[^"]*"/g, `stroke-linecap="${linecap}"`)
-    .replace(/stroke-linejoin="[^"]*"/g, `stroke-linejoin="${linejoin}"`)
-    
-    // Ensure fill is none for outline icons
-    .replace(/fill="(?!none)[^"]*"/g, 'fill="none"');
+  // ✅ FIXED: Better detection logic - check CONTEXT of currentColor usage
+  const hasFillCurrentColor = svgContent.includes('fill="currentColor"') || 
+                               svgContent.includes('fill:currentColor');
+  
+  const hasStrokeCurrentColor = svgContent.includes('stroke="currentColor"') || 
+                                 svgContent.includes('stroke:currentColor');
+  
+  const hasExplicitStroke = svgContent.includes('stroke=') || 
+                             svgContent.includes('stroke:');
+  
+  const hasExplicitFill = svgContent.includes('fill=') || 
+                           svgContent.includes('fill:');
 
-  // Step 3: Ensure proper SVG attributes
+  // Determine icon type based on context
+  const isStrokeBased = hasStrokeCurrentColor || 
+                        (hasExplicitStroke && !hasFillCurrentColor);
+  
+  const isFillBased = hasFillCurrentColor || 
+                      (hasExplicitFill && !hasStrokeCurrentColor);
+
+  let styledSVG = svgContent;
+
+  console.log('Icon Detection:', { 
+    isStrokeBased, 
+    isFillBased, 
+    hasFillCurrentColor, 
+    hasStrokeCurrentColor 
+  });
+
+  // Step 3: Apply color styling based on icon type
+  if (isStrokeBased) {
+    console.log('Applying STROKE-BASED styling');
+    
+    // Handle currentColor for strokes
+    styledSVG = styledSVG
+      .replace(/stroke="currentColor"/g, `stroke="${styledColor}"`)
+      .replace(/stroke:\s*currentColor/g, `stroke:${styledColor}`)
+      
+      // Replace explicit stroke colors (but not "none")
+      .replace(/stroke="(?!none)[^"]*"/g, `stroke="${styledColor}"`)
+      .replace(/stroke:\s*(?!none)[^;]+/g, `stroke:${styledColor}`)
+      
+      // Apply stroke width
+      .replace(/stroke-width="[^"]*"/g, `stroke-width="${strokeWidth}"`)
+      .replace(/stroke-width:\s*[^;]+/g, `stroke-width:${strokeWidth}`)
+      
+      // Apply rounded corners
+      .replace(/stroke-linecap="[^"]*"/g, `stroke-linecap="${linecap}"`)
+      .replace(/stroke-linejoin="[^"]*"/g, `stroke-linejoin="${linejoin}"`)
+      
+      // Ensure fill is none for outline icons
+      .replace(/fill="(?!none)[^"]*"/g, 'fill="none"')
+      .replace(/fill:\s*(?!none)[^;]+/g, 'fill:none');
+      
+  } else if (isFillBased) {
+    console.log('Applying FILL-BASED styling');
+    
+    // Handle currentColor for fills
+    styledSVG = styledSVG
+      .replace(/fill="currentColor"/g, `fill="${styledColor}"`)
+      .replace(/fill:\s*currentColor/g, `fill:${styledColor}`)
+      
+      // Replace explicit fill colors (but not "none")
+      .replace(/fill="(?!none)[^"]*"/g, `fill="${styledColor}"`)
+      .replace(/fill:\s*(?!none)[^;]+/g, `fill:${styledColor}`)
+      
+      // Remove any stroke attributes that might interfere
+      .replace(/\s+stroke="[^"]*"/g, '')
+      .replace(/;\s*stroke:[^;]+/g, '');
+      
+  } else {
+    // Fallback: try to detect based on content
+    console.warn('Could not determine icon type, applying safe defaults');
+    
+    styledSVG = styledSVG
+      .replace(/currentColor/g, styledColor);
+  }
+
+  // Step 4: Ensure proper SVG attributes
   if (!styledSVG.includes('xmlns=')) {
-    styledSVG = styledSVG.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"');
+    styledSVG = styledSVG.replace(/<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
   }
 
-  // Step 4: Add viewBox if missing
   if (!styledSVG.includes('viewBox=')) {
-    styledSVG = styledSVG.replace('<svg', '<svg viewBox="0 0 24 24"');
+    styledSVG = styledSVG.replace(/<svg/, '<svg viewBox="0 0 24 24"');
   }
 
-  // Step 5: Add width/height for proper rendering
   if (!styledSVG.includes('width=')) {
-    styledSVG = styledSVG.replace('<svg', '<svg width="24" height="24"');
+    styledSVG = styledSVG.replace(/<svg/, '<svg width="24" height="24"');
   }
 
-  // Step 6: Apply drop shadow filter (optional)
+  // Step 5: Apply drop shadow filter
   if (addDropShadow) {
-    // Check if SVG already has a <defs> section
+    const filterDef = `
+      <filter id="premium-shadow" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
+        <feOffset dx="0" dy="2" result="offsetblur"/>
+        <feComponentTransfer>
+          <feFuncA type="linear" slope="0.15"/>
+        </feComponentTransfer>
+        <feMerge>
+          <feMergeNode/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>`;
+
     if (styledSVG.includes('<defs>')) {
-      // Insert filter into existing defs
-      styledSVG = styledSVG.replace(
-        '<defs>',
-        `<defs>
-          <filter id="premium-shadow" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
-            <feOffset dx="0" dy="2" result="offsetblur"/>
-            <feComponentTransfer>
-              <feFuncA type="linear" slope="0.15"/>
-            </feComponentTransfer>
-            <feMerge>
-              <feMergeNode/>
-              <feMergeNode in="SourceGraphic"/>
-            </feMerge>
-          </filter>`
-      );
+      styledSVG = styledSVG.replace('<defs>', `<defs>${filterDef}`);
     } else {
-      // Add new defs section with filter
-      styledSVG = styledSVG.replace(
-        /(<svg[^>]*>)/,
-        `$1
-        <defs>
-          <filter id="premium-shadow" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
-            <feOffset dx="0" dy="2" result="offsetblur"/>
-            <feComponentTransfer>
-              <feFuncA type="linear" slope="0.15"/>
-            </feComponentTransfer>
-            <feMerge>
-              <feMergeNode/>
-              <feMergeNode in="SourceGraphic"/>
-            </feMerge>
-          </filter>
-        </defs>`
-      );
+      styledSVG = styledSVG.replace(/(<svg[^>]*>)/, `$1<defs>${filterDef}</defs>`);
     }
 
-    // Apply filter to all paths, circles, rects, etc.
+    // Apply filter to all drawable elements
     styledSVG = styledSVG
-      .replace(/<path /g, '<path filter="url(#premium-shadow)" ')
-      .replace(/<circle /g, '<circle filter="url(#premium-shadow)" ')
-      .replace(/<rect /g, '<rect filter="url(#premium-shadow)" ')
-      .replace(/<line /g, '<line filter="url(#premium-shadow)" ')
-      .replace(/<polyline /g, '<polyline filter="url(#premium-shadow)" ')
-      .replace(/<polygon /g, '<polygon filter="url(#premium-shadow)" ');
+      .replace(/<path(?!\s+[^>]*filter=)(\s)/g, '<path filter="url(#premium-shadow)"$1')
+      .replace(/<circle(?!\s+[^>]*filter=)(\s)/g, '<circle filter="url(#premium-shadow)"$1')
+      .replace(/<rect(?!\s+[^>]*filter=)(\s)/g, '<rect filter="url(#premium-shadow)"$1')
+      .replace(/<line(?!\s+[^>]*filter=)(\s)/g, '<line filter="url(#premium-shadow)"$1')
+      .replace(/<polyline(?!\s+[^>]*filter=)(\s)/g, '<polyline filter="url(#premium-shadow)"$1')
+      .replace(/<polygon(?!\s+[^>]*filter=)(\s)/g, '<polygon filter="url(#premium-shadow)"$1')
+      .replace(/<ellipse(?!\s+[^>]*filter=)(\s)/g, '<ellipse filter="url(#premium-shadow)"$1');
   }
 
-  // Step 7: Add padding for consistent optical size
+  // Step 6: Add padding for consistent optical size
   if (padding > 0) {
-    const originalViewBox = styledSVG.match(/viewBox="([^"]+)"/)?.[1];
-    if (originalViewBox) {
-      const [minX, minY, width, height] = originalViewBox.split(' ').map(Number);
+    const viewBoxMatch = styledSVG.match(/viewBox="([^"]+)"/);
+    if (viewBoxMatch) {
+      const [minX, minY, width, height] = viewBoxMatch[1].split(/\s+/).map(Number);
       const newMinX = minX - padding;
       const newMinY = minY - padding;
       const newWidth = width + (padding * 2);
@@ -326,7 +367,7 @@ function applyPremiumIconStyling(svgContent, brandColor, options = {}) {
   }
 
   return styledSVG;
-};
+}
 
 
 /**
