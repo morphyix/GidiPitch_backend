@@ -2,6 +2,9 @@
 # version of Node.js and all required dependencies for headless Chrome.
 FROM ghcr.io/puppeteer/puppeteer:23.10.0
 
+# ✅ Switch to root user to install packages
+USER root
+
 # Set working directory inside the container
 WORKDIR /app
 
