@@ -5,6 +5,12 @@ FROM ghcr.io/puppeteer/puppeteer:23.10.0
 # Set working directory inside the container
 WORKDIR /app
 
+# ✅ Install libvips for Sharp with kernel support
+RUN apt-get update && apt-get install -y \
+    libvips-dev \
+    libvips42 \
+    && rm -rf /var/lib/apt/lists/*
+
 # Copy the package.json and package-lock.json to the work directory
 # This allows Docker to cache the npm install layer
 COPY package*.json ./

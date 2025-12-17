@@ -119,7 +119,7 @@ const sanitizeGeminiResponse = (rawResponse) => {
 };
 
 
-const convertSVGToPNG = async (svgString, size = 128, retries = 2, quality = 100) => {
+const convertSVGToPNG = async (svgString, size = 512, retries = 2, quality = 100) => {
   if (!svgString || typeof svgString !== 'string') {
     throw new AppError('Invalid SVG string provided', 400);
   }
@@ -167,7 +167,8 @@ const convertSVGToPNG = async (svgString, size = 128, retries = 2, quality = 100
       })
         .resize(size, size, {
           fit: 'contain',
-          background: { r: 0, g: 0, b: 0, alpha: 0 } // transparent background
+          background: { r: 0, g: 0, b: 0, alpha: 0 }, // transparent background
+          kernel: sharp.kernel.lanczos3,
         })
         .png({
           quality: quality,
