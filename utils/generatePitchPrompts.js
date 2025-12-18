@@ -542,7 +542,7 @@ Look at: industry, scope, moreInfo (may contain market data).
 MANDATORY MARKET RESEARCH PROTOCOL
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-CRITICAL: You CANNOT write this slide without conducting web searches. Market sizing REQUIRES external data.
+CRITICAL: You CANNOT write this slide without conducting google searches. Market sizing REQUIRES external data.
 
 STEP 1: SEARCH FOR TAM (Total Addressable Market)
 Run these searches in order:
@@ -558,12 +558,12 @@ B. Look for credible sources:
    - Trade associations
    
 C. If no results for specific geography:
-   web_search: "${industry} Africa market size" (broader region)
-   web_search: "${industry} global market size" (calculate regional share)
+   google_search: "${industry} Africa market size" (broader region)
+   google_search: "${industry} global market size" (calculate regional share)
 
 STEP 2: SEARCH FOR CAGR (Growth Rate)
-web_search: "${industry} ${scopeContext} CAGR growth rate 2024"
-web_search: "${industry} market growth forecast ${scopeContext}"
+google_search: "${industry} ${scopeContext} CAGR growth rate 2024"
+google_search: "${industry} market growth forecast ${scopeContext}"
 
 Look for:
 - Historical CAGR (past 3-5 years)
@@ -571,8 +571,8 @@ Look for:
 - If no specific data, use broader regional or global CAGR
 
 STEP 3: SEARCH FOR MARKET DRIVERS
-web_search: "${industry} ${scopeContext} trends 2024"
-web_search: "${industry} growth drivers ${scopeContext}"
+google_search: "${industry} ${scopeContext} trends 2024"
+google_search: "${industry} growth drivers ${scopeContext}"
 
 Look for:
 - Regulatory changes
@@ -1102,28 +1102,7 @@ This should articulate WHY the competitive gap exists (strategic tradeoff) and H
     
     "title-bullets",
     
-    `1 competitive positioning matrix showing ${startupName} vs. top 2 competitors across STRATEGIC DIMENSIONS (not just features):
-
-X-AXIS: [Competitor weakness dimension] (e.g., "Geographic Coverage", "Price Point", "Customer Segment")
-Y-AXIS: [Your strength dimension] (e.g., "Trust/Safety", "Speed", "Ease of Use")
-
-VISUAL STRATEGY:
-- Plot Competitor A: Strong on Y-axis, weak on X-axis (e.g., great product, limited geography)
-- Plot Competitor B: Strong on X-axis, weak on Y-axis (e.g., broad coverage, poor quality)
-- Plot ${startupName}: Strong on BOTH axes (e.g., quality + coverage)
-
-This visually shows you're not competing head-on, but exploiting the gaps between competitors.
-
-Alternative: Feature comparison table showing:
-| Feature/Dimension | Competitor A | Competitor B | ${startupName} |
-| Speed | ⚠️ 2+ hours | ⚠️ 30+ min | ✅ <2 min |
-| Coverage | ⚠️ Lagos only | ✅ 10 countries | ✅ Pan-Nigeria |
-| Trust | ❌ No verification | ⚠️ Basic checks | ✅ Verified ratings |
-| Price | ✅ Low cost | ⚠️ $500 min | ✅ Pay-per-use |
-
-Highlight ${startupName} advantages in ${brandColor}. Use ✅ ⚠️ ❌ for visual clarity.
-
-Based on research findings showing specific competitor strengths/weaknesses.`,
+    `1 competitive comparison matrix or chart showing ${startupName} vs. top 2 competitors across key feature dimensions (speed, cost, trust, coverage, etc.). Use real, defensible comparison points from research.`,
     
     startupData
 ),
@@ -1317,6 +1296,20 @@ Focus on visualizing: call-to-action (calendar/meeting) and contact methods (ema
 NOTE: Generate only 2 icons for this slide, not 3.`),
             startupData
         ),
+
+        // 17. THANK YOU SLIDE
+        thankYou: baseSlidePrompt(
+            "thankYou",
+            "Thank You",
+            `This is a simple closing slide with just a thank you message.
+No bullets, no notes, no images needed.`,
+            `Return an empty array [] - this slide has NO bullets.`,
+            `Return an empty string "" - this slide has NO notes.`,
+            "full-image",
+            `No images needed - return empty array []`,
+            startupData
+        ),
+
     };
 
     // Industry-specific slides
@@ -2185,7 +2178,7 @@ const getAllowedSlides = (industry) => {
     const baseSlides = [
         'cover', 'problem', 'solution', 'product', 'traction', 'market',
         'businessModel', 'goMarket', 'competitions', 'milestones',
-        'team', 'financials', 'vision', 'industrySpecific', 'ask', 'contact'
+        'team', 'financials', 'vision', 'industrySpecific', 'ask', 'contact', 'thankYou'
     ];
 
     const industrySlides = {
