@@ -1301,7 +1301,7 @@ NOTE: Generate only 2 icons for this slide, not 3.`),
         thankYou: baseSlidePrompt(
             "thankYou",
             "Thank You",
-            `This is a simple closing slide with just a thank you message.
+            `This is a simple closing slide with just a thank you message, the message should only be Thank You nothing else.
 No bullets, no notes, no images needed.`,
             `Return an empty array [] - this slide has NO bullets.`,
             `Return an empty string "" - this slide has NO notes.`,
