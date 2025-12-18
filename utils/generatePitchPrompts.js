@@ -533,36 +533,216 @@ Focus on visualizing: growth trajectory, customer satisfaction, validation miles
         ),
 
         market: baseSlidePrompt(
-            "market",
-            "Market Opportunity",
-            `Analyze: What market is this startup in? How big is it? How fast is it growing?
+    "market",
+    "Market Opportunity",
+    `Analyze: What market is this startup in? How big is it? How fast is it growing?
 Look at: industry, scope, moreInfo (may contain market data).
-CRITICAL: Use web_search to find:
-- Current TAM for ${industry} in ${scopeContext}
-- Market growth rate (CAGR)
-- Key market drivers or trends
-This is essential data that must be current and credible.`,
-            `Generate 3 bullets (max 20 words each) sizing the opportunity:
 
-BULLET 1: Total Addressable Market (TAM) with source
-Example: "$28B Nigerian logistics market, growing 8.6% annually (PwC Nigeria 2024)"
-**Use web_search to find current data**
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MANDATORY MARKET RESEARCH PROTOCOL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-BULLET 2: Serviceable Addressable Market (SAM) - your specific segment  
-Example: "Targeting $2.1B last-mile delivery segment in Lagos metro area"
-(Narrow from TAM based on scope and businessModel)
+CRITICAL: You CANNOT write this slide without conducting web searches. Market sizing REQUIRES external data.
 
-BULLET 3: Key market driver creating urgency
-Example: "E-commerce penetration in Nigeria increased 45% YoY, driving delivery demand"
-**Use web_search for recent trends**
+STEP 1: SEARCH FOR TAM (Total Addressable Market)
+Run these searches in order:
 
-Make the market real, sized, and urgent.`,
-            `One sentence on the specific beachhead strategy - where you'll start and why that segment is winnable now.`,
-            "title-bullets",
-            generateDynamicIconPrompt(brandColor, `Create icons that represent each of the 3 market opportunity bullets you generated.
+A. Primary TAM search:
+   web_search: "${industry} market size ${scopeContext} 2024"
+   web_search: "${industry} ${scopeContext} TAM total addressable market"
+   
+B. Look for credible sources:
+   - Research firms (McKinsey, PwC, Deloitte, BCG)
+   - Industry reports (Gartner, IDC, Statista)
+   - Government data (World Bank, national statistics)
+   - Trade associations
+   
+C. If no results for specific geography:
+   web_search: "${industry} Africa market size" (broader region)
+   web_search: "${industry} global market size" (calculate regional share)
+
+STEP 2: SEARCH FOR CAGR (Growth Rate)
+web_search: "${industry} ${scopeContext} CAGR growth rate 2024"
+web_search: "${industry} market growth forecast ${scopeContext}"
+
+Look for:
+- Historical CAGR (past 3-5 years)
+- Projected CAGR (next 3-5 years)
+- If no specific data, use broader regional or global CAGR
+
+STEP 3: SEARCH FOR MARKET DRIVERS
+web_search: "${industry} ${scopeContext} trends 2024"
+web_search: "${industry} growth drivers ${scopeContext}"
+
+Look for:
+- Regulatory changes
+- Technology adoption rates
+- Demographic shifts
+- Economic factors
+
+STEP 4: CALCULATE SAM (Serviceable Addressable Market)
+After finding TAM, calculate SAM based on:
+- Geographic focus (from scope)
+- Target segment (from businessModel)
+- Product category
+
+Formula: SAM = TAM × (Geographic % × Segment % × Category %)
+
+Example: If TAM is $50B global, Nigeria is 5% of market, and you target B2B segment (30% of market):
+SAM = $50B × 0.05 × 0.30 = $750M
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+VERIFICATION BEFORE WRITING BULLETS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Before writing ANY market bullet, confirm:
+✓ I ran at least 3 web searches for market data
+✓ I found TAM from a credible source (can name the source)
+✓ I found CAGR from research (not estimated)
+✓ Numbers are current (2023-2024 data, not 2019)
+✓ I can cite where each number came from
+
+If ANY answer is NO → Run more searches until you find real data
+
+DO NOT PROCEED without completing searches.`,
+    
+    `Generate 3 bullets (max 20 words each) sizing the opportunity:
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BULLET 1: Total Addressable Market (TAM) with SOURCE CITATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+MANDATORY FORMAT: "$[Number] [Market Description], growing [CAGR]% annually ([Source] [Year])"
+
+WRONG (no source, suspicious precision):
+❌ "$28B Nigerian logistics market, growing 8.6% annually"
+Problem: Where did $28B come from? How do we know it's 8.6%?
+
+RIGHT (source cited, verifiable):
+✅ "$2.1B Nigerian last-mile delivery market, growing 12% annually (PwC Nigeria 2024)"
+Word count: 13 words ✓
+Source: PwC Nigeria 2024 report (found via web_search)
+
+✅ "$450M African pitch deck software market, 15% CAGR through 2027 (Statista 2024)"
+Word count: 13 words ✓
+Source: Statista market research (found via web_search)
+
+RESEARCH REQUIREMENTS:
+1. Search: "${industry} market size ${scopeContext} 2024"
+2. Find: Credible source (research firm, industry report, government data)
+3. Verify: Number is current (2023-2024), not outdated
+4. Extract: Exact market size and CAGR
+5. Cite: Source name and year in parentheses
+
+CRITICAL: If you cannot find TAM data after searching:
+- Try broader geography (e.g., "Africa" instead of "Nigeria")
+- Try global market and calculate regional share
+- State: "Global ${industry} market at $XB, ${scopeContext} represents estimated X% share"
+
+DO NOT invent market sizes. Better to say "Market data limited" than fake numbers.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BULLET 2: Serviceable Addressable Market (SAM) - Your Specific Segment
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+FORMULA: "Targeting $[SAM] [specific segment], [geographic focus + key constraint]"
+
+WRONG (vague, no calculation shown):
+❌ "Targeting $2.1B last-mile delivery segment in Lagos metro area"
+Problem: How did you get $2.1B? Show your work.
+
+RIGHT (calculated from TAM, specific):
+✅ "Targeting $800M B2B last-mile segment in Lagos (38% of $2.1B Nigerian market)"
+Word count: 14 words ✓
+Calculation: $2.1B TAM × 38% B2B segment = $800M SAM
+
+✅ "Focus on $120M pre-seed pitch deck segment in Africa (emerging market founders under $1M raise)"
+Word count: 16 words ✓
+Calculation: Based on 50K African startups × $2.4K average spend
+
+CALCULATION TEMPLATE:
+1. Start with TAM from Bullet 1
+2. Apply filters based on YOUR focus:
+   - Geographic: (Lagos = 60% of Nigerian market)
+   - Segment: (B2B = 40% of logistics market)
+   - Price tier: (SME = 70% of business customers)
+3. SAM = TAM × Geographic % × Segment % × Price tier %
+4. Show calculation in bullet or explain in notes
+
+REQUIREMENTS:
+✓ SAM must be smaller than TAM (you're narrowing down)
+✓ Show how you calculated it (percentages or constraints)
+✓ Be specific about segment (not just "our target market")
+✓ Based on businessModel and scope data
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BULLET 3: Key Market Driver Creating Urgency
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+FORMULA: "[Trend/Driver] [increased/grew] [metric]% [timeframe], driving [demand for your solution]"
+
+WRONG (vague trend, no data):
+❌ "E-commerce penetration in Nigeria increased 45% YoY, driving delivery demand"
+Problem: Where's the 45% from? What time period?
+
+RIGHT (specific trend with source):
+✅ "Nigerian e-commerce grew 32% in 2023 to $7.6B, increasing demand for last-mile delivery (Statista)"
+Word count: 16 words ✓
+Source: Statista Nigeria e-commerce report 2024
+
+✅ "African startup funding reached $4.8B in 2023 despite 35% global decline, sustaining pitch deck demand (Partech)"
+Word count: 17 words ✓
+Source: Partech Africa Tech Funding Report 2024
+
+RESEARCH REQUIREMENTS:
+1. Search: "${industry} ${scopeContext} trends 2024"
+2. Search: "${industry} growth drivers ${scopeContext} market"
+3. Find: Specific trend with quantified impact
+4. Verify: Recent data (2023-2024), credible source
+5. Connect: How this trend creates demand for YOUR solution
+
+EXAMPLES OF GOOD DRIVERS:
+- Regulatory changes (e.g., "New CBN open banking rules")
+- Technology adoption (e.g., "Smartphone penetration hit 65%")
+- Demographic shifts (e.g., "Youth population under 35 grew to 70%")
+- Economic factors (e.g., "Venture funding increased 32%")
+- Crisis events (e.g., "Post-pandemic shift to digital payments")
+
+CRITICAL: The driver should explain WHY NOW is the right time for your solution.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FINAL VERIFICATION CHECKLIST (Must Pass ALL)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Before submitting bullets:
+✓ Bullet 1 TAM has source citation in parentheses (e.g., "PwC 2024")
+✓ Bullet 1 TAM number was found via web_search (not estimated)
+✓ Bullet 1 CAGR was found via web_search (not guessed)
+✓ Bullet 2 SAM is smaller than TAM (properly narrowed)
+✓ Bullet 2 SAM calculation is based on real constraints (geography, segment, businessModel)
+✓ Bullet 3 market driver is a specific, recent trend (2023-2024)
+✓ Bullet 3 driver data was found via web_search (not assumed)
+✓ All numbers are realistic and verifiable
+✓ Each bullet is 20 words or fewer
+✓ No hyperbole ("explosive", "massive", "revolutionary")
+
+If ANY item fails → SEARCH MORE or REVISE
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+REMEMBER: Market sizing is the MOST fact-checked slide in a pitch deck. Investors will verify every number. 
+
+If you cannot find data, SAY SO. Don't make up numbers.`,
+    
+    `One sentence on the specific beachhead strategy - where you'll start and why that segment is winnable now based on the market data you found.`,
+    
+    "title-bullets",
+    
+    generateDynamicIconPrompt(brandColor, `Create icons that represent each of the 3 market opportunity bullets you generated.
 Focus on visualizing: market size, target segment, growth drivers.`),
-            startupData
-        ),
+    
+    startupData
+),
 
         // 7. BUSINESS MODEL SLIDE
         businessModel: baseSlidePrompt(
@@ -630,37 +810,323 @@ Focus on visualizing: acquisition channels, partnerships, viral mechanisms.`),
 
         // 9. COMPETITIVE LANDSCAPE SLIDE
         competitions: baseSlidePrompt(
-            "competition",
-            "Competitive Landscape",
-            `Analyze: Who are the main competitors? What do they offer? How is this startup different and better?
-Look at: competitions (should list competitor names), features (YOUR product capabilities), solutions, moreInfo (may contain competitive analysis).
-Use web_search to research the specific competitors mentioned in "${competitions}" - find out what features they offer, their strengths, their gaps.
+    "competition",
+    "Competitive Landscape",
+    `You are a professional pitch deck strategist analyzing the competitive landscape.
 
-CRITICAL: This slide is about FEATURE COMPARISON, not just positioning statements.`,
-            `Generate 3 bullets (max 20 words each) in a FEATURE COMPARISON format:
+YOUR GOAL: Identify competitor strengths AND weaknesses, then show how ${startupName} exploits the gaps competitors leave open.
 
-BULLET 1: Competitor A's approach and key features
-Example: "Gokada focuses on single-city bike delivery; strong rider network but no trust verification system"
-Example: "PitchBob offers generic templates globally; fast generation but lacks Africa-specific investor knowledge"
-(Use web_search to find what Competitor A actually does)
+CRITICAL INSIGHT: Investors don't care about feature lists. They want to know:
+1. What do competitors do well? (their moat)
+2. What critical gaps do they leave? (market opportunity)
+3. How does ${startupName} uniquely fill those gaps? (your wedge)
 
-BULLET 2: Competitor B's approach and key features  
-Example: "Kobo360 targets heavy freight logistics; extensive trucking network but slow booking (2+ hours average)"
-Example: "Gamma provides beautiful design tools; excellent visuals but no localized content for African markets"
-(Use web_search to find what Competitor B actually does)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 1: IDENTIFY TOP 2 COMPETITORS (Industry Leaders)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-BULLET 3: Your startup's differentiating features and competitive advantage
-Example: "${startupName} combines instant matching (<2 min) with verified rider ratings, capturing C2C market competitors ignore"
-Example: "${startupName} uses AI trained on 50K+ African pitch decks; delivers local relevance at 10x lower cost"
-(Synthesize from features, solutions, and businessModel to show what YOU do better)
+A. If competitions field has specific names → Validate them:
+   web_search: "[Competitor] ${industry} ${scopeContext} market position"
+   
+   CHECK: Are they legitimate top players?
+   - Significant funding (>$5M) or revenue
+   - Market presence (industry reports mention them)
+   - Real traction (>10K users or meaningful scale)
+   - Active in past 12 months
+   
+   ✅ If YES → Use them
+   ❌ If NO → Ignore and search for real leaders
 
-STRUCTURE: Competitor A → Competitor B → Why You Win
-Show you understand the competition AND have defensible differentiation.`,
-            `One sentence explaining the strategic reason competitors haven't captured this opportunity or why your feature set creates a moat.`,
-            "title-bullets",
-            `1 competitive comparison matrix or chart showing ${startupName} vs. top 2-3 competitors across key feature dimensions (speed, cost, trust, coverage, etc.). Use real, defensible comparison points from research.`,
-            startupData
-        ),
+B. If competitions is empty/vague OR competitors are minor players:
+   web_search: "${industry} ${scopeContext} market leaders 2024"
+   web_search: "top ${industry} companies ${scopeContext} competitors"
+   
+   SELECT: Top 2 competitors by market share/funding/user base
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 2: DEEP COMPETITIVE INTELLIGENCE (Per Competitor)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+For EACH of the top 2 competitors, research:
+
+A. STRENGTHS (What they do well):
+   web_search: "[Competitor] features products strengths"
+   web_search: "[Competitor] market share competitive advantage"
+   
+   LOOK FOR:
+   - Scale advantages (network effects, user base)
+   - Technology moats (proprietary algorithms, patents)
+   - Distribution advantages (partnerships, brand recognition)
+   - Capital advantages (well-funded, can subsidize pricing)
+
+B. WEAKNESSES (Critical gaps they leave):
+   web_search: "[Competitor] complaints problems issues"
+   web_search: "[Competitor] limitations gaps weaknesses"
+   web_search: "[Competitor] customer reviews negative feedback"
+   
+   LOOK FOR:
+   - Underserved customer segments (geography, price point, use case)
+   - Feature gaps (missing capabilities customers want)
+   - Poor execution (slow, expensive, low quality)
+   - Strategic blind spots (markets they ignore, trends they miss)
+
+C. VERIFY WITH USER REVIEWS:
+   web_search: "[Competitor] user reviews complaints reddit"
+   web_search: "[Competitor] vs alternatives comparison"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 3: ANALYZE ${startupName}'S COMPETITIVE POSITION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Now analyze YOUR startup data:
+- features: What capabilities do you have?
+- solutions: What problems do you solve?
+- businessModel: Pricing, go-to-market strategy
+- scope: Geographic focus, target segment
+- moreInfo: Traction, differentiation, positioning
+
+STRATEGIC QUESTIONS:
+1. Which competitor weaknesses can you exploit?
+2. What market segment are competitors ignoring?
+3. What can you do 10x better (speed, cost, quality)?
+4. What structural advantage do you have (technology, distribution, economics)?
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 4: SYNTHESIZE THE STRATEGIC NARRATIVE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Create a WEDGE STRATEGY narrative:
+- Competitor A is strong at X, but weak at Y
+- Competitor B is strong at Z, but weak at W
+- ${startupName} specifically targets weaknesses Y and W
+
+This is how you win in a competitive market.`,
+    
+    `Generate 3 bullets (max 20 words each) in STRATEGIC GAP ANALYSIS format:
+
+PROFESSIONAL STRUCTURE:
+Each bullet = Competitor strength + Critical weakness + How you exploit it
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BULLET 1: COMPETITOR A - Strength + Weakness + Your Wedge
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+FORMULA: "[Competitor] leads in [strength], but [weakness]; ${startupName} targets [gap]"
+STRICT LIMIT: Maximum 20 words per bullet. Count every word. No exceptions.
+
+WRONG (feature list):
+❌ "Gokada offers motorcycle ride-hailing in Lagos with 10,000+ riders and real-time tracking"
+Problem: Just describing what they do, not analyzing gaps
+Word count: 15 words
+
+RIGHT (strategic gap analysis - all ≤20 words):
+✅ "Gokada dominates Lagos (10K riders), but single-city only; ${startupName} offers pan-Nigerian coverage with verified ratings"
+Word count: 16 words ✓
+
+✅ "Uber Eats leads delivery (60% share), but 25% commission hurts restaurants; ${startupName}'s 8% fee targets merchants"
+Word count: 17 words ✓
+
+✅ "Stripe processes $640B with great UX, but 2.9% pricing excludes micro-merchants; ${startupName}'s 1% captures long-tail"
+Word count: 17 words ✓
+
+RESEARCH TEMPLATE:
+1. Search: "[Competitor A] market position strengths"
+   → Extract: What's their main competitive advantage?
+   
+2. Search: "[Competitor A] limitations problems gaps"
+   → Extract: What's their Achilles heel?
+   
+3. Analyze: How does ${startupName} specifically target that weakness?
+   → Use: features, solutions, businessModel, scope data
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BULLET 2: COMPETITOR B - Strength + Weakness + Your Wedge
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+FORMULA: "[Competitor] excels at [strength], but [weakness]; ${startupName} fills [gap]"
+STRICT LIMIT: Maximum 20 words. Count carefully before finalizing.
+
+WRONG (vague comparison):
+❌ "Kobo360 is a major freight player, but we offer better technology and customer experience"
+Problem: Vague, unverifiable, unprofessional
+Word count: 14 words
+
+RIGHT (specific gap exploitation - all ≤20 words):
+✅ "Kobo360 excels in B2B freight, but 2-hour booking excludes SMEs; ${startupName}'s instant matching captures small businesses"
+Word count: 17 words ✓
+
+✅ "Beautiful.ai has 2M users with stunning templates, but $40/month misses African founders; ${startupName}'s $1.35 captures them"
+Word count: 17 words ✓
+
+✅ "Flutterwave processes $16B, but 2-week integration blocks startups; ${startupName}'s 5-minute API targets pre-seed founders"
+Word count: 15 words ✓
+
+RESEARCH TEMPLATE:
+1. Search: "[Competitor B] competitive advantages scale"
+   → Extract: Where are they strong?
+   
+2. Search: "[Competitor B] weaknesses customer complaints"
+   → Extract: What frustrates their customers?
+   
+3. Analyze: How does ${startupName} solve that specific pain point?
+   → Cross-reference with solutions, businessModel, features
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BULLET 3: ${startupName}'S UNIQUE WEDGE - The Strategic Advantage
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+FORMULA: "${startupName} uniquely combines [capability 1] + [capability 2], capturing [underserved segment]"
+STRICT LIMIT: Maximum 20 words. Be ruthlessly concise.
+
+WRONG (generic differentiation):
+❌ "${startupName} offers superior technology and customer experience at a competitive price"
+Problem: Every startup claims this, means nothing
+Word count: 13 words
+
+RIGHT (specific strategic positioning - all ≤20 words):
+✅ "${startupName} combines instant verification + escrow payments, capturing trust-sensitive C2C delivery market competitors ignore"
+Word count: 15 words ✓
+
+✅ "${startupName} uniquely offers AI-trained African content at $1.35/deck, capturing 15M underserved emerging market founders"
+Word count: 15 words ✓
+
+✅ "${startupName} combines route optimization + verified ratings + pay-per-delivery, addressing SME complaints while maintaining 80% margins"
+Word count: 16 words ✓
+
+STRATEGIC POSITIONING CHECKLIST:
+✓ Identifies SPECIFIC competitor weaknesses (from research)
+✓ Shows HOW ${startupName} addresses those gaps (from features/solutions)
+✓ Explains WHY this creates defensible advantage (economics, network effects, switching costs)
+✓ Specifies the UNDERSERVED SEGMENT you're targeting (from scope/businessModel)
+✓ Includes measurable differentiation (speed, cost, quality metrics)
+
+ANALYZE YOUR POSITIONING:
+1. What do BOTH competitors struggle with? (common weakness)
+2. What structural advantage enables you to solve it? (technology, economics, focus)
+3. Why can't incumbents easily copy you? (your moat)
+4. What market segment do you own? (your beachhead)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+VERIFICATION CHECKLIST - Must Pass ALL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+For EACH bullet:
+✓ Competitor name is accurate (verified via search)
+✓ Competitor strength is real (found in search results, not assumed)
+✓ Competitor weakness is documented (found via search: complaints, reviews, gaps)
+✓ ${startupName}'s advantage directly addresses that weakness (cross-referenced with features/solutions/businessModel)
+✓ Metrics are specific and verifiable (e.g., "2+ hours" not "slow", "$500 minimum" not "expensive")
+✓ Market segment is clearly defined (e.g., "C2C delivery", "SMEs", "emerging market founders")
+✓ No hyperbole ("revolutionary", "crushing", "dominating")
+✓ **CRITICAL: Each bullet is EXACTLY 20 words or FEWER** (count every word including articles)
+
+**WORD COUNT ENFORCEMENT:**
+- Before finalizing ANY bullet, count: 1, 2, 3... up to 20
+- If >20 words → REWRITE more concisely
+- Remove unnecessary adjectives, combine phrases, use abbreviations where appropriate
+- Test: Can you say it in fewer words without losing meaning?
+
+If ANY item fails → REVISE
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+EXAMPLE RESEARCH-TO-BULLET FLOW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Example 1: Logistics Startup
+
+Research Phase:
+→ Search: "Gokada Nigeria logistics strengths"
+  Finding: "Market leader in Lagos, 10K+ riders, strong brand"
+  
+→ Search: "Gokada limitations coverage problems"
+  Finding: "Only operates in Lagos, expanding slowly, no C2C focus"
+  
+→ Analyze: ${startupName} features shows "Pan-Nigerian coverage, instant C2C matching"
+
+Result Bullet (20 words):
+"Gokada dominates Lagos (10K riders, strong brand), but single-city focus misses pan-Nigerian demand; ${startupName} offers nationwide coverage"
+Word count: 18 words ✓
+
+Example 2: Pitch Deck Tool
+
+Research Phase:
+→ Search: "Beautiful.ai pitch deck platform strengths"
+  Finding: "2M users, stunning templates, $96M funding"
+  
+→ Search: "Beautiful.ai pricing complaints limitations"
+  Finding: "$40/month subscription, generic templates, no localization"
+  
+→ Analyze: ${startupName} businessModel shows "$1.35 per deck, trained on African pitch data"
+
+Result Bullet (20 words):
+"Beautiful.ai has 2M users with stunning templates, but $40/month excludes African founders; ${startupName}'s $1.35 captures emerging markets"
+Word count: 18 words ✓
+
+Example 3: Fintech Payments
+
+Research Phase:
+→ Search: "Stripe Africa payment processing strengths"
+  Finding: "Best-in-class infrastructure, $640B processed, loved by developers"
+  
+→ Search: "Stripe Africa limitations pricing complaints"
+  Finding: "2.9% + $0.30 per transaction makes micropayments uneconomical"
+  
+→ Analyze: ${startupName} businessModel shows "1% flat fee, no minimums, targets micro-merchants"
+
+Result Bullet (20 words):
+"Stripe leads payments ($640B processed, great UX), but 2.9% fees exclude micro-merchants; ${startupName}'s 1% serves long-tail profitably"
+Word count: 18 words ✓
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+REMEMBER: Investors fund startups that exploit SPECIFIC competitor weaknesses in UNDERSERVED segments, not startups that claim to be "better" at everything.
+
+Show the wedge. Show the gap. Show why you win.`,
+    
+    `One sentence explaining the STRATEGIC INSIGHT from your competitive analysis:
+
+FORMULA: "While competitors optimize for [what they prioritize], they systematically underserve [segment], creating a [size] opportunity for ${startupName} to capture [specific advantage]"
+
+EXAMPLES (all ≤20 words):
+
+✅ "Incumbents optimize for enterprises ($500+ minimums), missing 2M SMEs needing on-demand delivery; ${startupName} captures via pay-per-use"
+Word count: 18 words ✓
+
+✅ "Competitors prioritize global features, underserving African founders needing investor guidance; ${startupName} dominates via localized AI training"
+Word count: 17 words ✓
+
+✅ "Established players optimize for scale (2.9% fees), ignoring 50M micro-merchants; ${startupName} serves profitably via 1% flat-fee"
+Word count: 17 words ✓
+
+This should articulate WHY the competitive gap exists (strategic tradeoff) and HOW you exploit it (your wedge).`,
+    
+    "title-bullets",
+    
+    `1 competitive positioning matrix showing ${startupName} vs. top 2 competitors across STRATEGIC DIMENSIONS (not just features):
+
+X-AXIS: [Competitor weakness dimension] (e.g., "Geographic Coverage", "Price Point", "Customer Segment")
+Y-AXIS: [Your strength dimension] (e.g., "Trust/Safety", "Speed", "Ease of Use")
+
+VISUAL STRATEGY:
+- Plot Competitor A: Strong on Y-axis, weak on X-axis (e.g., great product, limited geography)
+- Plot Competitor B: Strong on X-axis, weak on Y-axis (e.g., broad coverage, poor quality)
+- Plot ${startupName}: Strong on BOTH axes (e.g., quality + coverage)
+
+This visually shows you're not competing head-on, but exploiting the gaps between competitors.
+
+Alternative: Feature comparison table showing:
+| Feature/Dimension | Competitor A | Competitor B | ${startupName} |
+| Speed | ⚠️ 2+ hours | ⚠️ 30+ min | ✅ <2 min |
+| Coverage | ⚠️ Lagos only | ✅ 10 countries | ✅ Pan-Nigeria |
+| Trust | ❌ No verification | ⚠️ Basic checks | ✅ Verified ratings |
+| Price | ✅ Low cost | ⚠️ $500 min | ✅ Pay-per-use |
+
+Highlight ${startupName} advantages in ${brandColor}. Use ✅ ⚠️ ❌ for visual clarity.
+
+Based on research findings showing specific competitor strengths/weaknesses.`,
+    
+    startupData
+),
 
         // 10. TRACTION & MILESTONES SLIDE
         milestones: baseSlidePrompt(
