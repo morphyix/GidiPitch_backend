@@ -1270,7 +1270,7 @@ const generatePromptsForSlides = (startupData, slides) => {
     return selectedPrompts;
 };
 
-// Correction Prompt with full context preservation - SURGICAL EDITS ONLY
+// Enhanced Correction Prompt with icon keyword / image prompt generation
 const generateCorrectionPrompt = (slideData, correctionPrompt, startupData) => {
     if (!slideData || typeof slideData !== 'object') {
         throw new Error("Invalid slideData provided to correction prompt generator.");
@@ -1286,7 +1286,7 @@ const generateCorrectionPrompt = (slideData, correctionPrompt, startupData) => {
     } = slideData;
 
     // Provide full startup context for intelligent corrections
-    const { startupName, industry, scope, problems, solutions, moreInfo, team, features, businessModel } = startupData;
+    const { startupName, industry, scope, problems, solutions, moreInfo, team, features, businessModel, brandColor } = startupData;
 
     const contextBlocks = {
         startup: `${startupName} operates in ${industry}${scope ? ` within ${scope}` : ''}`,
@@ -1321,6 +1321,227 @@ const generateCorrectionPrompt = (slideData, correctionPrompt, startupData) => {
         `)
         ?.join("\n") || "No image data found.";
 
+    // ✅ Determine if this is an icon-based slide or image-based slide
+    const isIconBasedSlide = ['problem', 'solution', 'product', 'traction', 'market', 'businessModel', 
+                               'goMarket', 'milestones', 'financials', 'vision', 'industrySpecific', 
+                               'ask', 'security', 'regulation', 'adoption', 'outcomes', 'compliance', 
+                               'validation', 'tokenomics', 'architecture', 'onChainMetrics', 
+                               'web3Regulation', 'decentralization', 'community'].includes(slideType);
+    
+    const isImageBasedSlide = ['cover', 'team', 'competitions'].includes(slideType);
+    
+    const scopeContext = scope || "the target market";
+
+    // ✅ Generate appropriate image generation instructions based on slide type
+    let imageGenerationInstructions = '';
+    
+    if (isIconBasedSlide) {
+        // ICON-BASED SLIDES: Generate icon keywords
+        imageGenerationInstructions = `
+ICON KEYWORD GENERATION (For Icon-Based Slides):
+
+If generateImage is true (user wants new icons), you MUST generate icon keywords for EACH bullet point.
+
+ICON KEYWORD REQUIREMENTS:
+- Each icon needs EXACTLY 3 keywords separated by commas (no spaces)
+- Order: Primary (specific compound), Secondary (simpler), Tertiary (guaranteed fallback)
+- Format: "keyword1,keyword2,keyword3" (kebab-case, lowercase, no spaces)
+- Keywords must be CONCRETE objects that exist in icon libraries (Lucide, Heroicons)
+
+KEYWORD SELECTION STRATEGY:
+1. Identify the CORE VISUAL ELEMENT of the bullet point
+2. Choose the most LITERAL object that represents it
+3. Provide 3 keywords as fallbacks (primary, secondary, tertiary)
+
+GOOD KEYWORDS (Concrete Objects):
+✓ clock-fast,timer,clock
+✓ target-arrow,target,bullseye
+✓ brain-circuit,cpu,brain
+✓ rocket-launch,rocket,zap
+✓ shield-check,shield,lock
+✓ map-pin-check,radar,map-pin
+✓ chart-line-up,trending-up,chart-line
+✓ dollar-decrease,trending-down,dollar-sign
+✓ users-check,users,team
+
+BAD KEYWORDS (Abstract/Vague):
+✗ innovation,efficiency,optimization
+✗ improvement,enhancement,success
+✗ quality,performance,excellence
+
+CAPTION REQUIREMENTS:
+- EXACTLY 4 words
+- Title Case
+- Represents bullet's key message (not icon description)
+
+KEYWORD GUIDELINES BY CATEGORY:
+
+Time/Speed: clock-fast,timer,clock | timer-reset,stopwatch,hourglass
+Money/Cost: dollar-decrease,coins,dollar-sign | wallet-check,piggy-bank,wallet
+Accuracy: target-arrow,bullseye,target | shield-check,check-circle,badge
+Technology: brain-circuit,cpu,brain | chip-check,circuit-board,chip
+Analytics: chart-line-up,trending-up,graph | bar-chart-big,activity,chart
+Location: map-pin-check,route,map | radar-scan,navigation,compass
+People: users-check,people,user | team-check,user-group,team
+Communication: bell-ring,message-check,bell | mail-open,chat,envelope
+Automation: settings-automation,workflow,cog | cog-play,gear,tool
+Performance: rocket-launch,zap,rocket | gauge-max,speedometer,bolt
+
+EXAMPLES:
+
+Bullet: "Reduced booking time from 2 hours to 3 minutes"
+→ Keywords: "clock-fast,timer,clock"
+→ Caption: "Booking Time Reduced Drastically"
+
+Bullet: "Algorithm learns from 10K+ daily transactions"
+→ Keywords: "brain-circuit,cpu,brain"
+→ Caption: "Machine Learning Algorithm Optimizes"
+
+Bullet: "98% delivery success rate vs 75% industry average"
+→ Keywords: "target-arrow,bullseye,target"
+→ Caption: "Delivery Success Rate Improved"
+
+Bullet: "Real-time driver tracking improves satisfaction"
+→ Keywords: "map-pin-check,radar,map-pin"
+→ Caption: "Real Time Driver Tracking"
+
+OUTPUT FORMAT FOR ICONS:
+{
+  "generateImage": true,
+  "images": [
+    {
+      "prompt": "clock-fast,timer,clock",
+      "caption": "Booking Time Reduced Drastically"
+    },
+    {
+      "prompt": "brain-circuit,cpu,brain",
+      "caption": "Machine Learning Algorithm Optimizes"
+    },
+    {
+      "prompt": "target-arrow,bullseye,target",
+      "caption": "Delivery Success Rate Improved"
+    }
+  ]
+}
+
+CRITICAL RULES:
+✅ CORRECT: "clock-fast,timer,clock" (3 keywords, no spaces, commas only)
+❌ WRONG: "clock-fast, timer, clock" (has spaces)
+❌ WRONG: "clock-fast" (only one keyword)
+❌ WRONG: "clock fast timer clock" (spaces instead of commas)
+`;
+    } else if (isImageBasedSlide) {
+        // IMAGE-BASED SLIDES: Generate full image prompts
+        if (slideType === 'cover') {
+            imageGenerationInstructions = `
+IMAGE PROMPT GENERATION (For Cover Slide):
+
+If generateImage is true, generate ONE professional hero image prompt.
+
+REQUIREMENTS:
+- Show the CUSTOMER using the product in a real scenario
+- NOT abstract concepts or technology
+- Style should match: ${brandColor}
+- Professional and clean aesthetic
+
+EXAMPLE PROMPTS:
+- "African founder presenting pitch deck to investors in modern Lagos office, ${brandColor} accent lighting"
+- "Nigerian logistics professional using mobile app to coordinate delivery, ${brandColor} branded interface"
+- "Healthcare worker using tablet in clinic, ${brandColor} medical interface, Nigerian setting"
+
+OUTPUT FORMAT:
+{
+  "generateImage": true,
+  "images": [
+    {
+      "prompt": "Professional hero image representing ${industry} in ${scopeContext}. Style: ${brandColor}. Show customer using product in real scenario.",
+      "caption": "Hero Image"
+    }
+  ]
+}
+`;
+        } else if (slideType === 'team') {
+            imageGenerationInstructions = `
+IMAGE PROMPT GENERATION (For Team Slide):
+
+Team slides use DEFAULT PROFILE IMAGES - DO NOT generate new images unless explicitly requested.
+
+If user explicitly requests custom team photos:
+{
+  "generateImage": false,
+  "images": [
+    {
+      "prompt": "Professional headshot placeholder",
+      "caption": "[Team Member Name]",
+      "key": "PRESERVE EXISTING KEY",
+      "url": "PRESERVE EXISTING URL",
+      "source": "default",
+      "status": "completed",
+      "isSelected": true
+    }
+  ]
+}
+
+NOTE: Team images are typically NOT regenerated during corrections.
+`;
+        } else if (slideType === 'competitions') {
+            imageGenerationInstructions = `
+IMAGE PROMPT GENERATION (For Competition Slide):
+
+If generateImage is true, generate ONE competitive comparison chart/matrix prompt.
+
+REQUIREMENTS:
+- Visual comparison matrix showing ${startupName} vs competitors
+- Display key differentiators: speed, cost, trust, coverage, etc.
+- Professional chart design with ${brandColor} highlights
+
+EXAMPLE PROMPT:
+"Competitive comparison matrix chart showing ${startupName} vs top 3 competitors across key feature dimensions (speed, cost, trust, coverage). Professional business chart design with ${brandColor} highlights for ${startupName}. Clean, modern, data-driven visualization."
+
+OUTPUT FORMAT:
+{
+  "generateImage": true,
+  "images": [
+    {
+      "prompt": "Competitive comparison matrix or chart showing ${startupName} vs. top 2-3 competitors across key feature dimensions (speed, cost, trust, coverage, etc.). Use real, defensible comparison points. Professional ${brandColor} design.",
+      "caption": "Competitive Comparison Matrix"
+    }
+  ]
+}
+`;
+        }
+    } else {
+        // CONTACT SLIDE: Only 2 icons
+        imageGenerationInstructions = `
+ICON KEYWORD GENERATION (For Contact Slide - 2 Icons Only):
+
+If generateImage is true, generate EXACTLY 2 icon keyword sets (not 3).
+
+Icon 1: Call-to-action (calendar, meeting, appointment)
+Keywords: "calendar-check,calendar,schedule"
+Caption: "[Four Word CTA]"
+
+Icon 2: Contact method (email, website, phone)
+Keywords: "mail-check,mail,envelope"
+Caption: "[Four Word Contact]"
+
+OUTPUT FORMAT:
+{
+  "generateImage": true,
+  "images": [
+    {
+      "prompt": "calendar-check,calendar,schedule",
+      "caption": "Schedule Meeting With Us"
+    },
+    {
+      "prompt": "mail-check,mail,envelope",
+      "caption": "Email Us For Details"
+    }
+  ]
+}
+`;
+    }
+
     return `
 CRITICAL OUTPUT REQUIREMENTS:
 - Return ONLY valid RFC 8259 JSON
@@ -1342,6 +1563,11 @@ WORD LIMITS (STRICT):
 CURRENT SLIDE DATA:
 ${JSON.stringify({ slideType, title, bullets, notes, layout, images }, null, 2)}
 
+SLIDE TYPE CLASSIFICATION:
+- Current slide type: "${slideType}"
+- Is icon-based slide: ${isIconBasedSlide}
+- Is image-based slide: ${isImageBasedSlide}
+
 IMAGE METADATA (PRESERVE ALL FIELDS UNLESS EXPLICITLY CHANGING):
 ${imageContextForAI}
 
@@ -1354,6 +1580,7 @@ FEATURES: ${contextBlocks.features}
 BUSINESS MODEL: ${contextBlocks.businessModel}
 TEAM: ${contextBlocks.team}
 ADDITIONAL INFO: ${contextBlocks.additionalInfo}
+BRAND COLOR: ${brandColor}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 USER CORRECTION REQUEST:
@@ -1371,25 +1598,29 @@ INSTRUCTIONS:
    - Copy all other content EXACTLY as-is (preserve exact wording)
    - If user says "change bullet 2", bullets[0] and bullets[2] must remain identical to input
 
-3. IMAGE INTENT DETECTION:
+3. IMAGE/ICON INTENT DETECTION:
    Set "generateImage": true ONLY if the user's request indicates they want visual/graphical changes:
    
-   **Indicates NEW/CHANGED image needed:**
-   - Mentions image-related words: "image", "picture", "photo", "visual", "graphic", "chart", "diagram", "screenshot", "illustration"
+   **Indicates NEW/CHANGED image/icon needed:**
+   - Mentions image-related words: "image", "picture", "photo", "visual", "graphic", "chart", "diagram", "icon"
    - Requests visual action: "show", "display", "visualize", "depict", "create", "generate", "add", "replace" + visual element
    - Wants to see something: "I want to see X", "display the Y", "show me Z"
+   - Asks to "regenerate icons", "change icons", "update icons"
    
-   **Does NOT need new image (text-only changes):**
+   **Does NOT need new image/icon (text-only changes):**
    - Only mentions text elements: "bullet", "title", "wording", "text", "phrasing"
    - Requests text modifications: "make shorter", "add detail", "rephrase", "fix grammar"
    - Caption-only changes: "fix the caption", "update caption text" (change caption field only, preserve image)
 
-4. PRESERVE IMAGE METADATA:
+4. GENERATE APPROPRIATE IMAGE/ICON CONTENT:
+   ${imageGenerationInstructions}
+
+5. PRESERVE IMAGE METADATA:
    - If generateImage: false → Keep ALL image fields unchanged (prompt, caption, key, url, status, source, isSelected)
    - If caption-only change → Modify caption field only, preserve all other image fields
-   - If new image needed → Create new image object with updated prompt, set key/url to null
+   - If new image/icon needed → Create new image/icon objects with updated prompts, set key/url to null
 
-5. MAINTAIN QUALITY:
+6. MAINTAIN QUALITY:
    - Keep professional tone, avoid hyperbole
    - Ensure metrics are realistic and grounded
    - Stay within word limits
@@ -1409,16 +1640,23 @@ STRICT JSON OUTPUT SCHEMA:
   "layout": "default|title-bullets|image-text|full-image - PRESERVE exactly unless user requested layout change",
   "images": [
     {
-      "prompt": "string - PRESERVE unless new image requested",
-      "caption": "string - PRESERVE unless caption/image change requested",
-      "key": "string (MUST PRESERVE)",
-      "url": "string (MUST PRESERVE)",
-      "source": "string (MUST PRESERVE)",
-      "status": "string (MUST PRESERVE)",
-      "isSelected": "boolean (MUST PRESERVE)"
+      "prompt": "string - ICON KEYWORDS (keyword1,keyword2,keyword3) for icon slides OR IMAGE PROMPT for image slides",
+      "caption": "string - EXACTLY 4 words for icons, descriptive for images",
+      "key": "string (PRESERVE if not generating new)",
+      "url": "string (PRESERVE if not generating new)",
+      "source": "string (PRESERVE if not generating new)",
+      "status": "string (PRESERVE if not generating new)",
+      "isSelected": "boolean (PRESERVE if not generating new)"
     }
   ]
 }
+
+CRITICAL REMINDERS:
+✅ For icon slides: Generate "keyword1,keyword2,keyword3" format (3 keywords, no spaces)
+✅ For image slides: Generate full descriptive image prompts
+✅ SURGICAL EDITS ONLY: Change what was requested, preserve everything else exactly
+✅ If generateImage: false, preserve ALL image metadata fields
+✅ Caption must be EXACTLY 4 words for icon slides
 
 Remember: SURGICAL EDITS ONLY. Change what was requested. Preserve everything else exactly.
 `;
