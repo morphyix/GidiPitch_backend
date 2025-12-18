@@ -78,7 +78,7 @@ async function processSlide({
       amount: 4,
     });
 
-    const slideContent = await generateSlideContent(slidePrompt, { model: 'gemini-2.5-flash' });
+    const slideContent = await generateSlideContent(slidePrompt, { model: 'gemini-2.5-pro' });
     slideContent.status = imageGenType === 'ai' ? 'image_gen' : 'ready';
     slideContent.progress = imageGenType === 'ai' ? 50 : 100;
 
@@ -268,7 +268,7 @@ const pitchDeckWorker = new Worker(
       // ✅ Store in job data for failed handler access
       await job.updateData({ ...job.data, brandTx, trackingData });
 
-      const brandKit = await generateBrandKit(tailwindPrompt, { model: 'gemini-2.5-flash' });
+      const brandKit = await generateBrandKit(tailwindPrompt, { model: 'gemini-2.5-pro' });
       const brandKitObj = {
         background: brandKit?.default?.background || 'bg-amber-950',
         title: brandKit?.default?.title || 'text-yellow-400',
