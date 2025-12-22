@@ -1,6 +1,6 @@
 const express = require('express');
 const { authMiddleware } = require('../middleware/authMiddleware');
-const x402 = require('../middleware/calculatePriceMiddleware');
+const x402 = require('../middleware/calculatePriceMiddleware.cjs');
 const { addPurchaseTokensController, getTokenTransactionsController } = require('../controllers/tokenTransactionController');
 const { verifyPaymentMiddleware } = require('../middleware/verifyPaymentMiddleware');
 
