@@ -1,6 +1,7 @@
 const { paymentMiddleware, x402ResourceServer } = require('@x402/express');
 const { ExactEvmScheme } = require('@x402/evm/exact/server');
 const { HTTPFacilitatorClient } = require('@x402/core/server');
+const { facilitator } = require('@coinbase/x402');
 
 /**
  * Middleware to process payment using X402 v2.
@@ -15,7 +16,7 @@ const facilitatorClient = new HTTPFacilitatorClient({
 });
 
 // Create resource server and register EVM scheme
-const server = new x402ResourceServer(facilitatorClient)
+const server = new x402ResourceServer(facilitator)
     .register("eip155:8453", new ExactEvmScheme()); // Base Sepolia
 
 const x402 = (req, res, next) => {
