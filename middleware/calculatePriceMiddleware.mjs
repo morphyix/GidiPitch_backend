@@ -1,7 +1,7 @@
-const { paymentMiddleware, x402ResourceServer } = require('@x402/express');
-const { ExactEvmScheme } = require('@x402/evm/exact/server');
-const { HTTPFacilitatorClient } = require('@x402/core/server');
-const { facilitator } = require('@coinbase/x402');
+import { paymentMiddleware, x402ResourceServer } from '@x402/express';
+import { ExactEvmScheme } from '@x402/evm/exact/server';
+import { HTTPFacilitatorClient } from '@x402/core/server';
+import { facilitator } from '@coinbase/x402';
 
 /**
  * Middleware to process payment using X402 v2.
@@ -17,9 +17,9 @@ const facilitatorClient = new HTTPFacilitatorClient({
 
 // Create resource server and register EVM scheme
 const server = new x402ResourceServer(facilitator)
-    .register("eip155:8453", new ExactEvmScheme()); // Base Sepolia
+    .register("eip155:8453", new ExactEvmScheme()); // Base mainnet
 
-const x402 = (req, res, next) => {
+export default function x402(req, res, next) {
     // Get price from request context
     const price = req.x402?.price || "0.015"; // Default price if not set
     
@@ -43,5 +43,3 @@ const x402 = (req, res, next) => {
     
     return middleware(req, res, next);
 };
-
-module.exports = x402;
