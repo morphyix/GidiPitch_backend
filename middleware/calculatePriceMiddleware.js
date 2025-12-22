@@ -11,12 +11,12 @@ const walletAddress = "0x32893f02Ac4835592a27D630c51aAA5E5f19B7CA";
 
 // Create facilitator client for testnet
 const facilitatorClient = new HTTPFacilitatorClient({
-    url: "https://x402.org/facilitator"
+    url: "https://api.cdp.coinbase.com/platform/v2/x402"
 });
 
 // Create resource server and register EVM scheme
 const server = new x402ResourceServer(facilitatorClient)
-    .register("eip155:84532", new ExactEvmScheme()); // Base Sepolia
+    .register("eip155:8453", new ExactEvmScheme()); // Base Sepolia
 
 const x402 = (req, res, next) => {
     // Get price from request context
@@ -29,7 +29,7 @@ const x402 = (req, res, next) => {
                     {
                         scheme: "exact",
                         price: `$${price}`,
-                        network: "eip155:84532", // Base Sepolia (CAIP-2 format)
+                        network: "eip155:8453", // Base mainnet (CAIP-2)
                         payTo: walletAddress,
                     },
                 ],
