@@ -5,13 +5,13 @@ function generateForgotPasswordEmail(resetUrl) {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Reset Your Password - GidiPitch</title>
+  <title>Reset Your Password - Decklo</title>
 </head>
 <body style="margin: 0; padding: 0; background-color: #f9fafb; font-family: 'Segoe UI', sans-serif;">
   <div style="max-width: 600px; margin: 40px auto; padding: 32px 24px; background-color: #ffffff; border-radius: 12px; border: 1px solid #e5e7eb; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
 
     <div style="text-align: center;">
-      <img src="" alt="GidiPitch Logo" style="height: 48px; margin-bottom: 24px;" />
+      <img src="https://files.thebigphotocontest.com/decko.png" alt="Decklo Logo" style="height: 48px; margin-bottom: 24px;" />
     </div>
 
     <h2 style="font-size: 24px; font-weight: 700; color: #1f2937; text-align: center; margin-bottom: 8px;">
@@ -23,7 +23,7 @@ function generateForgotPasswordEmail(resetUrl) {
     </p>
 
     <div style="text-align: center; margin-bottom: 24px;">
-      <a href="${resetUrl}" style="display: inline-block; background-color: #4f46e5; color: #ffffff; font-weight: 600; padding: 12px 24px; border-radius: 8px; text-decoration: none;">
+      <a href="${resetUrl}" style="display: inline-block; background-color: #3083DC; color: #ffffff; font-weight: 600; padding: 12px 24px; border-radius: 8px; text-decoration: none;">
         Reset Password
       </a>
     </div>
@@ -33,12 +33,12 @@ function generateForgotPasswordEmail(resetUrl) {
     </p>
 
     <p style="text-align: center; color: #6b7280; font-size: 14px;">
-      Need help? Contact our support team at <a href="mailto:support@gidipitch.com" style="color: #4f46e5;">support@gidipitch.com</a>
+      Need help? Contact our support team at <a href="mailto:support@decklo.xyz" style="color: #3083DC; text-decoration: none;">support@decklo.xyz</a>
     </p>
   </div>
 
   <footer style="text-align: center; font-size: 12px; color: #9ca3af; margin-top: 24px;">
-    © ${new Date().getFullYear()} GidiPitch. All rights reserved.
+    © ${new Date().getFullYear()} Decklo. All rights reserved.
   </footer>
 </body>
 </html>

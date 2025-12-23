@@ -10,51 +10,42 @@ function generateOtpEmail(firstName, otpCode) {
     <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="padding:30px 0;">
       <tbody><tr>
         <td align="center">
-          <!-- Card -->
           <table border="0" cellpadding="0" cellspacing="0" width="500" style="background:#ffffff; border-radius:16px; padding:10px 30px 30px 30px; box-shadow:0 2px 6px rgba(0,0,0,0.05);">
             
-            <!-- Header -->
             <tbody><tr>
               <td align="left" style="padding:0px 0px 25px ; font-family:'Poppins', Arial, sans-serif;">
-                
-                    
                   <table cellpadding="0" cellspacing="0" border="0">
                   <tbody><tr>
                     <td>
-                      <img src="https://files.thebigphotocontest.com/GidiPitch.png" alt="GidiPitch Logo" width="90%" height="90%" style="vertical-align:middle;">
+                      <img src="https://files.thebigphotocontest.com/decko.png" alt="Decklo Logo" width="90%" height="90%" style="vertical-align:middle;">
                     </td></tr>
                 </tbody></table>
               </td>
             </tr>
-            <!-- Heading -->
             <tr>
               <td style="font-size:20px; font-weight:600; color:#111; padding-bottom:20px;">
                 Confirm Verification Code
               </td>
             </tr>
 
-            <!-- Greeting -->
             <tr>
               <td style="font-size:14px; color:#333; padding-bottom:12px;">
                 Hi ${firstName || 'there'},
               </td>
             </tr>
 
-            <!-- Body -->
             <tr>
               <td style="font-size:14px; color:#555; line-height:1.6; padding-bottom:20px;">
-                Thanks for signing up for GidiPitch. Before we get started, please confirm your email address.
+                Thanks for signing up for Decklo. Before we get started, please confirm your email address.
               </td>
             </tr>
 
-            <!-- Instructions -->
             <tr>
               <td style="font-size:14px; color:#333; padding-bottom:12px;">
                 Here’s your verification code:
               </td>
             </tr>
 
-            <!-- Verification Code -->
             <tr>
               <td style="padding-bottom:24px;">
                 <table border="0" cellpadding="0" cellspacing="0">
@@ -75,23 +66,20 @@ function generateOtpEmail(firstName, otpCode) {
               </td>
             </tr>
 
-            <!-- Alternative text -->
             <tr>
               <td style="font-size:14px; color:#555; padding-bottom:20px; ">
                 Or verify directly by clicking below:
               </td>
             </tr>
 
-            <!-- Button -->
             <tr>
               <td style="padding-bottom:24px;">
-                <a href="#" style="background:#f26a2e; color:#ffffff; font-size:14px; font-weight:600; text-decoration:none; padding:14px 36px; border-radius:8px; display:inline-block;">
+                <a href="#" style="background:#3083DC; color:#ffffff; font-size:14px; font-weight:600; text-decoration:none; padding:14px 36px; border-radius:8px; display:inline-block;">
                   Verify Email
                 </a>
               </td>
             </tr>
 
-            <!-- Footer text -->
             <tr>
               <td style="font-size:12px; color:#666; line-height:1.6; padding-bottom:20px;">
                 This code and link will expire in 30 minutes. If you didn’t sign up, please ignore this email.
@@ -106,16 +94,13 @@ function generateOtpEmail(firstName, otpCode) {
 
             <tr>
               <td style="font-size:14px; font-weight:600; color:#333;">
-                Team GidiPitch
+                Team Decklo
               </td>
             </tr>
           </tbody></table>
-          <!-- End Card -->
-        </td>
+          </td>
       </tr>
     </tbody></table>
-  
-
 </body></html>
   `;
 }
