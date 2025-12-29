@@ -28,7 +28,13 @@ app.use(cors({
     origin: [process.env.FRONTEND_URL, 'https://gidi-pitch-glow-up.vercel.app', 'https://www.gidipitch.app', 'https://decklo.xyz', 'https://www.decklo.xyz'],
     credentials: true, // Allow cookies to be sent with requests
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Payment', 'X-Payment-Response'],
+    exposedHeaders: [
+    'X-Payment-Response',  // ← Server sends transaction details here
+    ],
+    // Handle preflight requests
+    preflightContinue: false,
+    optionsSuccessStatus: 204
 }));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
