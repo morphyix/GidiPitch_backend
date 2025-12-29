@@ -20,6 +20,5 @@ router.post('/purchase', verifyPaymentMiddleware, authMiddleware, addPurchaseTok
 router.get('/transactions', authMiddleware, getTokenTransactionsController);
 
 // Route to credit user with bonus tokens (admin only, requires access key)
-router.post('/bonus', creditUserWithBonusTokensController);
 
 module.exports = router;
