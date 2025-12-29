@@ -1,7 +1,7 @@
 const express = require('express');
 const { authMiddleware } = require('../middleware/authMiddleware');
 const x402 = require('../middleware/calculatePriceMiddleware.cjs');
-const { addPurchaseTokensController, getTokenTransactionsController } = require('../controllers/tokenTransactionController');
+const { addPurchaseTokensController, getTokenTransactionsController, creditUserWithBonusTokensController } = require('../controllers/tokenTransactionController');
 const { verifyPaymentMiddleware } = require('../middleware/verifyPaymentMiddleware');
 
 const router = express.Router();
@@ -18,5 +18,8 @@ router.post('/purchase', verifyPaymentMiddleware, authMiddleware, addPurchaseTok
 
 // Route to get token transactions for a user
 router.get('/transactions', authMiddleware, getTokenTransactionsController);
+
+// Route to credit user with bonus tokens (admin only, requires access key)
+router.post('/bonus', creditUserWithBonusTokensController);
 
 module.exports = router;

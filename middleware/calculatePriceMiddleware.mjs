@@ -21,9 +21,9 @@ const x402 = (req, res, next) => {
           inputSchema: {
             type: "object",
             properties: {
-              quantity: { type: "number", minimum: 1 }
+              amount: { type: "number", minimum: 0.01, description: "Amount in USD" },
             },
-            required: ["quantity"]
+            required: ["amount"]
           },
           outputSchema: {
             type: "object",
