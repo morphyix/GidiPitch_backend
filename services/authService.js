@@ -348,6 +348,18 @@ const modifyUserTokensService = async (userId, operation, amount, reason, jobId,
 };
 
 
+// Get count of all registered and verified users
+const getVerifiedUserCountService = async () => {
+    try {
+        const count = await User.countDocuments({ emailVerified: true });
+        return count;
+    } catch (error) {
+        console.error('Error counting verified users:', error);
+        throw new AppError('An error occurred while counting verified users', 500);
+    }
+};
+
+
 //export modules
 module.exports = {
     createUserService,
@@ -356,5 +368,6 @@ module.exports = {
     updateUserService,
     revokeTokenService,
     deleteUserService,
-    modifyUserTokensService
+    modifyUserTokensService,
+    getVerifiedUserCountService
 };

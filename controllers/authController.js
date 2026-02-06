@@ -14,7 +14,7 @@ const { generateWelcomeEmail } = require('../templates/welcomeEmail');
 const { setRedisCache, getRedisCache, deleteRedisCache } = require('../config/redis');
 const { hashString } = require('../utils/hashString');
 const { sanitize } = require('../utils/helper');
-const Resume = require("../models/Resume");
+const { applyPromotionToUser } = require('../services/promoService');
 
 
 // Local user registration controller
@@ -134,6 +134,11 @@ const verifyLocalUserEmailController = async (req, res, next) => {
         // delete password from response
         updatedUser.password = undefined;
 
+        // Apply promotion to user if promotion exists
+        await applyPromotionToUser(updatedUser._id, process.env.CURRENT_PROMOTION_NAME).catch(err => {
+            console.error('Error applying promotion to user:', err);
+        });
+
         // send welcome email
         const welcomeEmailData = {
             to: updatedUser.email,
@@ -193,6 +198,13 @@ const handleSocialLoginUser = async (req, res, next) => {
             sameSite: 'none', // prevent CSRF attacks
             maxAge: 7* 24 * 60 * 60 * 1000 // 7 days expiry
         });
+
+        // Apply promotion to user if promotion exists
+        if (isNew) {
+            await applyPromotionToUser(user._id, process.env.CURRENT_PROMOTION_NAME).catch(err => {
+                console.error('Error applying promotion to user:', err);
+            });
+        }
 
         if (isNew) {
             res.redirect(`${process.env.LIVE_URL}/onboarding`);
