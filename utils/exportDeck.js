@@ -287,7 +287,7 @@ const generateDeckFiles = async (deckId, startupName, { pdf = true, pptx = false
         .replace(/\s+/g, '-')
         .toLowerCase();
 
-    const exportUrl = `https://gidipitch.app/export-slide/${deckId}`;
+    const exportUrl = `https://decklo.xyz/export-slide/${deckId}`;
     const results = {};
     const errors = []; // Collect errors for better final error reporting
 
