@@ -204,10 +204,94 @@ const convertSVGToPNG = async (svgString, size = 512, retries = 2, quality = 100
 };
 
 
+const sortSlides = (clientSlides, industry) => {
+    // Sequoia-style base order
+    const baseOrder = [
+        'cover',
+        'vision',
+        'problem',
+        'solution',
+        'whyNow',
+        'market',
+        'competitions',
+        'product',
+        'traction',
+        'businessModel',
+        'goMarket',
+        'milestones',
+        'team',
+        'financials',
+        'ask',
+        'contact',
+        'thankYou'
+    ];
+
+    const industrySlides = {
+        healthtech: ["compliance", "validation"],
+        biotech: ["compliance", "validation"],
+        fintech: ["security", "regulation"],
+        edtech: ["adoption", "outcomes"],
+        web3: [
+            "tokenomics",
+            "architecture",
+            "onChainMetrics",
+            "web3Regulation",
+            "decentralization",
+            "community"
+        ],
+        defi: [
+            "tokenomics",
+            "architecture",
+            "onChainMetrics",
+            "web3Regulation",
+            "decentralization",
+            "community"
+        ],
+    };
+
+    const extra = industrySlides[(industry || "").toLowerCase()] || [];
+
+    // Decide where to insert industry slides
+    let insertAfter = 'competitions';
+
+    if (['healthtech', 'biotech'].includes((industry || "").toLowerCase())) {
+        insertAfter = 'solution'; // science validation early
+    }
+
+    if ((industry || "").toLowerCase() === 'fintech') {
+        insertAfter = 'solution'; // regulation comes early
+    }
+
+    // Build final order
+    const insertIndex = baseOrder.indexOf(insertAfter) + 1;
+
+    const fullOrder = [
+        ...baseOrder.slice(0, insertIndex),
+        ...extra,
+        ...baseOrder.slice(insertIndex)
+    ];
+
+    // Create priority map
+    const priority = {};
+    fullOrder.forEach((slide, index) => {
+        priority[slide] = index;
+    });
+
+    // Sort slides by priority
+    return [...clientSlides].sort((a, b) => {
+        const aPriority = priority[a] ?? Infinity;
+        const bPriority = priority[b] ?? Infinity;
+        return aPriority - bPriority;
+    });
+};
+
+
+
 module.exports = {
     sanitize,
     extractFileKey,
     generatePdfFromHtml,
     sanitizeGeminiResponse,
     convertSVGToPNG,
+    sortSlides
 }

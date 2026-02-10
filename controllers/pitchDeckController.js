@@ -5,7 +5,7 @@ const { createSlideService, getSlidesByDeckIdService, getSlideByIdService, delet
 const { addPitchDeckJob } = require('../jobs/pitchDeckGenerator/queue');
 const { generatePromptsForSlides, getAllowedSlides, generateCorrectionPrompt, createTailwindPrompt } = require('../utils/generatePitchPrompts');
 const { AppError } = require('../utils/error');
-const { sanitize } = require('../utils/helper');
+const { sanitize, sortSlides } = require('../utils/helper');
 const { addSlideCorrectionJob } = require('../jobs/slideCorrection/queue');
 const { addExportJob } = require('../jobs/exportDeck/queue');
 const { deleteFileService } = require('../services/uploadService');
@@ -89,8 +89,11 @@ const createPitchDeckController = async (req, res, next) => {
         let deckProgress = 0;
         let slideCount = 0;
 
+        // Sort slides according to industry and sequoia style
+        const sortedSlides = sortSlides(Object.keys(prompts), industry);
+
         // Create all slide entries in the database with status 'pending'
-        for (const key of Object.keys(prompts)) {
+        for (const key of sortedSlides) {
             const newSlide = await createSlideService({
                 deckId: newDeck._id,
                 slideType: key,
