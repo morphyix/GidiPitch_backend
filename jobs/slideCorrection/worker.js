@@ -117,7 +117,7 @@ const slideCorrectionWorker = new Worker(
 
             // Generate the image
             let imgObj;
-            if (slide.slideType === 'competitions') {
+            if (slide.slideType === 'competitions' || slide.slideType === 'competition') {
               imgObj = await generateRunwareImage(image.prompt, { model: 'google:4@2' });
             } else if (slide.slideType === 'cover') {
               imgObj = await generateRunwareImage(image.prompt);

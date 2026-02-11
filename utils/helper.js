@@ -254,6 +254,11 @@ const sortSlides = (clientSlides, industry) => {
     // Decide where to insert industry slides
     let insertAfter = 'competitions';
 
+    // Confirm if competition slide is competition or competitions in clientSlides
+    if (clientSlides.includes('competition') && !clientSlides.includes('competitions')) {
+        insertAfter = 'competition';
+    }
+
     if (['healthtech', 'biotech'].includes((industry || "").toLowerCase())) {
         insertAfter = 'solution'; // science validation early
     }
